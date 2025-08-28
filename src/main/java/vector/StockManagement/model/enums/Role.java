@@ -1,4 +1,4 @@
-package vector.StockManagement.model;
+package vector.StockManagement.model.enums;
 
 
 
@@ -11,7 +11,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 
-import static vector.StockManagement.model.Permission.*;
+import static vector.StockManagement.model.enums.Permission.*;
 
 
 @RequiredArgsConstructor

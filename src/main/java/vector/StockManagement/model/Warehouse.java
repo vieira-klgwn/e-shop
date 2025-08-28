@@ -1,19 +1,24 @@
-package goma.gorilla.backend.model;
+package vector.StockManagement.model;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import lombok.*;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
 import java.util.HashMap;
 import java.util.Map;
 
+@EqualsAndHashCode(callSuper = true)
 @Entity
 @Table(name = "warehouses", indexes = {
         @Index(name = "idx_warehouse_code_tenant", columnList = "code, tenant_id", unique = true)
 })
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class Warehouse extends BaseEntity {
 
     @NotBlank
@@ -69,8 +74,7 @@ public class Warehouse extends BaseEntity {
     @Column(name = "attributes", columnDefinition = "json")
     private Map<String, Object> attributes = new HashMap<>();
 
-    // --- Constructors ---
-    public Warehouse() {}
+
 
     public Warehouse(Distributor distributor, String name, String code, Tenant tenant) {
         this.distributor = distributor;
@@ -79,51 +83,10 @@ public class Warehouse extends BaseEntity {
         this.tenant = tenant;
     }
 
-    // --- Getters & Setters ---
-    public Distributor getDistributor() { return distributor; }
-    public void setDistributor(Distributor distributor) { this.distributor = distributor; }
-
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
-
-    public String getCode() { return code; }
-    public void setCode(String code) { this.code = code; }
-
-    public String getAddress() { return address; }
-    public void setAddress(String address) { this.address = address; }
-
-    public String getCity() { return city; }
-    public void setCity(String city) { this.city = city; }
-
-    public String getRegion() { return region; }
-    public void setRegion(String region) { this.region = region; }
-
-    public String getPostalCode() { return postalCode; }
-    public void setPostalCode(String postalCode) { this.postalCode = postalCode; }
-
-    public String getPhone() { return phone; }
-    public void setPhone(String phone) { this.phone = phone; }
-
-    public String getEmail() { return email; }
-    public void setEmail(String email) { this.email = email; }
-
-    public User getManager() { return manager; }
-    public void setManager(User manager) { this.manager = manager; }
-
-    public Tenant getTenant() { return tenant; }
-    public void setTenant(Tenant tenant) { this.tenant = tenant; }
-
-    public Boolean getIsActive() { return isActive; }
-    public void setIsActive(Boolean isActive) { this.isActive = isActive; }
-
-    public Map<String, Object> getAttributes() { return attributes; }
-    public void setAttributes(Map<String, Object> attributes) { this.attributes = attributes; }
-
     // --- toString ---
     @Override
     public String toString() {
         return "Warehouse{" +
-                "id=" + getId() +
                 ", name='" + name + '\'' +
                 ", code='" + code + '\'' +
                 ", distributor=" + (distributor != null ? distributor.getCompanyName() : null) +

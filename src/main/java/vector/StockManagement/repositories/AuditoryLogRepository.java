@@ -1,7 +1,10 @@
-package goma.gorilla.backend.repositories;
+package vector.StockManagement.repositories;
 
-import goma.gorilla.backend.model.Adjustment;
+import org.springframework.stereotype.Repository;
+import vector.StockManagement.model.Adjustment;
 import org.springframework.data.jpa.repository.JpaRepository;
+import vector.StockManagement.model.AuditLog;
 
-public interface AuditoryLogRepository extends JpaRepository<Adjustment, Long> {
+
+public interface AuditoryLogRepository extends JpaRepository<AuditLog, Long> {
 }

@@ -1,4 +1,4 @@
-package goma.gorilla.backend.model.enums;
+package vector.StockManagement.model.enums;
 
 // User Status
 public enum UserStatus {

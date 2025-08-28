@@ -1,4 +1,12 @@
-package goma.gorilla.backend.services;
+package vector.StockManagement.services;
 
-public class AdjustmentService {
+import vector.StockManagement.model.Adjustment;
+
+import java.util.List;
+
+public interface AdjustmentService {
+    List<Adjustment> findAll();
+    Adjustment findById(Long id);
+    Adjustment save(Adjustment adjustment);
+    void delete(Long id);
 }

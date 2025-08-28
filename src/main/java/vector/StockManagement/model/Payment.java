@@ -1,8 +1,8 @@
-package goma.gorilla.backend.model;
+package vector.StockManagement.model;
 
-import goma.gorilla.backend.model.enums.AdjustmentReason;
-import goma.gorilla.backend.model.enums.LocationType;
-import goma.gorilla.backend.model.enums.PaymentMethod;
+import vector.StockManagement.model.enums.AdjustmentReason;
+import vector.StockManagement.model.enums.LocationType;
+import vector.StockManagement.model.enums.PaymentMethod;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Index;
 import jakarta.persistence.Table;
@@ -153,7 +153,7 @@ public class Payment extends BaseEntity {
     @Override
     public String toString() {
         return "Payment{" +
-                "id=" + getId() +
+
                 ", method=" + method +
                 ", amount=" + amount +
                 ", currency='" + currency + '\'' +

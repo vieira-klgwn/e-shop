@@ -1,4 +1,4 @@
 package vector.StockManagement.services;
 
-public class OrderLineService {
+public class NotificationSerivice {
 }

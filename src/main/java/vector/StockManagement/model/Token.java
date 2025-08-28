@@ -1,4 +1,4 @@
-package vector.StockManagement.models;
+package vector.StockManagement.model;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -6,6 +6,7 @@ import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedBy;
 import org.springframework.data.annotation.LastModifiedDate;
+import vector.StockManagement.model.enums.TokenType;
 
 import java.time.LocalDateTime;
 

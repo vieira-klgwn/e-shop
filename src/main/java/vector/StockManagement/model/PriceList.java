@@ -1,16 +1,21 @@
-package goma.gorilla.backend.model;
+package vector.StockManagement.model;
 
-import goma.gorilla.backend.model.enums.PriceListLevel;
+import vector.StockManagement.model.enums.PriceListLevel;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import lombok.*;
 
 import java.time.LocalDate;
 
 // Price List Entity
+@EqualsAndHashCode(callSuper = true)
 @Entity
 @Table(name = "price_lists")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class PriceList extends BaseEntity {
 
     @NotBlank
@@ -44,8 +49,7 @@ public class PriceList extends BaseEntity {
     @Column(name = "description", length = 500)
     private String description;
 
-    // Constructors
-    public PriceList() {}
+
 
     public PriceList(String name, PriceListLevel level, String currency, Tenant tenant) {
         this.name = name;
@@ -54,70 +58,6 @@ public class PriceList extends BaseEntity {
         this.tenant = tenant;
     }
 
-    // Getters and Setters
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public PriceListLevel getLevel() {
-        return level;
-    }
-
-    public void setLevel(PriceListLevel level) {
-        this.level = level;
-    }
-
-    public String getCurrency() {
-        return currency;
-    }
-
-    public void setCurrency(String currency) {
-        this.currency = currency;
-    }
-
-    public LocalDate getValidFrom() {
-        return validFrom;
-    }
-
-    public void setValidFrom(LocalDate validFrom) {
-        this.validFrom = validFrom;
-    }
-
-    public LocalDate getValidTo() {
-        return validTo;
-    }
-
-    public void setValidTo(LocalDate validTo) {
-        this.validTo = validTo;
-    }
-
-    public Boolean getIsActive() {
-        return isActive;
-    }
-
-    public void setIsActive(Boolean isActive) {
-        this.isActive = isActive;
-    }
-
-    public Tenant getTenant() {
-        return tenant;
-    }
-
-    public void setTenant(Tenant tenant) {
-        this.tenant = tenant;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
 
     // Helper methods
     public boolean isValidForDate(LocalDate date) {
@@ -130,7 +70,6 @@ public class PriceList extends BaseEntity {
     @Override
     public String toString() {
         return "PriceList{" +
-                "id=" + getId() +
                 ", name='" + name + '\'' +
                 ", level=" + level +
                 ", currency='" + currency + '\'' +

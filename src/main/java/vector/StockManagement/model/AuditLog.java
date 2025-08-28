@@ -1,9 +1,10 @@
-package goma.gorilla.backend.model;
+package vector.StockManagement.model;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 
 import jakarta.validation.constraints.Size;
+import lombok.*;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
@@ -12,6 +13,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 // Audit Log Entity
+@EqualsAndHashCode(callSuper = true)
 @Entity
 @Table(name = "audit_logs", indexes = {
         @Index(name = "idx_audit_actor", columnList = "actor_id"),
@@ -19,6 +21,10 @@ import java.util.Map;
         @Index(name = "idx_audit_action", columnList = "action"),
         @Index(name = "idx_audit_timestamp", columnList = "timestamp")
 })
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class AuditLog extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -65,10 +71,6 @@ public class AuditLog extends BaseEntity {
     @Column(name = "description")
     private String description;
 
-    // Constructors
-    public AuditLog() {
-        this.timestamp = LocalDateTime.now();
-    }
 
     public AuditLog(User actor, String action, String entity, Long entityId, Tenant tenant) {
         this();
@@ -79,99 +81,10 @@ public class AuditLog extends BaseEntity {
         this.tenant = tenant;
     }
 
-    // Getters and Setters
-    public User getActor() {
-        return actor;
-    }
-
-    public void setActor(User actor) {
-        this.actor = actor;
-    }
-
-    public String getAction() {
-        return action;
-    }
-
-    public void setAction(String action) {
-        this.action = action;
-    }
-
-    public String getEntity() {
-        return entity;
-    }
-
-    public void setEntity(String entity) {
-        this.entity = entity;
-    }
-
-    public Long getEntityId() {
-        return entityId;
-    }
-
-    public void setEntityId(Long entityId) {
-        this.entityId = entityId;
-    }
-
-    public Map<String, Object> getBeforeData() {
-        return beforeData;
-    }
-
-    public void setBeforeData(Map<String, Object> beforeData) {
-        this.beforeData = beforeData;
-    }
-
-    public Map<String, Object> getAfterData() {
-        return afterData;
-    }
-
-    public void setAfterData(Map<String, Object> afterData) {
-        this.afterData = afterData;
-    }
-
-    public LocalDateTime getTimestamp() {
-        return timestamp;
-    }
-
-    public void setTimestamp(LocalDateTime timestamp) {
-        this.timestamp = timestamp;
-    }
-
-    public String getIpAddress() {
-        return ipAddress;
-    }
-
-    public void setIpAddress(String ipAddress) {
-        this.ipAddress = ipAddress;
-    }
-
-    public String getUserAgent() {
-        return userAgent;
-    }
-
-    public void setUserAgent(String userAgent) {
-        this.userAgent = userAgent;
-    }
-
-    public Tenant getTenant() {
-        return tenant;
-    }
-
-    public void setTenant(Tenant tenant) {
-        this.tenant = tenant;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
 
     @Override
     public String toString() {
         return "AuditLog{" +
-                "id=" + getId() +
                 ", actor=" + (actor != null ? actor.getUsername() : null) +
                 ", action='" + action + '\'' +
                 ", entity='" + entity + '\'' +

@@ -1,4 +1,4 @@
-package vector.StockManagement.models;
+package vector.StockManagement.model.enums;
 
 public enum TokenType {
     BEARER,

@@ -1,7 +1,8 @@
-package goma.gorilla.backend.model;
+package vector.StockManagement.model;
 
-import goma.gorilla.backend.model.enums.LocationType;
-import goma.gorilla.backend.model.enums.StockTransactionType;
+
+import vector.StockManagement.model.enums.LocationType;
+import vector.StockManagement.model.enums.StockTransactionType;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -13,9 +14,11 @@ import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotNull;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
+import lombok.*;
 
 
 // Stock Transaction Entity
+@EqualsAndHashCode(callSuper = true)
 @Entity
 @Table(name = "stock_transactions", indexes = {
         @Index(name = "idx_stock_txn_product", columnList = "product_id"),
@@ -23,6 +26,9 @@ import jakarta.validation.constraints.Size;
         @Index(name = "idx_stock_txn_timestamp", columnList = "timestamp"),
         @Index(name = "idx_stock_txn_ref", columnList = "ref_type, ref_id")
 })
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class StockTransaction extends BaseEntity {
 
     @NotNull
@@ -43,7 +49,7 @@ public class StockTransaction extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id", nullable = false)
-    private goma.gorilla.backend.model.Product product;
+    private Product product;
 
     @NotNull
     @Column(name = "qty", nullable = false)
@@ -81,12 +87,7 @@ public class StockTransaction extends BaseEntity {
     @Column(name = "expiry_date")
     private LocalDateTime expiryDate;
 
-    // Constructors
-    public StockTransaction() {
-        this.timestamp = LocalDateTime.now();
-    }
-
-    public StockTransaction(StockTransactionType type, LocationType level, goma.gorilla.backend.model.Product product,
+    public StockTransaction(StockTransactionType type, LocationType level, Product product,
                             Integer qty, User createdBy, Tenant tenant) {
         this();
         this.type = type;
@@ -97,131 +98,10 @@ public class StockTransaction extends BaseEntity {
         this.tenant = tenant;
     }
 
-    // Getters and Setters
-    public StockTransactionType getType() {
-        return type;
-    }
-
-    public void setType(StockTransactionType type) {
-        this.type = type;
-    }
-
-    public LocationType getLevel() {
-        return level;
-    }
-
-    public void setLevel(LocationType level) {
-        this.level = level;
-    }
-
-    public Long getFromLocationId() {
-        return fromLocationId;
-    }
-
-    public void setFromLocationId(Long fromLocationId) {
-        this.fromLocationId = fromLocationId;
-    }
-
-    public Long getToLocationId() {
-        return toLocationId;
-    }
-
-    public void setToLocationId(Long toLocationId) {
-        this.toLocationId = toLocationId;
-    }
-
-    public goma.gorilla.backend.model.Product getProduct() {
-        return product;
-    }
-
-    public void setProduct(goma.gorilla.backend.model.Product product) {
-        this.product = product;
-    }
-
-    public Integer getQty() {
-        return qty;
-    }
-
-    public void setQty(Integer qty) {
-        this.qty = qty;
-    }
-
-    public BigDecimal getUnitCost() {
-        return unitCost;
-    }
-
-    public void setUnitCost(BigDecimal unitCost) {
-        this.unitCost = unitCost;
-    }
-
-    public String getRefType() {
-        return refType;
-    }
-
-    public void setRefType(String refType) {
-        this.refType = refType;
-    }
-
-    public Long getRefId() {
-        return refId;
-    }
-
-    public void setRefId(Long refId) {
-        this.refId = refId;
-    }
-
-    public LocalDateTime getTimestamp() {
-        return timestamp;
-    }
-
-    public void setTimestamp(LocalDateTime timestamp) {
-        this.timestamp = timestamp;
-    }
-
-    public User getCreatedBy() {
-        return createdBy;
-    }
-
-    public void setCreatedBy(User createdBy) {
-        this.createdBy = createdBy;
-    }
-
-    public String getNotes() {
-        return notes;
-    }
-
-    public void setNotes(String notes) {
-        this.notes = notes;
-    }
-
-    public Tenant getTenant() {
-        return tenant;
-    }
-
-    public void setTenant(Tenant tenant) {
-        this.tenant = tenant;
-    }
-
-    public String getBatchNumber() {
-        return batchNumber;
-    }
-
-    public void setBatchNumber(String batchNumber) {
-        this.batchNumber = batchNumber;
-    }
-
-    public LocalDateTime getExpiryDate() {
-        return expiryDate;
-    }
-
-    public void setExpiryDate(LocalDateTime expiryDate) {
-        this.expiryDate = expiryDate;
-    }
 
     @Override
     public String toString() {
         return "StockTransaction{" +
-                "id=" + getId() +
                 ", type=" + type +
                 ", level=" + level +
                 ", product=" + (product != null ? product.getSku() : null) +

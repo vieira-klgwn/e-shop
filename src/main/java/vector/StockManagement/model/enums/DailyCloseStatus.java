@@ -1,4 +1,4 @@
-package goma.gorilla.backend.model.enums;
+package vector.StockManagement.model.enums;
 
 // Daily Close Status
 public enum DailyCloseStatus {

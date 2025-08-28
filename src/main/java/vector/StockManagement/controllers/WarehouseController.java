@@ -1,4 +1,4 @@
-package goma.gorilla.backend.controllers;
+package vector.StockManagement.controllers;
 
 public class WarehouseController {
 }

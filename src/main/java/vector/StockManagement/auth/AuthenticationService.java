@@ -13,10 +13,10 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import vector.StockManagement.config.JwtService;
-import vector.StockManagement.models.Token;
-import vector.StockManagement.models.TokenType;
-import vector.StockManagement.models.User;
-import vector.StockManagement.models.Gender;
+import vector.StockManagement.model.Token;
+import vector.StockManagement.model.enums.TokenType;
+import vector.StockManagement.model.User;
+import vector.StockManagement.model.enums.Gender;
 import vector.StockManagement.repositories.TokenRepository;
 import vector.StockManagement.repositories.UserRepository;
 

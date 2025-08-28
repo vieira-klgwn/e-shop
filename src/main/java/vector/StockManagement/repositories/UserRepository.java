@@ -1,7 +1,7 @@
 package vector.StockManagement.repositories;
 
 import org.springframework.data.jpa.repository.JpaRepository;
-import vector.StockManagement.models.User;
+import vector.StockManagement.model.User;
 
 import java.util.Optional;
 

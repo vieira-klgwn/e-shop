@@ -1,4 +1,4 @@
 package vector.StockManagement.controllers;
 
-public class OrderlineController {
+public class NotificationController {
 }

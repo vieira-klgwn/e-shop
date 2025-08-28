@@ -1,7 +1,8 @@
-package goma.gorilla.backend.model;
+package vector.StockManagement.model;
 
-import goma.gorilla.backend.model.enums.AdjustmentReason;
-import goma.gorilla.backend.model.enums.LocationType;
+import lombok.*;
+import vector.StockManagement.model.enums.AdjustmentReason;
+import vector.StockManagement.model.enums.LocationType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Index;
 import jakarta.persistence.Table;
@@ -12,11 +13,15 @@ import jakarta.validation.constraints.Size;
 import java.time.LocalDateTime;
 
 // Adjustment Entity
+@EqualsAndHashCode(callSuper = true)
 @Entity
 @Table(name = "adjustments", indexes = {
         @Index(name = "idx_adjustment_location", columnList = "level, location_id"),
         @Index(name = "idx_adjustment_product", columnList = "product_id")
 })
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class Adjustment extends BaseEntity {
 
     @NotNull
@@ -30,7 +35,7 @@ public class Adjustment extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id", nullable = false)
-    private goma.gorilla.backend.model.Product product;
+    private Product product;
 
     @NotNull
     @Column(name = "qty_delta", nullable = false)
@@ -60,10 +65,9 @@ public class Adjustment extends BaseEntity {
     @JoinColumn(name = "tenant_id", nullable = false)
     private Tenant tenant;
 
-    // Constructors
-    public Adjustment() {}
 
-    public Adjustment(LocationType level, Long locationId, goma.gorilla.backend.model.Product product,
+
+    public Adjustment(LocationType level, Long locationId, Product product,
                       Integer qtyDelta, AdjustmentReason reason, User createdBy, Tenant tenant) {
         this.level = level;
         this.locationId = locationId;
@@ -74,86 +78,6 @@ public class Adjustment extends BaseEntity {
         this.tenant = tenant;
     }
 
-    // Getters and Setters
-    public LocationType getLevel() {
-        return level;
-    }
-
-    public void setLevel(LocationType level) {
-        this.level = level;
-    }
-
-    public Long getLocationId() {
-        return locationId;
-    }
-
-    public void setLocationId(Long locationId) {
-        this.locationId = locationId;
-    }
-
-    public goma.gorilla.backend.model.Product getProduct() {
-        return product;
-    }
-
-    public void setProduct(goma.gorilla.backend.model.Product product) {
-        this.product = product;
-    }
-
-    public Integer getQtyDelta() {
-        return qtyDelta;
-    }
-
-    public void setQtyDelta(Integer qtyDelta) {
-        this.qtyDelta = qtyDelta;
-    }
-
-    public AdjustmentReason getReason() {
-        return reason;
-    }
-
-    public void setReason(AdjustmentReason reason) {
-        this.reason = reason;
-    }
-
-    public String getNote() {
-        return note;
-    }
-
-    public void setNote(String note) {
-        this.note = note;
-    }
-
-    public User getCreatedBy() {
-        return createdBy;
-    }
-
-    public void setCreatedBy(User createdBy) {
-        this.createdBy = createdBy;
-    }
-
-    public User getApprovedBy() {
-        return approvedBy;
-    }
-
-    public void setApprovedBy(User approvedBy) {
-        this.approvedBy = approvedBy;
-    }
-
-    public LocalDateTime getApprovedAt() {
-        return approvedAt;
-    }
-
-    public void setApprovedAt(LocalDateTime approvedAt) {
-        this.approvedAt = approvedAt;
-    }
-
-    public Tenant getTenant() {
-        return tenant;
-    }
-
-    public void setTenant(Tenant tenant) {
-        this.tenant = tenant;
-    }
 
     // Helper methods
     public boolean isApproved() {
@@ -168,7 +92,6 @@ public class Adjustment extends BaseEntity {
     @Override
     public String toString() {
         return "Adjustment{" +
-                "id=" + getId() +
                 ", level=" + level +
                 ", locationId=" + locationId +
                 ", product=" + (product != null ? product.getSku() : null) +

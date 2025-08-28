@@ -1,10 +1,11 @@
-package goma.gorilla.backend.model;
+package vector.StockManagement.model;
 
-import goma.gorilla.backend.model.enums.InvoiceStatus;
+import vector.StockManagement.model.enums.InvoiceStatus;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import lombok.*;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
@@ -17,6 +18,7 @@ import java.util.Map;
 /**
  * Invoice Entity
  */
+@EqualsAndHashCode(callSuper = true)
 @Entity
 @Table(name = "invoices", indexes = {
         @Index(name = "idx_invoice_number", columnList = "number", unique = true),
@@ -25,6 +27,9 @@ import java.util.Map;
         @Index(name = "idx_invoice_store", columnList = "store_id"),
         @Index(name = "idx_invoice_status", columnList = "status")
 })
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class Invoice extends BaseEntity {
 
     @NotBlank
@@ -74,11 +79,6 @@ public class Invoice extends BaseEntity {
     @Column(name = "currency", length = 3)
     private String currency;
 
-    // --- Constructors ---
-
-    public Invoice() {
-        initializeAmounts();
-    }
 
     public Invoice(Order order, Tenant tenant) {
         this();
@@ -91,43 +91,7 @@ public class Invoice extends BaseEntity {
         copyAmountsFromOrder();
     }
 
-    // --- Getters & Setters ---
 
-    public String getNumber() { return number; }
-    public void setNumber(String number) { this.number = number; }
-
-    public Order getOrder() { return order; }
-    public void setOrder(Order order) { this.order = order; }
-
-    public Distributor getDistributor() { return distributor; }
-    public void setDistributor(Distributor distributor) { this.distributor = distributor; }
-
-    public Store getStore() { return store; }
-    public void setStore(Store store) { this.store = store; }
-
-    public InvoiceStatus getStatus() { return status; }
-    public void setStatus(InvoiceStatus status) { this.status = status; }
-
-    public Map<String, BigDecimal> getAmounts() { return amounts; }
-    public void setAmounts(Map<String, BigDecimal> amounts) { this.amounts = amounts; }
-
-    public LocalDateTime getIssuedAt() { return issuedAt; }
-    public void setIssuedAt(LocalDateTime issuedAt) { this.issuedAt = issuedAt; }
-
-    public LocalDate getDueDate() { return dueDate; }
-    public void setDueDate(LocalDate dueDate) { this.dueDate = dueDate; }
-
-    public User getIssuedBy() { return issuedBy; }
-    public void setIssuedBy(User issuedBy) { this.issuedBy = issuedBy; }
-
-    public Tenant getTenant() { return tenant; }
-    public void setTenant(Tenant tenant) { this.tenant = tenant; }
-
-    public String getNotes() { return notes; }
-    public void setNotes(String notes) { this.notes = notes; }
-
-    public String getCurrency() { return currency; }
-    public void setCurrency(String currency) { this.currency = currency; }
 
     // --- Helper Methods ---
 
@@ -190,7 +154,6 @@ public class Invoice extends BaseEntity {
     @Override
     public String toString() {
         return "Invoice{" +
-                "id=" + getId() +
                 ", number='" + number + '\'' +
                 ", status=" + status +
                 ", totalAmount=" + getTotalAmount() +

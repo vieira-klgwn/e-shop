@@ -4,7 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import vector.StockManagement.models.Role;
+import vector.StockManagement.model.enums.Role;
 
 @Data
 @Builder

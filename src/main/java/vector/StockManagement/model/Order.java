@@ -1,13 +1,13 @@
-package goma.gorilla.backend.model;
+package vector.StockManagement.model;
 
-import goma.gorilla.backend.model.enums.OrderChannel;
-import goma.gorilla.backend.model.enums.OrderLevel;
-import goma.gorilla.backend.model.enums.OrderStatus;
+import vector.StockManagement.model.enums.OrderChannel;
+import vector.StockManagement.model.enums.OrderLevel;
+import vector.StockManagement.model.enums.OrderStatus;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import lombok.*;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Map;
 
 // Order Entity
+@EqualsAndHashCode(callSuper = true)
 @Entity
 @Table(name = "orders", indexes = {
         @Index(name = "idx_order_number", columnList = "number", unique = true),
@@ -27,6 +28,9 @@ import java.util.Map;
         @Index(name = "idx_order_store", columnList = "store_id"),
         @Index(name = "idx_order_created_at", columnList = "created_at")
 })
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class Order extends BaseEntity {
 
     @NotBlank
@@ -104,10 +108,7 @@ public class Order extends BaseEntity {
     @Column(name = "delivery_address", length = 500)
     private String deliveryAddress;
 
-    // Constructors
-    public Order() {
-        initializeTotals();
-    }
+
 
     public Order(OrderLevel level, String currency, User createdBy, Tenant tenant) {
         this();
@@ -116,159 +117,6 @@ public class Order extends BaseEntity {
         this.createdBy = createdBy;
         this.tenant = tenant;
         this.number = generateOrderNumber();
-    }
-
-    // Getters and Setters
-    public String getNumber() {
-        return number;
-    }
-
-    public void setNumber(String number) {
-        this.number = number;
-    }
-
-    public OrderLevel getLevel() {
-        return level;
-    }
-
-    public void setLevel(OrderLevel level) {
-        this.level = level;
-    }
-
-    public OrderChannel getChannel() {
-        return channel;
-    }
-
-    public void setChannel(OrderChannel channel) {
-        this.channel = channel;
-    }
-
-    public Distributor getDistributor() {
-        return distributor;
-    }
-
-    public void setDistributor(Distributor distributor) {
-        this.distributor = distributor;
-    }
-
-    public Store getStore() {
-        return store;
-    }
-
-    public void setStore(Store store) {
-        this.store = store;
-    }
-
-    public OrderStatus getStatus() {
-        return status;
-    }
-
-    public void setStatus(OrderStatus status) {
-        this.status = status;
-    }
-
-    public String getCurrency() {
-        return currency;
-    }
-
-    public void setCurrency(String currency) {
-        this.currency = currency;
-    }
-
-    public Map<String, BigDecimal> getTotals() {
-        return totals;
-    }
-
-    public void setTotals(Map<String, BigDecimal> totals) {
-        this.totals = totals;
-    }
-
-    public User getCreatedBy() {
-        return createdBy;
-    }
-
-    public void setCreatedBy(User createdBy) {
-        this.createdBy = createdBy;
-    }
-
-    public User getApprovedBy() {
-        return approvedBy;
-    }
-
-    public void setApprovedBy(User approvedBy) {
-        this.approvedBy = approvedBy;
-    }
-
-    public LocalDateTime getApprovedAt() {
-        return approvedAt;
-    }
-
-    public void setApprovedAt(LocalDateTime approvedAt) {
-        this.approvedAt = approvedAt;
-    }
-
-    public LocalDateTime getSubmittedAt() {
-        return submittedAt;
-    }
-
-    public void setSubmittedAt(LocalDateTime submittedAt) {
-        this.submittedAt = submittedAt;
-    }
-
-    public LocalDateTime getCancelledAt() {
-        return cancelledAt;
-    }
-
-    public void setCancelledAt(LocalDateTime cancelledAt) {
-        this.cancelledAt = cancelledAt;
-    }
-
-    public String getNotes() {
-        return notes;
-    }
-
-    public void setNotes(String notes) {
-        this.notes = notes;
-    }
-
-    public String getCancellationReason() {
-        return cancellationReason;
-    }
-
-    public void setCancellationReason(String cancellationReason) {
-        this.cancellationReason = cancellationReason;
-    }
-
-    public Tenant getTenant() {
-        return tenant;
-    }
-
-    public void setTenant(Tenant tenant) {
-        this.tenant = tenant;
-    }
-
-    public List<OrderLine> getOrderLines() {
-        return orderLines;
-    }
-
-    public void setOrderLines(List<OrderLine> orderLines) {
-        this.orderLines = orderLines;
-    }
-
-    public LocalDateTime getDeliveryDate() {
-        return deliveryDate;
-    }
-
-    public void setDeliveryDate(LocalDateTime deliveryDate) {
-        this.deliveryDate = deliveryDate;
-    }
-
-    public String getDeliveryAddress() {
-        return deliveryAddress;
-    }
-
-    public void setDeliveryAddress(String deliveryAddress) {
-        this.deliveryAddress = deliveryAddress;
     }
 
     // Helper methods
@@ -372,7 +220,6 @@ public class Order extends BaseEntity {
     @Override
     public String toString() {
         return "Order{" +
-                "id=" + getId() +
                 ", number='" + number + '\'' +
                 ", level=" + level +
                 ", status=" + status +

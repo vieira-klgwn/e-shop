@@ -1,4 +1,4 @@
-package vector.StockManagement.model;
+package vector.StockManagement.model.enums;
 
 
 

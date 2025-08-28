@@ -1,5 +1,4 @@
-package goma.gorilla.backend.model.enums;
-
+package vector.StockManagement.model.enums;
 // Invoice Status
 public enum InvoiceStatus {
     DRAFT,

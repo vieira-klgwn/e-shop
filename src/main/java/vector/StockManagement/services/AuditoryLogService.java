@@ -1,4 +1,12 @@
-package goma.gorilla.backend.services;
+package vector.StockManagement.services;
 
-public class AuditoryLogService {
+import vector.StockManagement.model.AuditLog;
+
+import java.util.List;
+
+public interface AuditoryLogService {
+    List<AuditLog> findAll();
+    AuditLog findById(Long id);
+    AuditLog save(AuditLog auditLog);
+    void delete(Long id);
 }

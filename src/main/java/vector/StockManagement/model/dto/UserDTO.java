@@ -1,4 +1,4 @@
-package vector.StockManagement.models;
+package vector.StockManagement.model.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

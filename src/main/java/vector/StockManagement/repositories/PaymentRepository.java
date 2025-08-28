@@ -1,7 +1,9 @@
-package goma.gorilla.backend.repositories;
+package vector.StockManagement.repositories;
 
-import goma.gorilla.backend.model.Payment;
+import org.springframework.stereotype.Repository;
+import vector.StockManagement.model.Payment;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+@Repository
 public interface PaymentRepository extends JpaRepository<Payment, Long> {
 }

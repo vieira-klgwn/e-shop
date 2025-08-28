@@ -1,23 +1,27 @@
-package goma.gorilla.backend.model;
+package vector.StockManagement.model;
 
-import goma.gorilla.backend.model.enums.AdjustmentReason;
-import goma.gorilla.backend.model.enums.LocationType;
-import goma.gorilla.backend.model.enums.TransferStatus;
+import vector.StockManagement.model.enums.LocationType;
+import vector.StockManagement.model.enums.TransferStatus;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
+import lombok.*;
 
 import java.time.LocalDateTime;
 // Transfer Entity
+@EqualsAndHashCode(callSuper = true)
 @Entity
 @Table(name = "transfers", indexes = {
         @Index(name = "idx_transfer_from_location", columnList = "from_level, from_location_id"),
         @Index(name = "idx_transfer_to_location", columnList = "to_level, to_location_id"),
         @Index(name = "idx_transfer_status", columnList = "status")
 })
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class Transfer extends BaseEntity {
 
     @NotNull
@@ -68,8 +72,7 @@ public class Transfer extends BaseEntity {
     @JoinColumn(name = "tenant_id", nullable = false)
     private Tenant tenant;
 
-    // Constructors
-    public Transfer() {}
+
 
     public Transfer(LocationType fromLevel, Long fromLocationId, LocationType toLevel,
                     Long toLocationId, User createdBy, Tenant tenant) {
@@ -78,103 +81,6 @@ public class Transfer extends BaseEntity {
         this.toLevel = toLevel;
         this.toLocationId = toLocationId;
         this.createdBy = createdBy;
-        this.tenant = tenant;
-    }
-
-    // Getters and Setters
-    public LocationType getFromLevel() {
-        return fromLevel;
-    }
-
-    public void setFromLevel(LocationType fromLevel) {
-        this.fromLevel = fromLevel;
-    }
-
-    public Long getFromLocationId() {
-        return fromLocationId;
-    }
-
-    public void setFromLocationId(Long fromLocationId) {
-        this.fromLocationId = fromLocationId;
-    }
-
-    public LocationType getToLevel() {
-        return toLevel;
-    }
-
-    public void setToLevel(LocationType toLevel) {
-        this.toLevel = toLevel;
-    }
-
-    public Long getToLocationId() {
-        return toLocationId;
-    }
-
-    public void setToLocationId(Long toLocationId) {
-        this.toLocationId = toLocationId;
-    }
-
-    public TransferStatus getStatus() {
-        return status;
-    }
-
-    public void setStatus(TransferStatus status) {
-        this.status = status;
-    }
-
-    public User getCreatedBy() {
-        return createdBy;
-    }
-
-    public void setCreatedBy(User createdBy) {
-        this.createdBy = createdBy;
-    }
-
-    public User getApprovedBy() {
-        return approvedBy;
-    }
-
-    public void setApprovedBy(User approvedBy) {
-        this.approvedBy = approvedBy;
-    }
-
-    public LocalDateTime getApprovedAt() {
-        return approvedAt;
-    }
-
-    public void setApprovedAt(LocalDateTime approvedAt) {
-        this.approvedAt = approvedAt;
-    }
-
-    public LocalDateTime getShippedAt() {
-        return shippedAt;
-    }
-
-    public void setShippedAt(LocalDateTime shippedAt) {
-        this.shippedAt = shippedAt;
-    }
-
-    public LocalDateTime getReceivedAt() {
-        return receivedAt;
-    }
-
-    public void setReceivedAt(LocalDateTime receivedAt) {
-        this.receivedAt = receivedAt;
-    }
-
-    public String getNotes() {
-        return notes;
-    }
-
-    public void setNotes(String notes) {
-        this.notes = notes;
-    }
-
-    public Tenant getTenant() {
-        return tenant;
-    }
-
-    public void setTenant(Tenant tenant) {
         this.tenant = tenant;
     }
 
@@ -210,7 +116,6 @@ public class Transfer extends BaseEntity {
     @Override
     public String toString() {
         return "Transfer{" +
-                "id=" + getId() +
                 ", fromLevel=" + fromLevel +
                 ", fromLocationId=" + fromLocationId +
                 ", toLevel=" + toLevel +

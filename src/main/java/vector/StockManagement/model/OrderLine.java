@@ -1,18 +1,23 @@
-package goma.gorilla.backend.model;
+package vector.StockManagement.model;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import lombok.*;
 
 import java.math.BigDecimal;
 
 // Order Line Entity
+@EqualsAndHashCode(callSuper = true)
 @Entity
 @Table(name = "order_lines", indexes = {
         @Index(name = "idx_order_line_order", columnList = "order_id"),
         @Index(name = "idx_order_line_product", columnList = "product_id")
 })
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class OrderLine extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -21,7 +26,7 @@ public class OrderLine extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id", nullable = false)
-    private goma.gorilla.backend.model.Product product;
+    private Product product;
 
     @NotNull
     @Column(name = "qty", nullable = false)
@@ -51,10 +56,8 @@ public class OrderLine extends BaseEntity {
     @Column(name = "fulfilled_qty")
     private Integer fulfilledQty = 0;
 
-    // Constructors
-    public OrderLine() {}
 
-    public OrderLine(Order order, goma.gorilla.backend.model.Product product, Integer qty, BigDecimal unitPrice) {
+    public OrderLine(Order order, Product product, Integer qty, BigDecimal unitPrice) {
         this.order = order;
         this.product = product;
         this.qty = qty;
@@ -62,82 +65,6 @@ public class OrderLine extends BaseEntity {
         calculateLineTotal();
     }
 
-    // Getters and Setters
-    public Order getOrder() {
-        return order;
-    }
-
-    public void setOrder(Order order) {
-        this.order = order;
-    }
-
-    public goma.gorilla.backend.model.Product getProduct() {
-        return product;
-    }
-
-    public void setProduct(goma.gorilla.backend.model.Product product) {
-        this.product = product;
-    }
-
-    public Integer getQty() {
-        return qty;
-    }
-
-    public void setQty(Integer qty) {
-        this.qty = qty;
-        calculateLineTotal();
-    }
-
-    public BigDecimal getUnitPrice() {
-        return unitPrice;
-    }
-
-    public void setUnitPrice(BigDecimal unitPrice) {
-        this.unitPrice = unitPrice;
-        calculateLineTotal();
-    }
-
-    public BigDecimal getDiscount() {
-        return discount;
-    }
-
-    public void setDiscount(BigDecimal discount) {
-        this.discount = discount;
-        calculateLineTotal();
-    }
-
-    public BigDecimal getTax() {
-        return tax;
-    }
-
-    public void setTax(BigDecimal tax) {
-        this.tax = tax;
-        calculateLineTotal();
-    }
-
-    public BigDecimal getLineTotal() {
-        return lineTotal;
-    }
-
-    public void setLineTotal(BigDecimal lineTotal) {
-        this.lineTotal = lineTotal;
-    }
-
-    public String getNotes() {
-        return notes;
-    }
-
-    public void setNotes(String notes) {
-        this.notes = notes;
-    }
-
-    public Integer getFulfilledQty() {
-        return fulfilledQty;
-    }
-
-    public void setFulfilledQty(Integer fulfilledQty) {
-        this.fulfilledQty = fulfilledQty;
-    }
 
     // Helper methods
     public void calculateLineTotal() {
@@ -177,7 +104,6 @@ public class OrderLine extends BaseEntity {
     @Override
     public String toString() {
         return "OrderLine{" +
-                "id=" + getId() +
                 ", product=" + (product != null ? product.getSku() : null) +
                 ", qty=" + qty +
                 ", unitPrice=" + unitPrice +

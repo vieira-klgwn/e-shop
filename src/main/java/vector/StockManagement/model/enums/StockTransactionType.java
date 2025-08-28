@@ -1,5 +1,4 @@
-package goma.gorilla.backend.model.enums;
-
+package vector.StockManagement.model.enums;
 // Stock Transaction Type
 public enum StockTransactionType {
     STOCK_IN,
