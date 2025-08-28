@@ -1,4 +1,12 @@
-package goma.gorilla.backend.services;
+package vector.StockManagement.services;
 
-public class PriceListService {
+import vector.StockManagement.model.PriceList;
+
+import java.util.List;
+
+public interface PriceListService {
+    List<PriceList> findAll();
+    PriceList findById(Long id);
+    PriceList save(PriceList priceList);
+    void delete(Long id);
 }

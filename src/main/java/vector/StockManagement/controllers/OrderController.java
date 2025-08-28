@@ -1,4 +1,49 @@
-package goma.gorilla.backend.controllers;
+package vector.StockManagement.controllers;
 
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import vector.StockManagement.model.Order;
+import vector.StockManagement.services.OrderService;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/orders")
+@RequiredArgsConstructor
 public class OrderController {
+
+    private final OrderService orderService;
+
+    @GetMapping
+    public List<Order> getAll() {
+        return orderService.findAll();
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<Order> getById(@PathVariable Long id) {
+        Order order = orderService.findById(id);
+        return order != null ? ResponseEntity.ok(order) : ResponseEntity.notFound().build();
+    }
+
+    @PostMapping
+    public Order create(@RequestBody Order order) {
+        return orderService.save(order);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Order> update(@PathVariable Long id, @RequestBody Order order) {
+        Order existing = orderService.findById(id);
+        if (existing == null) return ResponseEntity.notFound().build();
+        order.setDeliveryDate(existing.getDeliveryDate());
+        //add more updates here
+        return ResponseEntity.ok(orderService.save(order));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
+        orderService.delete(id);
+        return ResponseEntity.noContent().build();
+    }
 }

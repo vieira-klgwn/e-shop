@@ -1,10 +1,10 @@
-package vector.StockManagement.controller;
+package vector.StockManagement.controllers;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import vector.StockManagement.model.AuditLog;
-import vector.StockManagement.service.AuditLogService;
+import vector.StockManagement.services.AuditoryLogService;
 
 import java.util.List;
 
@@ -35,7 +35,8 @@ public class AuditoryLogController {
     public ResponseEntity<AuditLog> update(@PathVariable Long id, @RequestBody AuditLog auditLog) {
         AuditLog existing = auditLogService.findById(id);
         if (existing == null) return ResponseEntity.notFound().build();
-        auditLog.setId(id);
+        auditLog.setDescription(existing.getDescription());
+        //add more updates here
         return ResponseEntity.ok(auditLogService.save(auditLog));
     }
 

@@ -1,5 +1,6 @@
-package vector.StockManagement.service.impl;
+package vector.StockManagement.services.impl;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import vector.StockManagement.model.AuditLog;
@@ -11,10 +12,10 @@ import vector.StockManagement.services.AuditoryLogService;
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class AuditoryLogServiceImpl implements AuditoryLogService {
+    private final AuditoryLogRepository auditLogRepository;
 
-    @Autowired
-    private AuditoryLogRepository auditLogRepository;
 
     @Override
     public List<AuditLog> findAll() {

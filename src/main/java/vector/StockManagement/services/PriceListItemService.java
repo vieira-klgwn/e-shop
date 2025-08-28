@@ -1,4 +1,12 @@
 package vector.StockManagement.services;
 
-public class PriceListItemService {
+import vector.StockManagement.model.PriceListItem;
+
+import java.util.List;
+
+public interface PriceListItemService {
+    List<PriceListItem> findAll();
+    PriceListItem findById(Long id);
+    PriceListItem save(PriceListItem priceListItem);
+    void delete(Long id);
 }

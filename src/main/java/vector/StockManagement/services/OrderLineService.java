@@ -1,4 +1,13 @@
 package vector.StockManagement.services;
 
-public class OrderLineService {
+
+import vector.StockManagement.model.OrderLine;
+
+import java.util.List;
+
+public interface OrderLineService {
+    List<OrderLine> findAll();
+    OrderLine findById(Long id);
+    OrderLine save(OrderLine orderLine);
+    void delete(Long id);
 }

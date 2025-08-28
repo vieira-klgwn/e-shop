@@ -1,5 +1,9 @@
 package vector.StockManagement.model;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 import vector.StockManagement.model.enums.AdjustmentReason;
 import vector.StockManagement.model.enums.LocationType;
 import vector.StockManagement.model.enums.PaymentMethod;
@@ -11,17 +15,22 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
+import vector.StockManagement.model.enums.PaymentStatus;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 // Payment Entity
+@EqualsAndHashCode(callSuper = true)
 @Entity
 @Table(name = "payments", indexes = {
         @Index(name = "idx_payment_invoice", columnList = "invoice_id"),
         @Index(name = "idx_payment_method", columnList = "method"),
         @Index(name = "idx_payment_paid_at", columnList = "paid_at")
 })
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class Payment extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -58,14 +67,14 @@ public class Payment extends BaseEntity {
     @Column(name = "notes")
     private String notes;
 
+    @Column(name = "payment_status")
+    @Enumerated(EnumType.STRING)
+    private PaymentStatus paymentStatus;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "tenant_id", nullable = false)
     private Tenant tenant;
 
-    // Constructors
-    public Payment() {
-        this.paidAt = LocalDateTime.now();
-    }
 
     public Payment(Invoice invoice, PaymentMethod method, BigDecimal amount, String currency, User postedBy) {
         this();
@@ -75,80 +84,10 @@ public class Payment extends BaseEntity {
         this.currency = currency;
         this.postedBy = postedBy;
         this.tenant = invoice.getTenant();
+        this.paymentStatus = PaymentStatus.PENDING;
     }
 
-    // Getters and Setters
-    public Invoice getInvoice() {
-        return invoice;
-    }
 
-    public void setInvoice(Invoice invoice) {
-        this.invoice = invoice;
-    }
-
-    public PaymentMethod getMethod() {
-        return method;
-    }
-
-    public void setMethod(PaymentMethod method) {
-        this.method = method;
-    }
-
-    public String getTxnRef() {
-        return txnRef;
-    }
-
-    public void setTxnRef(String txnRef) {
-        this.txnRef = txnRef;
-    }
-
-    public BigDecimal getAmount() {
-        return amount;
-    }
-
-    public void setAmount(BigDecimal amount) {
-        this.amount = amount;
-    }
-
-    public String getCurrency() {
-        return currency;
-    }
-
-    public void setCurrency(String currency) {
-        this.currency = currency;
-    }
-
-    public LocalDateTime getPaidAt() {
-        return paidAt;
-    }
-
-    public void setPaidAt(LocalDateTime paidAt) {
-        this.paidAt = paidAt;
-    }
-
-    public User getPostedBy() {
-        return postedBy;
-    }
-
-    public void setPostedBy(User postedBy) {
-        this.postedBy = postedBy;
-    }
-
-    public String getNotes() {
-        return notes;
-    }
-
-    public void setNotes(String notes) {
-        this.notes = notes;
-    }
-
-    public Tenant getTenant() {
-        return tenant;
-    }
-
-    public void setTenant(Tenant tenant) {
-        this.tenant = tenant;
-    }
 
     @Override
     public String toString() {

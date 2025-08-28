@@ -1,4 +1,12 @@
 package vector.StockManagement.services;
 
-public class InvoiceService {
+import vector.StockManagement.model.Invoice;
+
+import java.util.List;
+
+public interface InvoiceService {
+    List<Invoice> findAll();
+    Invoice findById(Long id);
+    Invoice save(Invoice invoice);
+    void delete(Long id);
 }
