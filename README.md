@@ -1,10 +1,10 @@
-# GOMA Gorilla Management - Backend API
+# Stock Management - Backend API
 
 ## System Architecture Overview
 
 ### What is a Tenant?
 
-In the GOMA system, a **Tenant** represents a **separate company or business entity** that uses the platform. Think of it as a completely isolated business environment within the same software system.
+In the Stock Management system, a **Tenant** represents a **separate company or business entity** that uses the platform. Think of it as a completely isolated business environment within the same software system.
 
 **Examples of Tenants:**
 - **Company A**: "Coca-Cola Rwanda" 
@@ -21,7 +21,7 @@ Each tenant has:
 
 ### System Flow
 
-The GOMA system orchestrates a **Factory → Distributor → Retail supply chain** where a Sales Manager sets product prices at both factory (L1) and distributor (L2) levels, Distributors place orders to the factory warehouse which get approved by Accountants, Warehouse Managers dispatch approved orders from L1 to L2 distributor stores, Store Managers receive inventory and sell to retailers/customers, all transactions generate invoices that Accountants process with payments (bank/mobile money), daily operations are closed and approved by Accountants for accountability, while the system maintains complete audit trails and generates reports for stock movement, sales KPIs, and financial reconciliation across the entire supply chain within each tenant's isolated environment.
+This system orchestrates a **Factory → Distributor → Retail supply chain** where a Sales Manager sets product prices at both factory (L1) and distributor (L2) levels, Distributors place orders to the factory warehouse which get approved by Accountants, Warehouse Managers dispatch approved orders from L1 to L2 distributor stores, Store Managers receive inventory and sell to retailers/customers, all transactions generate invoices that Accountants process with payments (bank/mobile money), daily operations are closed and approved by Accountants for accountability, while the system maintains complete audit trails and generates reports for stock movement, sales KPIs, and financial reconciliation across the entire supply chain within each tenant's isolated environment.
 
 ### What is OrderLine?
 
