@@ -30,6 +30,15 @@ public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final LogoutHandler logoutHandler;
 
+    private static final String[] SWAGGER_WHITELIST = {
+            "/v3/api-docs/**",
+            "/swagger-ui/**",
+            "/swagger-ui.html",
+            "/swagger-ui/index.html",
+            "/swagger-ui/**",
+            "/webjars/**"
+    };
+
     private static final String[] WHITE_LIST_URL = {
             "/api/auth/**",
             "/v2/api-docs",
@@ -42,6 +51,7 @@ public class SecurityConfig {
             "/swagger-ui/**",
             "/webjars/**",
             "/swagger-ui.html",
+            "/swagger-ui/index.html",
             "/error"
     };
 
@@ -53,6 +63,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(
                         req -> req
                                 .requestMatchers(WHITE_LIST_URL).permitAll()
+                                .requestMatchers(SWAGGER_WHITELIST).permitAll()
                                 .requestMatchers(HttpMethod.GET, "/api/users/me").authenticated()
                                 .requestMatchers(HttpMethod.GET, "/api/users").hasRole("TEAM_LEAD")
                                 .requestMatchers(HttpMethod.GET, "/api/teams/**", "/api/projects/**", "/api/tasks/**", "/api/comments/**").hasAnyRole("USER", "TEAM_LEAD")
