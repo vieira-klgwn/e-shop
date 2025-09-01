@@ -13,12 +13,14 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import vector.StockManagement.config.JwtService;
+import vector.StockManagement.model.Tenant;
 import vector.StockManagement.model.Token;
 import vector.StockManagement.model.enums.TokenType;
 import vector.StockManagement.model.User;
 import vector.StockManagement.model.enums.Gender;
 import vector.StockManagement.repositories.TokenRepository;
 import vector.StockManagement.repositories.UserRepository;
+import vector.StockManagement.services.TenantService;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -34,6 +36,7 @@ public class AuthenticationService {
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
     private final JavaMailSender mailSender;
+    private final TenantService tenantService;
     private static final Logger logger = Logger.getLogger(AuthenticationService.class.getName());
 
     @Value("${spring.mail.from}")
@@ -55,6 +58,12 @@ public class AuthenticationService {
         } catch (IllegalArgumentException e) {
             throw new IllegalStateException("Invalid gender value: " + request.getGender());
         }
+        Tenant tenant;
+        try {
+            tenant = tenantService.save(request.getTenant());
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to save tenant " + request.getTenant());
+        }
         var user = User.builder()
                 .firstName(request.getFirstName())
                 .lastName(request.getLastName())
@@ -62,6 +71,7 @@ public class AuthenticationService {
                 .password(passwordEncoder.encode(request.getPassword()))
                 .role(request.getRole())
                 .gender(gender)
+                .tenant(tenant)
                 .build();
         var savedUser = userRepository.save(user);
         var token = jwtService.generateToken(user);

@@ -3,10 +3,12 @@ package vector.StockManagement.model;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
+import vector.StockManagement.model.enums.ProductCategory;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -39,9 +41,12 @@ public class Product extends BaseEntity {
     @Column(name = "description")
     private String description;
 
-    @Size(max = 50)
+    @Column(name = "price")
+    private BigDecimal price;
+
+
     @Column(name = "unit")
-    private String unit; // e.g., "kg", "liter", "piece"
+    private int unit; // e.g., "kg", "liter", "piece"
 
     @Size(max = 100)
     @Column(name = "size")
@@ -51,9 +56,9 @@ public class Product extends BaseEntity {
     @Column(name = "code")
     private String code;
 
-    @Size(max = 100)
-    @Column(name = "category")
-    private String category;
+    @NotNull
+    @Enumerated(EnumType.STRING)
+    private ProductCategory category;
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "attributes", columnDefinition = "json")
@@ -78,10 +83,11 @@ public class Product extends BaseEntity {
     private String imageUrl;
 
 
-    public Product(String sku, String name, Tenant tenant) {
+    public Product(String sku, String name, Tenant tenant,ProductCategory category) {
         this.sku = sku;
         this.name = name;
         this.tenant = tenant;
+        this.category = category;
     }
 
 

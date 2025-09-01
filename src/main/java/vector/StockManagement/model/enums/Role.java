@@ -35,19 +35,9 @@ public enum Role {
                     MANAGER_UPDATE,
                     MANAGER_DELETE
             )
-    ),
-    TEAM_LEAD(
-            Set.of(
-                    MANAGER_READ,
-                    MANAGER_CREATE,
-                    MANAGER_UPDATE,
-                    MANAGER_DELETE,
-                    TEAM_LEAD_CREATE,
-                    TEAM_LEAD_ASSIGN,
-                    TEAM_LEAD_ADD_MEMBER
-
-
-    ));
+    ),DISTRIBUTOR(Collections.emptySet()),
+    SALES_MANAGER(Collections.emptySet()),
+    ACCOUNTANT(Collections.emptySet()),;
 
     @Getter
     private final Set<Permission> permissions;

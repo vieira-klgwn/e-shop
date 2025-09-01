@@ -16,18 +16,10 @@ import org.springframework.context.annotation.Configuration;
 
 @OpenAPIDefinition(
         info = @Info(
-                contact = @Contact(
-                        name = "Alibou",
-                        email = "contact@aliboucoding.com",
-                        url = "https://aliboucoding.com/course"
-                ),
-                description = "OpenApi documentation for Spring Security",
-                title = "OpenApi specification - Alibou",
+
+                description = "API for managing stock in a multi-tenant beverage supply chain",
+                title = "Stock Management API",
                 version = "1.0",
-                license = @License(
-                        name = "Licence name",
-                        url = "https://some-url.com"
-                ),
                 termsOfService = "Terms of service"
         ),
         servers = {
@@ -35,10 +27,7 @@ import org.springframework.context.annotation.Configuration;
                         description = "Local ENV",
                         url = "http://localhost:8080"
                 ),
-                @Server(
-                        description = "PROD ENV",
-                        url = "https://aliboucoding.com/course"
-                )
+
         },
         security = {
                 @SecurityRequirement(
@@ -54,6 +43,9 @@ import org.springframework.context.annotation.Configuration;
         bearerFormat = "JWT",
         in = SecuritySchemeIn.HEADER
 )
+
+@Configuration
 public class OpenApiConfig {
 }
+
 

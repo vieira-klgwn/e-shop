@@ -53,6 +53,9 @@ public class User implements UserDetails {
     @JoinColumn(name = "tenant_id", nullable = false)
     private Tenant tenant;
 
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private List<Activity> activities;
+
 
     @Override
     @JsonIgnore

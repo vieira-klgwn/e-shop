@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import vector.StockManagement.model.Tenant;
 import vector.StockManagement.model.enums.Role;
 
 @Data
@@ -18,4 +19,5 @@ public class RegisterRequest {
     private String confirmPassword;
     private Role role;
     private String gender;
+    private Tenant tenant;
 }
