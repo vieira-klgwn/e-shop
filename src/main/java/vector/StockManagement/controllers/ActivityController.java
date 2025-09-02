@@ -19,7 +19,7 @@ public class ActivityController {
 
     @PostMapping
     public ResponseEntity<Activity> createActivity(@RequestBody Activity activity) {
-        return ResponseEntity.ok(activityService.createActivity(activity.getUser(),activity.getActivityName()));
+        return ResponseEntity.ok(activityService.createActivity(activity.getUser(),activity.getActivityName(),activity.getCategory()));
     }
 
     @GetMapping

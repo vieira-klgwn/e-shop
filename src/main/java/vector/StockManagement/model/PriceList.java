@@ -8,6 +8,8 @@ import jakarta.validation.constraints.Size;
 import lombok.*;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 // Price List Entity
 @EqualsAndHashCode(callSuper = true)
@@ -48,6 +50,9 @@ public class PriceList extends BaseEntity {
 
     @Column(name = "description", length = 500)
     private String description;
+
+    @OneToMany(mappedBy = "priceList")
+    private List<PriceListItem> items = new ArrayList<>();
 
 
 

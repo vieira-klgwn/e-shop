@@ -4,4 +4,5 @@ public enum ActivityCategory {
     PAYMENTS,
     ORDERS,
     TRANSFERS,
+    SALES
 }

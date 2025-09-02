@@ -10,6 +10,7 @@ import vector.StockManagement.model.enums.Role;
 import vector.StockManagement.model.enums.UserStatus;
 
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -53,8 +54,10 @@ public class User implements UserDetails {
     @JoinColumn(name = "tenant_id", nullable = false)
     private Tenant tenant;
 
+
+
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    private List<Activity> activities;
+    private List<Activity> activities = new ArrayList<>();
 
 
     @Override

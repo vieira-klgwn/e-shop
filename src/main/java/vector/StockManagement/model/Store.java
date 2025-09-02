@@ -7,6 +7,7 @@ import jakarta.validation.constraints.Size;
 import lombok.*;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @EqualsAndHashCode(callSuper = true)
@@ -68,6 +69,10 @@ public class Store extends BaseEntity {
 
     @Column(name = "is_active")
     private Boolean isActive = true;
+
+    @OneToMany(mappedBy = "store", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @Column(name = "sales_teams")
+    private List<SalesTeam> salesTeams;
 
 
     @Convert(converter = MapToJsonConverter.class)

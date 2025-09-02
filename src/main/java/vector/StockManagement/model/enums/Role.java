@@ -30,10 +30,9 @@ public enum Role {
     ),
     MANAGER(
             Set.of(
-                    MANAGER_READ,
-                    MANAGER_CREATE,
-                    MANAGER_UPDATE,
-                    MANAGER_DELETE
+                   WARE_HOUSE_MANAGER,
+                    STORE_MANAGER
+
             )
     ),DISTRIBUTOR(Collections.emptySet()),
     SALES_MANAGER(Collections.emptySet()),

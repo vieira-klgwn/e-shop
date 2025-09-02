@@ -5,6 +5,7 @@ package vector.StockManagement.controllers;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import vector.StockManagement.model.Warehouse;
 import vector.StockManagement.services.WarehouseService;
@@ -24,6 +25,7 @@ public class WarehouseController {
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public ResponseEntity<Warehouse> getById(@PathVariable Long id) {
         Warehouse warehouse = warehouseService.findById(id);
         return warehouse != null ? ResponseEntity.ok(warehouse) : ResponseEntity.notFound().build();

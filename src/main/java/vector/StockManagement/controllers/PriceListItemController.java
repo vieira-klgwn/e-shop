@@ -4,6 +4,7 @@ package vector.StockManagement.controllers;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import vector.StockManagement.model.PriceListItem;
 import vector.StockManagement.services.PriceListItemService;
@@ -18,6 +19,7 @@ public class PriceListItemController {
     private final PriceListItemService priceListItemService;
 
     @GetMapping
+    @PreAuthorize("hasRole('SALES_MANAGER')")
     public List<PriceListItem> getAll() {
         return priceListItemService.findAll();
     }
@@ -29,6 +31,7 @@ public class PriceListItemController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('SALES_MANAGER')")
     public PriceListItem create(@RequestBody PriceListItem priceListItem) {
         return priceListItemService.save(priceListItem);
     }

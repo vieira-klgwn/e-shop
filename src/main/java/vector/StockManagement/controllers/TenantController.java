@@ -4,6 +4,7 @@ package vector.StockManagement.controllers;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import vector.StockManagement.model.Tenant;
 import vector.StockManagement.services.TenantService;
@@ -11,7 +12,7 @@ import vector.StockManagement.services.TenantService;
 import java.util.List;
 
 @RestController
-@RequestMapping("/tenants")
+@RequestMapping("/api/tenants")
 @RequiredArgsConstructor(onConstructor_ = {@Autowired})
 public class TenantController {
 
@@ -29,6 +30,7 @@ public class TenantController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public Tenant create(@RequestBody Tenant tenant) {
         return tenantService.save(tenant);
     }

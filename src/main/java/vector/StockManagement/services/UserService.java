@@ -2,9 +2,11 @@ package vector.StockManagement.services;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import vector.StockManagement.model.ChangePasswordRequest;
+import vector.StockManagement.model.Tenant;
 import vector.StockManagement.model.User;
 import vector.StockManagement.repositories.UserRepository;
 
@@ -32,7 +34,19 @@ public class UserService {
     }
 
     public User createUser(User newUser) {
-        return userRepository.save(newUser);
+
+        // user should belong to a particular tenant.
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        if (principal instanceof User user) {
+            Tenant currentTenant = user.getTenant();
+            newUser.setTenant(currentTenant);
+            return userRepository.save(newUser);
+        }
+        else {
+            throw new IllegalStateException("Authenticated user is not of type CustomUserDetails");
+        }
+
     }
 
     public List<User> getAllUsers() {
