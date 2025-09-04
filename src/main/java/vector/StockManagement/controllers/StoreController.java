@@ -3,6 +3,7 @@ package vector.StockManagement.controllers;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import vector.StockManagement.model.Store;
 import vector.StockManagement.services.StoreService;
@@ -28,6 +29,7 @@ public class StoreController {
     }
 
     @PostMapping
+    @PreAuthorize("hasAnyAuthority('WAREHOUSE_MANAGER')")
     public Store create(@RequestBody Store store) {
         return storeService.save(store);
     }

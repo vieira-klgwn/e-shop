@@ -16,7 +16,8 @@ public enum Permission {
     MANAGER_UPDATE("manager:update"),
     MANAGER_CREATE("manager:create"),
     WARE_HOUSE_MANAGER("ware_house_manager"),
-    STORE_MANAGER("store_manager");
+    STORE_MANAGER("store_manager"),
+    SALES_MANAGER("sales_manager");
 
 
     @Getter

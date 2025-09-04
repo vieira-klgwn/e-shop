@@ -1,18 +1,18 @@
 package vector.StockManagement.model;
 
 
-import vector.StockManagement.model.enums.DistributorStatus;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Index;
-import jakarta.persistence.Table;
-import jakarta.validation.constraints.*;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.*;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
+import vector.StockManagement.model.enums.DistributorStatus;
+import vector.StockManagement.model.enums.LocationType;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -89,16 +89,28 @@ public class Distributor extends BaseEntity {
     @JoinColumn(name = "tenant_id", nullable = false)
     private Tenant tenant;
 
+    //this is a big problem , i must correct it.....I mean having warehouse and store fields in distributor class
+    @OneToOne
+    @JoinColumn(name = "warehouse_id")
+    private Warehouse warehouse;
+
+    @OneToOne
+    @JoinColumn(name = "store_id")
+    private Store store;
+
+
     @Size(max = 50)
     @Column(name = "tax_number")
     private String taxNumber;
+
+    @Column(name = "distributor_level")
+    private LocationType distributorLevel;
 
     @Size(max = 50)
     @Column(name = "business_license")
     private String businessLicense;
 
-    @OneToMany(mappedBy = "distributor", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<Store> stores = new ArrayList<>();
+
 
 
     public Distributor(String companyName, String contactName, Tenant tenant) {
@@ -117,15 +129,15 @@ public class Distributor extends BaseEntity {
         return getAvailableCredit().compareTo(amount) >= 0;
     }
 
-    public void addStore(Store store) {
-        stores.add(store);
-        store.setDistributor(this);
-    }
-
-    public void removeStore(Store store) {
-        stores.remove(store);
-        store.setDistributor(null);
-    }
+//    public void addStore(Store store) {
+//        stores.add(store);
+//        store.setDistributor(this);
+//    }
+//
+//    public void removeStore(Store store) {
+//        stores.remove(store);
+//        store.setDistributor(null);
+//    }
 
     @Override
     public String toString() {

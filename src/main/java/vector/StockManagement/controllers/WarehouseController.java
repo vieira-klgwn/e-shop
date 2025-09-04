@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import vector.StockManagement.model.CreateWareHouseRequest;
 import vector.StockManagement.model.Warehouse;
 import vector.StockManagement.services.WarehouseService;
 
@@ -32,15 +33,17 @@ public class WarehouseController {
     }
 
     @PostMapping
-    public Warehouse create(@RequestBody Warehouse warehouse) {
+    public Warehouse create(Warehouse warehouse) {
         return warehouseService.save(warehouse);
     }
 
+
+    //update API are not well programmed, take time to work on them
     @PutMapping("/{id}")
-    public ResponseEntity<Warehouse> update(@PathVariable Long id, @RequestBody Warehouse warehouse) {
+    public ResponseEntity<Warehouse> update(@RequestBody Warehouse warehouse, @PathVariable Long id) {
         Warehouse existing = warehouseService.findById(id);
         if (existing == null) return ResponseEntity.notFound().build();
-        warehouse.setIsActive(existing.getIsActive());
+//        existing.setName(request.getName());
         //add more updates here
         return ResponseEntity.ok(warehouseService.save(warehouse));
     }

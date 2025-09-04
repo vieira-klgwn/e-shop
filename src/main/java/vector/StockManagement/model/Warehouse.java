@@ -8,7 +8,9 @@ import lombok.*;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @EqualsAndHashCode(callSuper = true)
@@ -55,12 +57,12 @@ public class Warehouse extends BaseEntity {
     @Column(name = "email")
     private String email;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+
+    @OneToOne
     @JoinColumn(name = "manager_id")
     private User manager;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "distributor_id", nullable = false)
+    @OneToOne(mappedBy = "warehouse", cascade = CascadeType.ALL, orphanRemoval = true)
     private Distributor distributor;
 
     @ManyToOne(fetch = FetchType.LAZY)

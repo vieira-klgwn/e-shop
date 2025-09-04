@@ -3,6 +3,7 @@ package vector.StockManagement.services.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import vector.StockManagement.model.Transfer;
 import vector.StockManagement.repositories.TransferRepository;
@@ -28,6 +29,9 @@ public class TransferServiceImpl implements TransferService {
 
     @Override
     public Transfer save(Transfer transfer) {
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+
         return transferRepository.save(transfer);
     }
 

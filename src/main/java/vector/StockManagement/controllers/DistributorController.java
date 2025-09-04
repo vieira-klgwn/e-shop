@@ -29,9 +29,16 @@ public class DistributorController {
         return distributor != null ? ResponseEntity.ok(distributor) : ResponseEntity.notFound().build();
     }
 
-    @PostMapping
-    public Distributor create(@RequestBody Distributor distributor) {
-        return distributorService.save(distributor);
+    @PostMapping("/warehouse/{id}")
+    public ResponseEntity<Distributor> createDistributorByWarehouse(@PathVariable String id, @RequestBody Distributor distributor) {
+
+        return ResponseEntity.ok(distributorService.createDistributorByWarehouse(Long.parseLong(id), distributor));
+
+    }
+
+    @PostMapping("/store/{id}")
+    public ResponseEntity<Distributor> createDistributorByStore(@PathVariable String id, @RequestBody Distributor distributor) {
+        return ResponseEntity.ok(distributorService.createDistributorByStore(Long.parseLong(id), distributor));
     }
 
     @PutMapping("/{id}")

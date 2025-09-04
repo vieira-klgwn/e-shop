@@ -1,5 +1,6 @@
 package vector.StockManagement.services;
 
+import vector.StockManagement.model.CreateWareHouseRequest;
 import vector.StockManagement.model.Warehouse;
 
 import java.util.List;

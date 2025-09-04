@@ -21,9 +21,7 @@ import java.util.Map;
 @NoArgsConstructor
 public class Store extends BaseEntity {
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "distributor_id", nullable = false)
-    private Distributor distributor;
+
 
     @NotBlank
     @Size(max = 100)
@@ -78,6 +76,9 @@ public class Store extends BaseEntity {
     @Convert(converter = MapToJsonConverter.class)
     @Column(name = "attributes", columnDefinition = "json")
     private Map<String, Object> attributes = new HashMap<>();
+
+    @OneToOne(mappedBy = "store", cascade = CascadeType.ALL)
+    private Distributor distributor;
 
 
     // --- toString ---

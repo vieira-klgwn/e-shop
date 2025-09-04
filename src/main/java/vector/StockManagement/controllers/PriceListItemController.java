@@ -19,7 +19,7 @@ public class PriceListItemController {
     private final PriceListItemService priceListItemService;
 
     @GetMapping
-    @PreAuthorize("hasRole('SALES_MANAGER')")
+    @PreAuthorize("hasAnyAuthority('SALES_MANAGER')")
     public List<PriceListItem> getAll() {
         return priceListItemService.findAll();
     }
@@ -31,7 +31,7 @@ public class PriceListItemController {
     }
 
     @PostMapping
-    @PreAuthorize("hasRole('SALES_MANAGER')")
+    @PreAuthorize("hasAnyAuthority('SALES_MANAGER')")
     public PriceListItem create(@RequestBody PriceListItem priceListItem) {
         return priceListItemService.save(priceListItem);
     }

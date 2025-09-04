@@ -31,11 +31,11 @@ public enum Role {
     MANAGER(
             Set.of(
                    WARE_HOUSE_MANAGER,
-                    STORE_MANAGER
+                    STORE_MANAGER,
+                    SALES_MANAGER
 
             )
     ),DISTRIBUTOR(Collections.emptySet()),
-    SALES_MANAGER(Collections.emptySet()),
     ACCOUNTANT(Collections.emptySet()),;
 
     @Getter
