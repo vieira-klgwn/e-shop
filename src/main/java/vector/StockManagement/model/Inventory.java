@@ -80,6 +80,7 @@ public class Inventory extends BaseEntity {
     }
 
 
+
     // Helper methods
     public Integer getQtyAvailable() {
         return qtyOnHand - qtyReserved;
@@ -98,7 +99,7 @@ public class Inventory extends BaseEntity {
             // Update average unit cost using weighted average
             BigDecimal totalCost = avgUnitCost.multiply(BigDecimal.valueOf(qtyOnHand))
                     .add(unitCost.multiply(BigDecimal.valueOf(quantity)));
-            Integer totalQty = qtyOnHand + quantity;
+            int totalQty = qtyOnHand + quantity;
 
             this.avgUnitCost = totalQty > 0 ? totalCost.divide(BigDecimal.valueOf(totalQty), 2, BigDecimal.ROUND_HALF_UP) : BigDecimal.ZERO;
             this.qtyOnHand = totalQty;

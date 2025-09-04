@@ -6,4 +6,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 @Repository
 public interface OrderRepository extends JpaRepository<Order, Long> {
+    Order getOrderById(Long id);
 }

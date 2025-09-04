@@ -20,15 +20,18 @@ public class OrderLineController {
         return orderLineService.findAll();
     }
 
+
+
     @GetMapping("/{id}")
     public ResponseEntity<OrderLine> getById(@PathVariable Long id) {
         OrderLine orderLine = orderLineService.findById(id);
         return orderLine != null ? ResponseEntity.ok(orderLine) : ResponseEntity.notFound().build();
     }
 
-    @PostMapping
-    public OrderLine create(@RequestBody OrderLine orderLine) {
-        return orderLineService.save(orderLine);
+    @PostMapping("/{id}")
+    public ResponseEntity<OrderLine> createOrderlineByOrderId(@PathVariable Long id, @RequestBody OrderLine orderLine) {
+
+        return ResponseEntity.ok(orderLineService.createOrderlineByOrder(id, orderLine));
     }
 
     @PutMapping("/{id}")

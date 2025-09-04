@@ -10,5 +10,8 @@ public interface OrderService {
     Order findById(Long id);
     Order save(Order order);
     void delete(Long id);
+    Order approve(Order order);
+    Order reject(Order order);
+
 //    void submitOrder(Long orderId, User submitter);
 }

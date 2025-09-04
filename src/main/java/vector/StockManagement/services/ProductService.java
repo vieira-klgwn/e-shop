@@ -11,7 +11,7 @@ import java.util.List;
 public interface ProductService {
     List<Product> findAll();
     Product findById(Long id);
-    Product save(CreateProductRequest createProductRequest);
+    Product save(Product product);
     void delete(Long id);
-    Product update(Long id, CreateProductRequest createProductRequest);
+    Product update(Long id, Product product);
 }

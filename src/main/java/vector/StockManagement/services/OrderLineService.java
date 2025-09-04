@@ -9,5 +9,8 @@ public interface OrderLineService {
     List<OrderLine> findAll();
     OrderLine findById(Long id);
     OrderLine save(OrderLine orderLine);
+
+    OrderLine createOrderlineByOrder(Long orderId, OrderLine orderLine);
+
     void delete(Long id);
 }

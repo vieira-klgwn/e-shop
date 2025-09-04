@@ -28,6 +28,8 @@ public class OrderLine extends BaseEntity {
     @JoinColumn(name = "product_id", nullable = false)
     private Product product;
 
+
+
     @NotNull
     @Column(name = "qty", nullable = false)
     private Integer qty;

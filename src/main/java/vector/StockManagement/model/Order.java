@@ -1,5 +1,6 @@
 package vector.StockManagement.model;
 
+import org.aspectj.weaver.ast.Or;
 import vector.StockManagement.model.enums.OrderChannel;
 import vector.StockManagement.model.enums.OrderLevel;
 import vector.StockManagement.model.enums.OrderStatus;

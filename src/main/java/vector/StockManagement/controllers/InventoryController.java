@@ -21,6 +21,11 @@ public class InventoryController {
         return inventoryService.findAll();
     }
 
+    @GetMapping("/product/{id}")
+    public ResponseEntity<Inventory> findByProductId(@PathVariable Long id) {
+        return ResponseEntity.ok(inventoryService.findInventoryByProduct(id));
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<Inventory> getById(@PathVariable Long id) {
         Inventory inventory = inventoryService.findById(id);
@@ -28,15 +33,15 @@ public class InventoryController {
     }
 
     @PostMapping
-    public Inventory create(@RequestBody Inventory inventory) {
-        return inventoryService.save(inventory);
+    public ResponseEntity<Inventory> create(@RequestBody Inventory inventory) {
+        return ResponseEntity.ok(inventoryService.save(inventory));
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<Inventory> update(@PathVariable Long id, @RequestBody Inventory inventory) {
         Inventory existing = inventoryService.findById(id);
         if (existing == null) return ResponseEntity.notFound().build();
-        inventory.setAvgUnitCost(existing.getAvgUnitCost());
+        existing.setQtyOnHand(inventory.getQtyOnHand());
         //add more updates here
         return ResponseEntity.ok(inventoryService.save(inventory));
     }

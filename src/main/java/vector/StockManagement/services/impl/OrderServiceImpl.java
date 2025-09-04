@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import vector.StockManagement.model.Order;
 import vector.StockManagement.model.User;
+import vector.StockManagement.model.enums.OrderStatus;
 import vector.StockManagement.model.enums.Role;
 import vector.StockManagement.repositories.OrderRepository;
 import vector.StockManagement.services.OrderService;
@@ -37,6 +38,19 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public void delete(Long id) {
         orderRepository.deleteById(id);
+    }
+
+    @Override
+    public Order approve(Order order) {
+        order.setStatus(OrderStatus.APPROVED);
+        return orderRepository.save(order);
+
+    }
+
+    @Override
+    public Order reject(Order order) {
+        order.setStatus(OrderStatus.REJECTED);
+        return orderRepository.save(order);
     }
 
 //    @Override

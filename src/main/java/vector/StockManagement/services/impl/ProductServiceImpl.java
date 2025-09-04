@@ -32,31 +32,9 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public Product save(CreateProductRequest t) {
-        Product product = new Product();
-        PriceListItem priceListItem = new PriceListItem();
-        product.setName(t.getName());
-        product.setAttributes(t.getAttributes());
-        product.setCategory(t.getCategory());
-        product.setCode(t.getCode());
-        product.setBarcode(t.getBarcode());
-        product.setDescription(t.getProductDescription());
-        product.setImageUrl(t.getImageUrl());
-        product.setPrice(t.getBasePrice());
-        product.setSku(t.getSku());
-        product.setUnit(t.getUnit());
-        priceListItem.setProduct(product);
-        priceListItem.setDiscounts(t.getDiscounts());
-        priceListItem.setTaxes(t.getTaxes());
-        priceListItem.setBasePrice(t.getBasePrice());
-        priceListItem.setMinPrice(t.getBasePrice());
-        priceListItem.setPriceList(t.getPriceList());
-        productRepository.save(product);
-        priceListItemRepository.save(priceListItem);
-        return product;
-
+    public Product save(Product product) {
+        return productRepository.save(product);
     }
-
 
     @Override
     public void delete(Long id) {
@@ -64,13 +42,11 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public Product update(Long id, CreateProductRequest createProductRequest) {
+    public Product update(Long id, Product product) {
         Product existing = productRepository.findById(id).orElse(null);
         if (existing != null) {
-            existing.setName(createProductRequest.getName());
-            existing.setAttributes(createProductRequest.getAttributes());
-            existing.setCategory(createProductRequest.getCategory());
-            //more and more
+
+           //add updates here
             return productRepository.save(existing);
         }
         return null;

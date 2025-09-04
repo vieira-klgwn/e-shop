@@ -33,18 +33,18 @@ public class ProductController {
 
     @PostMapping
     @PreAuthorize("hasRole('SALES_MANAGER')")
-    public Product create(@RequestBody CreateProductRequest createProductRequest) {
-        return productService.save(createProductRequest);
+    public Product create(@RequestBody Product product) {
+        return productService.save(product);
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('SALES_MANAGER')")
-    public ResponseEntity<Product> update(@PathVariable Long id, CreateProductRequest createProductRequest) {
+    public ResponseEntity<Product> update(@PathVariable Long id, Product product) {
         Product existing = productService.findById(id);
         if (existing == null) return ResponseEntity.notFound().build();
-        existing.setName(createProductRequest.getName());
-        //add more updates here
-        return ResponseEntity.ok(productService.update(id, createProductRequest));
+
+        //add  updates here
+        return ResponseEntity.ok(productService.update(id, product));
     }
 
     @DeleteMapping("/{id}")

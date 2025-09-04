@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import vector.StockManagement.model.PriceList;
 import vector.StockManagement.repositories.PriceListRepository;
+import vector.StockManagement.repositories.ProductRepository;
 import vector.StockManagement.services.PriceListService;
 
 import java.util.List;
@@ -15,6 +16,7 @@ import java.util.List;
 public class PriceListServiceImpl implements PriceListService {
 
     private final PriceListRepository priceListRepository;
+    private final ProductRepository productRepository;
 
     @Override
     public List<PriceList> findAll() {
@@ -28,6 +30,15 @@ public class PriceListServiceImpl implements PriceListService {
 
     @Override
     public PriceList save(PriceList priceList) {
+
+        priceList.getItems().forEach(item -> {
+            item.getProduct().setPrice(item.getBasePrice());
+        });
+       if (priceListRepository.count() != 0) {
+           for (PriceList price : priceListRepository.findAll()) {
+               price.setIsActive(false);
+           }
+       }
         return priceListRepository.save(priceList);
     }
 
