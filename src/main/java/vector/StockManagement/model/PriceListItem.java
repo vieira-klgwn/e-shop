@@ -23,7 +23,7 @@ import java.util.Map;
 public class PriceListItem extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "priceList", nullable = false)
+    @JoinColumn(name = "priceList")// removed nullable false
     private PriceList priceList;
 
     @ManyToOne(fetch = FetchType.LAZY)

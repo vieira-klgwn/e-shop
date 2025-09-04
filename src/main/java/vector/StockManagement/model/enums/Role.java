@@ -30,13 +30,14 @@ public enum Role {
     ),
     MANAGER(
             Set.of(
-                   WARE_HOUSE_MANAGER,
-                    STORE_MANAGER,
-                    SALES_MANAGER
+                   WARE_HOUSE_MANAGER
+
 
             )
     ),DISTRIBUTOR(Collections.emptySet()),
-    ACCOUNTANT(Collections.emptySet()),;
+    ACCOUNTANT(Collections.emptySet()),
+    SALES_MANAGER(Collections.emptySet()),
+    STORE_MANAGER(Collections.emptySet());
 
     @Getter
     private final Set<Permission> permissions;

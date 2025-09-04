@@ -9,7 +9,7 @@ import vector.StockManagement.services.OrderLineService;
 import java.util.List;
 
 @RestController
-@RequestMapping("/orderlines")
+@RequestMapping("/api/orderlines")
 @RequiredArgsConstructor
 public class OrderLineController {
 

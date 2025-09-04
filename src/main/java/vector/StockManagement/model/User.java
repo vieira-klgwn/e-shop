@@ -51,7 +51,8 @@ public class User implements UserDetails {
     private UserStatus userStatus;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "tenant_id", nullable = false)
+    @JoinColumn(name = "tenant_id")
+    @JsonIgnore
     private Tenant tenant;
 
 

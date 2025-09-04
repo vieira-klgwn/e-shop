@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import vector.StockManagement.model.ChangePasswordRequest;
 import vector.StockManagement.model.Tenant;
 import vector.StockManagement.model.User;
+import vector.StockManagement.repositories.TenantRepository;
 import vector.StockManagement.repositories.UserRepository;
 
 import java.security.Principal;
@@ -20,6 +21,7 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final TenantRepository tenantRepository;
 
     public void changePassword(ChangePasswordRequest request, Principal connectedUser) {
         var user = (User) ((UsernamePasswordAuthenticationToken) connectedUser).getPrincipal();
@@ -41,7 +43,11 @@ public class UserService {
         if (principal instanceof User user) {
             Tenant currentTenant = user.getTenant();
             newUser.setTenant(currentTenant);
-            return userRepository.save(newUser);
+            userRepository.save(newUser);
+            tenantRepository.save(currentTenant);
+            currentTenant.getUsers().add(newUser);
+
+            return newUser;
         }
         else {
             throw new IllegalStateException("Authenticated user is not of type CustomUserDetails");

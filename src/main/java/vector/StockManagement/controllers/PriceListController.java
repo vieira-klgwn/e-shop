@@ -12,7 +12,7 @@ import vector.StockManagement.services.PriceListService;
 import java.util.List;
 
 @RestController
-@RequestMapping("/pricelists")
+@RequestMapping("/api/pricelists")
 @RequiredArgsConstructor(onConstructor_ = {@Autowired})
 public class PriceListController {
 

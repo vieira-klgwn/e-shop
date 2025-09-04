@@ -10,7 +10,7 @@ import vector.StockManagement.services.NotificationSerivice;
 import java.util.List;
 
 @RestController
-@RequestMapping("/notifications")
+@RequestMapping("/api/notifications")
 public class NotificationController {
 
     @Autowired

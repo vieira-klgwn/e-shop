@@ -11,7 +11,7 @@ import vector.StockManagement.services.StoreService;
 import java.util.List;
 
 @RestController
-@RequestMapping("/stores")
+@RequestMapping("api/stores")
 public class StoreController {
 
     @Autowired
@@ -29,7 +29,7 @@ public class StoreController {
     }
 
     @PostMapping
-    @PreAuthorize("hasAnyAuthority('WAREHOUSE_MANAGER')")
+    @PreAuthorize("hasAnyRole('STORE_MANAGER')")
     public Store create(@RequestBody Store store) {
         return storeService.save(store);
     }

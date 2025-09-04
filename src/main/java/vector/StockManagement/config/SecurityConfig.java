@@ -41,6 +41,7 @@ public class SecurityConfig {
 
     private static final String[] WHITE_LIST_URL = {
             "/api/auth/**",
+            "/api/tenants/admin",
             "/v2/api-docs",
             "/v3/api-docs",
             "/v3/api-docs/**",
@@ -62,16 +63,12 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(
                         req -> req
+
                                 .requestMatchers(WHITE_LIST_URL).permitAll()
                                 .requestMatchers(SWAGGER_WHITELIST).permitAll()
+                                .requestMatchers("/api/auth/register").hasRole("ADMIN")
                                 .requestMatchers(HttpMethod.GET, "/api/users/me").authenticated()
-                                .requestMatchers(HttpMethod.GET, "/api/users").hasRole("TEAM_LEAD")
-                                .requestMatchers(HttpMethod.GET, "/api/teams/**", "/api/projects/**", "/api/tasks/**", "/api/comments/**").hasAnyRole("USER", "TEAM_LEAD")
-                                .requestMatchers(HttpMethod.POST, "/api/comments/**").hasAnyRole("USER", "TEAM_LEAD")
-                                .requestMatchers(HttpMethod.POST, "/api/teams/**", "/api/projects/**", "/api/tasks/**").hasRole("TEAM_LEAD")
-                                .requestMatchers(HttpMethod.PUT, "/api/teams/**", "/api/projects/**", "/api/tasks/**", "/api/comments/**").hasRole("TEAM_LEAD")
-                                .requestMatchers(HttpMethod.DELETE, "/api/teams/**", "/api/projects/**", "/api/tasks/**", "/api/comments/**").hasRole("TEAM_LEAD")
-                                .requestMatchers(HttpMethod.POST, "/api/tasks/assign/**").hasRole("TEAM_LEAD")
+                                .requestMatchers(HttpMethod.GET, "/api/users").hasRole("ADMIN")
                                 .requestMatchers("/api/management/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_MANAGER")
                                 .requestMatchers(HttpMethod.GET, "/api/management/**").hasAnyRole("ADMIN_READ", "MANAGER_READ")
                                 .requestMatchers(HttpMethod.POST, "/api/management/**").hasAnyRole("ADMIN_CREATE", "MANAGER_CREATE")

@@ -1,0 +1,11 @@
+{
+
+  "firstName": "Vieira",
+  "lastName": "Ntwali",
+  "email": "ntwali1@gmail.com",
+  "password": "password123",
+  "confirmPassword":"password123",
+  "role":"DISTRIBUTOR",
+  "gender": "MALE"
+
+}

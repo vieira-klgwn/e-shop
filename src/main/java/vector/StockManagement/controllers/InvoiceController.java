@@ -10,7 +10,7 @@ import vector.StockManagement.services.InvoiceService;
 import java.util.List;
 
 @RestController
-@RequestMapping("/invoices")
+@RequestMapping("/api/invoices")
 @RequiredArgsConstructor(onConstructor_ = {@Autowired})
 public class InvoiceController {
 

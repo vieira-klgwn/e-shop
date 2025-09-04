@@ -31,7 +31,6 @@ public class PriceList extends BaseEntity {
     private PriceListLevel level;
 
     @NotBlank
-    @Size(max = 3)
     @Column(name = "currency", nullable = false)
     private String currency; // ISO 4217 currency code
 
@@ -45,7 +44,7 @@ public class PriceList extends BaseEntity {
     private Boolean isActive = true;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "tenant_id", nullable = false)
+    @JoinColumn(name = "tenant_id")
     private Tenant tenant;
 
     @Column(name = "description", length = 500)
@@ -54,13 +53,14 @@ public class PriceList extends BaseEntity {
     @OneToMany(mappedBy = "priceList")
     private List<PriceListItem> items = new ArrayList<>();
 
+// I removed requirement of tenant in request body
 
-
-    public PriceList(String name, PriceListLevel level, String currency, Tenant tenant) {
+    public PriceList(String name, PriceListLevel level, String currency) {
         this.name = name;
         this.level = level;
         this.currency = currency;
-        this.tenant = tenant;
+
+
     }
 
 

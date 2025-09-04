@@ -10,7 +10,7 @@ import vector.StockManagement.services.PaymentService;
 import java.util.List;
 
 @RestController
-@RequestMapping("/payments")
+@RequestMapping("/api/payments")
 @RequiredArgsConstructor(onConstructor_ = {@Autowired})
 public class PaymentController {
 

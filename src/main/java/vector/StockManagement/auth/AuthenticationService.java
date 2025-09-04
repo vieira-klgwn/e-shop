@@ -10,11 +10,15 @@ import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import vector.StockManagement.config.JwtService;
 import vector.StockManagement.model.Tenant;
 import vector.StockManagement.model.Token;
+import vector.StockManagement.model.enums.Role;
 import vector.StockManagement.model.enums.TokenType;
 import vector.StockManagement.model.User;
 import vector.StockManagement.model.enums.Gender;
@@ -36,13 +40,13 @@ public class AuthenticationService {
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
     private final JavaMailSender mailSender;
-    private final TenantService tenantService;
     private static final Logger logger = Logger.getLogger(AuthenticationService.class.getName());
 
     @Value("${spring.mail.from}")
     private String fromEmail;
 
     public AuthenticationResponse register(RegisterRequest request) {
+        // Validate input
         if (userRepository.findByEmail(request.getEmail()).isPresent()) {
             throw new IllegalStateException("Email already taken: " + request.getEmail());
         }
@@ -58,28 +62,30 @@ public class AuthenticationService {
         } catch (IllegalArgumentException e) {
             throw new IllegalStateException("Invalid gender value: " + request.getGender());
         }
-        Tenant tenant;
-        try {
-            tenant = tenantService.save(request.getTenant());
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to save tenant " + request.getTenant());
-        }
+
+
+
+
+        // Create and save new user
         var user = User.builder()
                 .firstName(request.getFirstName())
                 .lastName(request.getLastName())
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
-                .role(request.getRole())
+                .role(request.getRole() != null ? request.getRole() : Role.USER)
                 .gender(gender)
-                .tenant(tenant)
+                .tenant(request.getTenant())
                 .build();
         var savedUser = userRepository.save(user);
+
+        // Generate and save tokens
         var token = jwtService.generateToken(user);
         var refreshToken = jwtService.generateRefreshToken(user);
         saveUserToken(savedUser, token);
         saveUserToken(savedUser, refreshToken);
-        logger.info("accesstoken: " + token);
-        logger.info("refreshtoken: " + refreshToken);
+//        logger.info("Access token: {}", token);
+//        logger.info("Refresh token: {}", refreshToken);
+
         return AuthenticationResponse.builder()
                 .accessToken(token)
                 .refreshToken(refreshToken)

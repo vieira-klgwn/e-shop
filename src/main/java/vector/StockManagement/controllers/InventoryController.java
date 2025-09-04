@@ -10,7 +10,7 @@ import vector.StockManagement.services.InventoryService;
 import java.util.List;
 
 @RestController
-@RequestMapping("/inventories")
+@RequestMapping("/api/inventories")
 @RequiredArgsConstructor(onConstructor_ = {@Autowired})
 public class InventoryController {
 

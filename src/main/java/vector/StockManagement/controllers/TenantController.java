@@ -6,7 +6,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import vector.StockManagement.auth.AuthenticationResponse;
 import vector.StockManagement.model.Tenant;
+import vector.StockManagement.model.dto.TenantDTO;
 import vector.StockManagement.services.TenantService;
 
 import java.util.List;
@@ -29,19 +31,14 @@ public class TenantController {
         return tenant != null ? ResponseEntity.ok(tenant) : ResponseEntity.notFound().build();
     }
 
-    @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
-    public Tenant create(@RequestBody Tenant tenant) {
-        return tenantService.save(tenant);
+    @PostMapping("/admin")
+    public AuthenticationResponse create(@RequestBody TenantDTO tenantdto) {
+        return tenantService.save(tenantdto);
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<Tenant> update(@PathVariable Long id, @RequestBody Tenant tenant) {
-        Tenant existing = tenantService.findById(id);
-        if (existing == null) return ResponseEntity.notFound().build();
-        tenant.setSettings(existing.getSettings());
-        //add more updates here
-        return ResponseEntity.ok(tenantService.save(tenant));
+        return ResponseEntity.ok(tenantService.update(id, tenant));
     }
 
     @DeleteMapping("/{id}")

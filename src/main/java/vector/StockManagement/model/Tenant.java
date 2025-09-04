@@ -1,11 +1,13 @@
 package vector.StockManagement.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 import vector.StockManagement.model.BaseEntity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -46,7 +48,8 @@ public class Tenant extends BaseEntity {
     }
 
    @OneToMany(mappedBy = "tenant")
-   private List<User> users;
+   @JsonIgnore
+   private List<User> users = new ArrayList<>();
 
 
 

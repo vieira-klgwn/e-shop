@@ -14,7 +14,7 @@ import vector.StockManagement.services.WarehouseService;
 import java.util.List;
 
 @RestController
-@RequestMapping("/warehouses")
+@RequestMapping("api/warehouses")
 @RequiredArgsConstructor(onConstructor_ = {@Autowired})
 public class WarehouseController {
 
