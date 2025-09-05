@@ -80,16 +80,16 @@ public class Invoice extends BaseEntity {
     private String currency;
 
 
-    public Invoice(Order order, Tenant tenant) {
-        this();
-        this.order = order;
-        this.tenant = tenant;
-        this.distributor = order.getDistributor();
-        this.store = order.getStore();
-        this.currency = order.getCurrency();
-        this.number = generateInvoiceNumber();
-        copyAmountsFromOrder();
-    }
+//    public Invoice(Order order, Tenant tenant) {
+//        this();
+//        this.order = order;
+//        this.tenant = tenant;
+////        this.distributor = order.getDistributor();
+////        this.store = order.getStore();
+//        this.currency = order.getCurrency();
+//        this.number = generateInvoiceNumber();
+//        copyAmountsFromOrder();
+//    }
 
 
 
@@ -103,13 +103,13 @@ public class Invoice extends BaseEntity {
         amounts.put("balance", BigDecimal.ZERO);
     }
 
-    private void copyAmountsFromOrder() {
-        amounts.put("net", order.getSubtotal());
-        amounts.put("tax", order.getTax());
-        amounts.put("total", order.getGrandTotal());
-        amounts.put("paid", BigDecimal.ZERO);
-        amounts.put("balance", order.getGrandTotal());
-    }
+//    private void copyAmountsFromOrder() {
+//        amounts.put("net", order.getSubtotal());
+//        amounts.put("tax", order.getTax());
+//        amounts.put("total", order.getGrandTotal());
+//        amounts.put("paid", BigDecimal.ZERO);
+//        amounts.put("balance", order.getGrandTotal());
+//    }
 
     public BigDecimal getNetAmount() { return amounts.getOrDefault("net", BigDecimal.ZERO); }
     public BigDecimal getTaxAmount() { return amounts.getOrDefault("tax", BigDecimal.ZERO); }

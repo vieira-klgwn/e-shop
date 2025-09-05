@@ -1,6 +1,9 @@
 package vector.StockManagement.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import lombok.experimental.WithBy;
 import org.aspectj.weaver.ast.Or;
+import org.springframework.data.annotation.CreatedBy;
 import vector.StockManagement.model.enums.OrderChannel;
 import vector.StockManagement.model.enums.OrderLevel;
 import vector.StockManagement.model.enums.OrderStatus;
@@ -41,21 +44,22 @@ public class Order extends BaseEntity {
 
     @NotNull
     @Enumerated(EnumType.STRING)
-    @Column(name = "level", nullable = false)
+    @Column(name = "level") //removed nullable false
     private OrderLevel level;
 
     @NotNull
     @Enumerated(EnumType.STRING)
-    @Column(name = "channel", nullable = false)
+    @Column(name = "channel")
     private OrderChannel channel = OrderChannel.WEB;
+//
+//    @ManyToOne(fetch = FetchType.LAZY)
+//    @JoinColumn(name = "distributor_id")
+//    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+//    private Distributor distributor;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "distributor_id")
-    private Distributor distributor;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "store_id")
-    private Store store;
+//    @ManyToOne(fetch = FetchType.LAZY)
+//    @JoinColumn(name = "store_id")
+//    private Store store;
 
     @NotNull
     @Enumerated(EnumType.STRING)
@@ -64,19 +68,22 @@ public class Order extends BaseEntity {
 
     @NotBlank
     @Size(max = 3)
-    @Column(name = "currency", nullable = false)
+    @Column(name = "currency")// removed nullable false
     private String currency;
 
-    @JdbcTypeCode(SqlTypes.JSON)
-    @Column(name = "totals", columnDefinition = "json")
-    private Map<String, BigDecimal> totals = new HashMap<>();
+//    @JdbcTypeCode(SqlTypes.JSON)
+//    @Column(name = "totals", columnDefinition = "json")
+//    private Map<String, BigDecimal> totals = new HashMap<>();
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "created_by", nullable = false)
+    @JoinColumn(name = "created_by")//, nullable = false
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+    @CreatedBy
     private User createdBy;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "approved_by")
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private User approvedBy;
 
     @Column(name = "approved_at")
@@ -96,9 +103,10 @@ public class Order extends BaseEntity {
     @Column(name = "cancellation_reason")
     private String cancellationReason;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "tenant_id", nullable = false)
-    private Tenant tenant;
+//    @ManyToOne(fetch = FetchType.LAZY)
+//    @JoinColumn(name = "tenant_id")//removed, nullable = false
+//    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+//    private Tenant tenant;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private List<OrderLine> orderLines = new ArrayList<>();
@@ -116,66 +124,66 @@ public class Order extends BaseEntity {
         this.level = level;
         this.currency = currency;
         this.createdBy = createdBy;
-        this.tenant = tenant;
+//        this.tenant = tenant;
         this.number = generateOrderNumber();
     }
 
     // Helper methods
-    private void initializeTotals() {
-        totals.put("subtotal", BigDecimal.ZERO);
-        totals.put("tax", BigDecimal.ZERO);
-        totals.put("discount", BigDecimal.ZERO);
-        totals.put("grandTotal", BigDecimal.ZERO);
-    }
+//    private void initializeTotals() {
+//        totals.put("subtotal", BigDecimal.ZERO);
+//        totals.put("tax", BigDecimal.ZERO);
+//        totals.put("discount", BigDecimal.ZERO);
+//        totals.put("grandTotal", BigDecimal.ZERO);
+//    }
 
-    public BigDecimal getSubtotal() {
-        return totals.getOrDefault("subtotal", BigDecimal.ZERO);
-    }
+//    public BigDecimal getSubtotal() {
+//        return totals.getOrDefault("subtotal", BigDecimal.ZERO);
+//    }
+//
+//    public BigDecimal getTax() {
+//        return totals.getOrDefault("tax", BigDecimal.ZERO);
+//    }
+//
+//    public BigDecimal getDiscount() {
+//        return totals.getOrDefault("discount", BigDecimal.ZERO);
+//    }
+//
+//    public BigDecimal getGrandTotal() {
+//        return totals.getOrDefault("grandTotal", BigDecimal.ZERO);
+//    }
 
-    public BigDecimal getTax() {
-        return totals.getOrDefault("tax", BigDecimal.ZERO);
-    }
-
-    public BigDecimal getDiscount() {
-        return totals.getOrDefault("discount", BigDecimal.ZERO);
-    }
-
-    public BigDecimal getGrandTotal() {
-        return totals.getOrDefault("grandTotal", BigDecimal.ZERO);
-    }
-
-    public void addOrderLine(OrderLine orderLine) {
-        orderLines.add(orderLine);
-        orderLine.setOrder(this);
-        recalculateTotals();
-    }
-
-    public void removeOrderLine(OrderLine orderLine) {
-        orderLines.remove(orderLine);
-        orderLine.setOrder(null);
-        recalculateTotals();
-    }
-
-    public void recalculateTotals() {
-        BigDecimal subtotal = orderLines.stream()
-                .map(OrderLine::getLineTotal)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-        BigDecimal tax = orderLines.stream()
-                .map(OrderLine::getTax)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-        BigDecimal discount = orderLines.stream()
-                .map(OrderLine::getDiscount)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-        BigDecimal grandTotal = subtotal.add(tax).subtract(discount);
-
-        totals.put("subtotal", subtotal);
-        totals.put("tax", tax);
-        totals.put("discount", discount);
-        totals.put("grandTotal", grandTotal);
-    }
+//    public void addOrderLine(OrderLine orderLine) {
+//        orderLines.add(orderLine);
+//        orderLine.setOrder(this);
+//        recalculateTotals();
+//    }
+//
+//    public void removeOrderLine(OrderLine orderLine) {
+//        orderLines.remove(orderLine);
+//        orderLine.setOrder(null);
+//        recalculateTotals();
+//    }
+//
+//    public void recalculateTotals() {
+//        BigDecimal subtotal = orderLines.stream()
+//                .map(OrderLine::getLineTotal)
+//                .reduce(BigDecimal.ZERO, BigDecimal::add);
+//
+//        BigDecimal tax = orderLines.stream()
+//                .map(OrderLine::getTax)
+//                .reduce(BigDecimal.ZERO, BigDecimal::add);
+//
+//        BigDecimal discount = orderLines.stream()
+//                .map(OrderLine::getDiscount)
+//                .reduce(BigDecimal.ZERO, BigDecimal::add);
+//
+//        BigDecimal grandTotal = subtotal.add(tax).subtract(discount);
+//
+//        totals.put("subtotal", subtotal);
+//        totals.put("tax", tax);
+//        totals.put("discount", discount);
+//        totals.put("grandTotal", grandTotal);
+//    }
 
     public boolean canBeSubmitted() {
         return status == OrderStatus.DRAFT && !orderLines.isEmpty();
@@ -224,7 +232,7 @@ public class Order extends BaseEntity {
                 ", number='" + number + '\'' +
                 ", level=" + level +
                 ", status=" + status +
-                ", grandTotal=" + getGrandTotal() +
+//                ", grandTotal=" + getGrandTotal() +
                 ", currency='" + currency + '\'' +
                 '}';
     }

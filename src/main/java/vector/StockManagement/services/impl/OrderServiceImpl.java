@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import vector.StockManagement.model.Order;
+import vector.StockManagement.model.OrderLine;
 import vector.StockManagement.model.User;
 import vector.StockManagement.model.enums.OrderStatus;
 import vector.StockManagement.model.enums.Role;
@@ -32,6 +33,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public Order save(Order order) {
+        OrderLine 
         return orderRepository.save(order);
     }
 
