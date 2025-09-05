@@ -4,12 +4,10 @@ package vector.StockManagement.services.impl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import vector.StockManagement.model.CreateProductRequest;
-import vector.StockManagement.model.PriceList;
-import vector.StockManagement.model.PriceListItem;
-import vector.StockManagement.model.Product;
+import vector.StockManagement.model.*;
 import vector.StockManagement.repositories.PriceListItemRepository;
 import vector.StockManagement.repositories.ProductRepository;
+import vector.StockManagement.repositories.TenantRepository;
 import vector.StockManagement.services.ProductService;
 
 import java.util.List;
@@ -20,6 +18,7 @@ public class ProductServiceImpl implements ProductService {
 
     private final ProductRepository productRepository;
     private final PriceListItemRepository priceListItemRepository;
+    private final TenantRepository tenantRepository;
 
     @Override
     public List<Product> findAll() {
@@ -33,6 +32,12 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public Product save(Product product) {
+        Tenant tenant = new Tenant();
+        tenant.setName("tenant_sample");
+        tenant.setDescription("tenant");
+        tenant.setCode("000");
+        tenantRepository.save(tenant);
+        product.setTenant(tenant);
         return productRepository.save(product);
     }
 

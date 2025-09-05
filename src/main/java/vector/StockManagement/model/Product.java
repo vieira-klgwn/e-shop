@@ -17,10 +17,7 @@ import java.util.Map;
 
 // Product Entity
 @Entity
-@Table(name = "products", indexes = {
-        @Index(name = "idx_product_sku_tenant", columnList = "sku, tenant_id", unique = true),
-        @Index(name = "idx_product_code_tenant", columnList = "code, tenant_id", unique = true)
-})
+@Table(name = "products")
 @Data
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
@@ -42,7 +39,7 @@ public class Product extends BaseEntity {
     private String description;
 
     @Column(name = "price")
-    private BigDecimal price;
+    private Long price;
 
 
     @Column(name = "unit")
@@ -68,7 +65,7 @@ public class Product extends BaseEntity {
     private Boolean isActive = true;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "tenant_id", nullable = false)
+    @JoinColumn(name = "tenant_id") // removed , nullable = false
     private Tenant tenant;
 
     @Column(name = "barcode")
@@ -76,7 +73,7 @@ public class Product extends BaseEntity {
 
     @DecimalMin("0.0")
     @Column(name = "weight", precision = 10, scale = 3)
-    private BigDecimal weight;
+    private Long weight;
 
     @Size(max = 500)
     @Column(name = "image_url")
@@ -86,7 +83,7 @@ public class Product extends BaseEntity {
     public Product(String sku, String name, Tenant tenant,ProductCategory category) {
         this.sku = sku;
         this.name = name;
-        this.tenant = tenant;
+//        this.tenant = tenant;
         this.category = category;
     }
 

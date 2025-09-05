@@ -27,17 +27,17 @@ public class PriceListItem extends BaseEntity {
     private PriceList priceList;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "product_id", nullable = false)
+    @JoinColumn(name = "product_id") // removed , nullable = false
     private Product product;
 
     @NotNull
     @DecimalMin("0.0")
     @Column(name = "base_price", nullable = false, precision = 15, scale = 2)
-    private BigDecimal basePrice;
+    private Long basePrice;
 
     @DecimalMin("0.0")
     @Column(name = "min_price", precision = 15, scale = 2)
-    private BigDecimal minPrice;
+    private Long minPrice;
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "taxes", columnDefinition = "json")
@@ -52,7 +52,7 @@ public class PriceListItem extends BaseEntity {
 
 
 
-    public PriceListItem(PriceList priceList, Product product, BigDecimal basePrice) {
+    public PriceListItem(PriceList priceList, Product product, Long basePrice) {
         this.priceList = priceList;
         this.product = product;
         this.basePrice = basePrice;

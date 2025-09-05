@@ -7,6 +7,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import vector.StockManagement.model.PriceListItem;
+import vector.StockManagement.model.dto.PriceListItemDTO;
+import vector.StockManagement.repositories.PriceListRepository;
 import vector.StockManagement.services.PriceListItemService;
 
 import java.util.List;
@@ -17,9 +19,10 @@ import java.util.List;
 public class PriceListItemController {
 
     private final PriceListItemService priceListItemService;
+    private final PriceListRepository priceListRepository;
 
     @GetMapping
-    @PreAuthorize("hasAnyAuthority('SALES_MANAGER')")
+    @PreAuthorize("hasAnyRole('SALES_MANAGER')")
     public List<PriceListItem> getAll() {
         return priceListItemService.findAll();
     }
@@ -31,20 +34,20 @@ public class PriceListItemController {
     }
 
     @PostMapping
-    @PreAuthorize("hasAnyAuthority('SALES_MANAGER')")
-    public PriceListItem create(@RequestBody PriceListItem priceListItem) {
-        return priceListItemService.save(priceListItem);
+    @PreAuthorize("hasAnyRole('SALES_MANAGER')")
+    public PriceListItem create(@RequestBody PriceListItemDTO priceListItemDTO) {
+        return priceListItemService.save(priceListItemDTO);
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<PriceListItem> update(@PathVariable Long id, @RequestBody PriceListItem priceListItem) {
-        PriceListItem existing = priceListItemService.findById(id);
-        if (existing == null) return ResponseEntity.notFound().build();
-        priceListItem.setDiscounts(existing.getDiscounts());
-        priceListItem.setIsActive(existing.getIsActive());
-        //add more updates here
-        return ResponseEntity.ok(priceListItemService.save(priceListItem));
-    }
+//    @PutMapping("/{id}")
+//    public ResponseEntity<PriceListItem> update(@PathVariable Long id, @RequestBody PriceListItemDTO priceListItemDTO) {
+//        PriceListItem existing = priceListItemService.findById(id);
+//        if (existing == null) return ResponseEntity.notFound().build();
+//        existing.setProduct(priceListItemDTO.getProduct());
+//        existing.setPriceList(priceListItemDTO.getPriceList());
+//        //add more updates here
+//        return ResponseEntity.ok(priceListRepository.save(existing));
+//    }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
