@@ -1,6 +1,8 @@
 package vector.StockManagement.model;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import vector.StockManagement.model.enums.LocationType;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.DecimalMin;
@@ -35,8 +37,10 @@ public class Inventory extends BaseEntity {
     @Column(name = "location_id", nullable = false)
     private Long locationId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "product_id", nullable = false)
+    @JsonManagedReference
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private Product product;
 
     @NotNull
@@ -46,7 +50,7 @@ public class Inventory extends BaseEntity {
 
     @NotNull
     @Min(0)
-    @Column(name = "qty_reserved", nullable = false)
+    @Column(name = "qty_reserved")
     private Integer qtyReserved = 0;
 
     @Min(0)
@@ -69,6 +73,7 @@ public class Inventory extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "tenant_id", nullable = false)
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private Tenant tenant;
 
 

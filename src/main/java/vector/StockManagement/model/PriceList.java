@@ -1,5 +1,7 @@
 package vector.StockManagement.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import vector.StockManagement.model.enums.PriceListLevel;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
@@ -45,12 +47,15 @@ public class PriceList extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "tenant_id")
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+    @JsonIgnore
     private Tenant tenant;
 
     @Column(name = "description", length = 500)
     private String description;
 
     @OneToMany(mappedBy = "priceList")
+    @JsonIgnore
     private List<PriceListItem> items = new ArrayList<>();
 
 // I removed requirement of tenant in request body

@@ -3,6 +3,7 @@ package vector.StockManagement.controllers;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import vector.StockManagement.model.Inventory;
 import vector.StockManagement.services.InventoryService;
@@ -33,6 +34,7 @@ public class InventoryController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('STORE_MANAGER')")
     public ResponseEntity<Inventory> create(@RequestBody Inventory inventory) {
         return ResponseEntity.ok(inventoryService.save(inventory));
     }

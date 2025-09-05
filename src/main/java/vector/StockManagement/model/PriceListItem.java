@@ -1,5 +1,6 @@
 package vector.StockManagement.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.DecimalMin;
@@ -24,10 +25,12 @@ public class PriceListItem extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "priceList")// removed nullable false
+    @JsonIgnore
     private PriceList priceList;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id") // removed , nullable = false
+    @JsonIgnore
     private Product product;
 
     @NotNull
