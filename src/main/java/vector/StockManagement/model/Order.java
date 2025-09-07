@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.experimental.WithBy;
 import org.aspectj.weaver.ast.Or;
 import org.springframework.data.annotation.CreatedBy;
+import org.springframework.data.annotation.CreatedDate;
 import vector.StockManagement.model.enums.OrderChannel;
 import vector.StockManagement.model.enums.OrderLevel;
 import vector.StockManagement.model.enums.OrderStatus;
@@ -78,7 +79,7 @@ public class Order extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by")//, nullable = false
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
-    @CreatedBy
+//    @CreatedBy
     private User createdBy;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -89,6 +90,7 @@ public class Order extends BaseEntity {
     @Column(name = "approved_at")
     private LocalDateTime approvedAt;
 
+    @CreatedDate
     @Column(name = "submitted_at")
     private LocalDateTime submittedAt;
 

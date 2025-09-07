@@ -48,7 +48,7 @@ public class PriceListServiceImpl implements PriceListService {
        tenant.setCode("000");
        tenantRepository.save(tenant);
        priceList.setTenant(tenant);
-        return priceListRepository.save(priceList);
+        return priceListRepository.saveAndFlush(priceList);
     }
 
     @Override

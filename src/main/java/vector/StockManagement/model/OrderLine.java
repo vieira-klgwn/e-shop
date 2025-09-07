@@ -37,7 +37,7 @@ public class OrderLine extends BaseEntity {
     @NotNull
     @DecimalMin("0.0")
     @Column(name = "unit_price", nullable = false, precision = 15, scale = 2)
-    private BigDecimal unitPrice;
+    private Long unitPrice;
 
     @DecimalMin("0.0")
     @Column(name = "discount", precision = 15, scale = 2)
@@ -49,7 +49,7 @@ public class OrderLine extends BaseEntity {
 
     @DecimalMin("0.0")
     @Column(name = "line_total", precision = 15, scale = 2)
-    private BigDecimal lineTotal;
+    private Long lineTotal;
 
     @Size(max = 500)
     @Column(name = "notes")
@@ -59,25 +59,25 @@ public class OrderLine extends BaseEntity {
     private Integer fulfilledQty = 0;
 
 
-    public OrderLine(Order order, Product product, Integer qty, BigDecimal unitPrice) {
+    public OrderLine(Order order, Product product, Integer qty, Long unitPrice) {
         this.order = order;
         this.product = product;
         this.qty = qty;
         this.unitPrice = unitPrice;
-        calculateLineTotal();
+//        calculateLineTotal();
     }
 
 
-    // Helper methods
-    public void calculateLineTotal() {
-        if (qty != null && unitPrice != null) {
-            BigDecimal subtotal = unitPrice.multiply(BigDecimal.valueOf(qty));
-            BigDecimal discountAmount = discount != null ? discount : BigDecimal.ZERO;
-            BigDecimal taxAmount = tax != null ? tax : BigDecimal.ZERO;
-
-            this.lineTotal = subtotal.subtract(discountAmount).add(taxAmount);
-        }
-    }
+//    // Helper methods
+//    public void calculateLineTotal() {
+//        if (qty != null && unitPrice != null) {
+//            BigDecimal subtotal = unitPrice.multiply(BigDecimal.valueOf(qty));
+//            BigDecimal discountAmount = discount != null ? discount : BigDecimal.ZERO;
+//            BigDecimal taxAmount = tax != null ? tax : BigDecimal.ZERO;
+//
+//            this.lineTotal = subtotal.subtract(discountAmount).add(taxAmount);
+//        }
+//    }
 
     public Integer getRemainingQty() {
         return qty - fulfilledQty;
@@ -97,11 +97,11 @@ public class OrderLine extends BaseEntity {
         }
     }
 
-    @PrePersist
-    @PreUpdate
-    public void prePersist() {
-        calculateLineTotal();
-    }
+//    @PrePersist
+//    @PreUpdate
+//    public void prePersist() {
+//        calculateLineTotal();
+//    }
 
     @Override
     public String toString() {

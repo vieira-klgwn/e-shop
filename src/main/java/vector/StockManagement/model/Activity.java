@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.CreatedDate;
 import vector.StockManagement.model.enums.ActivityCategory;
 
 import java.time.LocalDateTime;
@@ -27,6 +28,7 @@ public class Activity extends BaseEntity {
     private User user;
 
 
+    @CreatedDate
     private LocalDateTime dateTime;
 
 }
