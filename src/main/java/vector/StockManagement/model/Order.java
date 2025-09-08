@@ -1,5 +1,6 @@
 package vector.StockManagement.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.experimental.WithBy;
 import org.aspectj.weaver.ast.Or;
@@ -43,7 +44,7 @@ public class Order extends BaseEntity {
     @Column(name = "number", nullable = false, unique = true)
     private String number;
 
-    @NotNull
+//    @NotNull
     @Enumerated(EnumType.STRING)
     @Column(name = "level") //removed nullable false
     private OrderLevel level;
@@ -67,7 +68,7 @@ public class Order extends BaseEntity {
     @Column(name = "status", nullable = false)
     private OrderStatus status = OrderStatus.DRAFT;
 
-    @NotBlank
+//    @NotBlank
     @Size(max = 3)
     @Column(name = "currency")// removed nullable false
     private String currency;
@@ -79,12 +80,14 @@ public class Order extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by")//, nullable = false
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+    @JsonIgnore
 //    @CreatedBy
     private User createdBy;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "approved_by")
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+    @JsonIgnore
     private User approvedBy;
 
     @Column(name = "approved_at")
@@ -110,7 +113,8 @@ public class Order extends BaseEntity {
 //    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 //    private Tenant tenant;
 
-    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.LAZY)//removed orphan removal
+    @JsonIgnore
     private List<OrderLine> orderLines = new ArrayList<>();
 
     @Column(name = "delivery_date")

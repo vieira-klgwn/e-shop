@@ -3,6 +3,7 @@ package vector.StockManagement.controllers;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import vector.StockManagement.model.Order;
@@ -32,6 +33,7 @@ public class OrderController {
     }
 
 
+    @PreAuthorize("hasAnyRole('DISTRIBUTOR','STORE_MANAGER')")
     @PostMapping
     public ResponseEntity<Order> create(@AuthenticationPrincipal User user, @RequestBody OrderDTO orderDTO) {
 

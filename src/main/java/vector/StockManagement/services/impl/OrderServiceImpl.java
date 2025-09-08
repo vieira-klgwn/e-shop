@@ -1,19 +1,14 @@
 package vector.StockManagement.services.impl;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import vector.StockManagement.model.Order;
-import vector.StockManagement.model.OrderLine;
-import vector.StockManagement.model.Product;
-import vector.StockManagement.model.User;
+import vector.StockManagement.model.*;
 import vector.StockManagement.model.dto.OrderDTO;
 import vector.StockManagement.model.enums.OrderStatus;
 import vector.StockManagement.model.enums.Role;
-import vector.StockManagement.repositories.OrderLineRepository;
-import vector.StockManagement.repositories.OrderRepository;
-import vector.StockManagement.repositories.ProductRepository;
-import vector.StockManagement.repositories.UserRepository;
+import vector.StockManagement.repositories.*;
 import vector.StockManagement.services.OrderService;
 
 import java.time.LocalDateTime;
@@ -29,6 +24,7 @@ public class OrderServiceImpl implements OrderService {
     private final OrderLineRepository orderLineRepository;
     private final ProductRepository productRepository;
     private final UserRepository userRepository;
+    private final TenantRepository tenantRepository;
 
     @Override
     public List<Order> findAll() {
@@ -41,16 +37,26 @@ public class OrderServiceImpl implements OrderService {
         return orderRepository.findById(id).orElse(null);
     }
 
+    @Transactional
     @Override
     public Order save( Long userId,OrderDTO orderDto) {
         Product product = productRepository.findById(orderDto.getProductId()).orElseThrow(() -> new RuntimeException("Product not found"));
         User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
+        Tenant tenant = new Tenant();
+        tenant.setName("tenant_test1");
+        tenant.setDescription("tenant");
+        tenant.setCode("444");
+        tenantRepository.saveAndFlush(tenant);
+
+
+
         Order order = new Order();
         order.setCreatedBy(user);
         order.setNumber(orderDto.getOrderNumber());
         order.setDeliveryAddress(orderDto.getDeliveryAddress());
         order.setDeliveryDate(LocalDateTime.now());
         order.setStatus(OrderStatus.SUBMITTED);
+        Order savedOrder = orderRepository.saveAndFlush(order);
         List<OrderLine> lines = orderDto.getOrderLines().stream().map(
                 lineReq -> {
                     OrderLine orderLine = new OrderLine();
@@ -63,7 +69,7 @@ public class OrderServiceImpl implements OrderService {
                 }
         ).toList();
         order.setOrderLines(lines);
-        return orderRepository.saveAndFlush(order);
+        return savedOrder;
     }
 
     @Override
