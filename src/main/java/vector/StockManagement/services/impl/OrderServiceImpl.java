@@ -3,6 +3,7 @@ package vector.StockManagement.services.impl;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import vector.StockManagement.model.*;
 import vector.StockManagement.model.dto.OrderDTO;
@@ -42,20 +43,18 @@ public class OrderServiceImpl implements OrderService {
     public Order save( Long userId,OrderDTO orderDto) {
         Product product = productRepository.findById(orderDto.getProductId()).orElseThrow(() -> new RuntimeException("Product not found"));
         User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
-        Tenant tenant = new Tenant();
-        tenant.setName("tenant_test1");
-        tenant.setDescription("tenant");
-        tenant.setCode("444");
-        tenantRepository.saveAndFlush(tenant);
+        Tenant tenant = user.getTenant();
 
 
 
         Order order = new Order();
+        order.setTenant(tenant);
         order.setCreatedBy(user);
         order.setNumber(orderDto.getOrderNumber());
         order.setDeliveryAddress(orderDto.getDeliveryAddress());
         order.setDeliveryDate(LocalDateTime.now());
         order.setStatus(OrderStatus.SUBMITTED);
+
         Order savedOrder = orderRepository.saveAndFlush(order);
         List<OrderLine> lines = orderDto.getOrderLines().stream().map(
                 lineReq -> {
@@ -64,12 +63,17 @@ public class OrderServiceImpl implements OrderService {
                     orderLine.setQty(lineReq.getQty());
                     orderLine.setUnitPrice(product.getPrice());
                     orderLine.setProduct(product);
-                    orderLine.setLineTotal(product.getPrice() * orderLine.getUnitPrice());
+                    orderLine.setLineTotal(product.getPrice() * lineReq.getQty());
                     return orderLineRepository.saveAndFlush(orderLine);
                 }
         ).toList();
         order.setOrderLines(lines);
-        return savedOrder;
+        for (OrderLine orderLine : orderDto.getOrderLines()) {
+            Long amount = order.getOrderAmount();
+            order.setOrderAmount(amount += orderLine.getProduct().getPrice() * orderLine.getQty());
+
+        }
+        return orderRepository.save(order);
     }
 
     @Override

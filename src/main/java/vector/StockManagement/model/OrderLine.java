@@ -31,8 +31,6 @@ public class OrderLine extends BaseEntity {
     @JsonIgnore
     private Product product;
 
-
-
     @NotNull
     @Column(name = "qty", nullable = false)
     private Integer qty;

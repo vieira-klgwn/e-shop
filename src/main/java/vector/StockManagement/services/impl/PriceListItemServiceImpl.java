@@ -42,26 +42,9 @@ public class PriceListItemServiceImpl implements PriceListItemService {
     @Transactional
     @Override
     public PriceListItem save(PriceListItemDTO priceListItemDTO) {
-        Product product = new Product();
-        PriceList priceList = new PriceList();
-        product.setUnit(5);
-        product.setName("sample_product");
-        product.setSku("000");
-        product.setCode("000");
-        product.setPrice(Long.parseLong("500"));
-        product.setImageUrl("imageUrl");
-        product.setDescription("description");
-        product.setCategory(ProductCategory.ACTIVEWEAR_PANTS);
-        product.setSize("200g");
-        priceList.setName("priceList");
-        priceList.setDescription("description");
-        priceList.setLevel(PriceListLevel.FACTORY);
-        priceList.setCurrency("frw");
-        priceList.setValidFrom(LocalDate.now());
-        priceList.setValidTo(LocalDate.now().plusDays(100));
+        Product product = productRepository.findById(priceListItemDTO.getProductId()).orElseThrow(() -> new RuntimeException("Product not found"));
 
-        priceListRepository.save(priceList);
-        productRepository.save(product);
+        PriceList priceList = priceListRepository.findById(priceListItemDTO.getPriceListId()).orElseThrow(() -> new RuntimeException("Price list not found"));
 
         PriceListItem priceListItem = new PriceListItem();
         priceListItem.setProduct(product);

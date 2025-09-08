@@ -41,9 +41,9 @@ public class Invoice extends BaseEntity {
     @JoinColumn(name = "order_id", nullable = false)
     private Order order;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "distributor_id")
-    private Distributor distributor;
+//    @ManyToOne(fetch = FetchType.LAZY)
+//    @JoinColumn(name = "distributor_id")
+//    private Distributor distributor;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "store_id")

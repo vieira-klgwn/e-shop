@@ -13,6 +13,7 @@ import vector.StockManagement.model.enums.ProductCategory;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 // Product Entity
@@ -33,6 +34,9 @@ public class Product extends BaseEntity {
     @Size(max = 200)
     @Column(name = "name", nullable = false)
     private String name;
+
+    @OneToMany(mappedBy = "product")
+    private List<OrderLine> orderLines;
 
     @Size(max = 1000)
     @Column(name = "description")
@@ -58,7 +62,7 @@ public class Product extends BaseEntity {
     private ProductCategory category;
 
     @JdbcTypeCode(SqlTypes.JSON)
-    @Column(name = "attributes", columnDefinition = "json")
+    @Column(name = "attributes", columnDefinition = "jsonb")
     private Map<String, Object> attributes = new HashMap<>();
 
     @Column(name = "is_active", nullable = false)

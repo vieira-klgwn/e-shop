@@ -3,6 +3,8 @@ package vector.StockManagement.services.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import vector.StockManagement.model.*;
 import vector.StockManagement.repositories.PriceListItemRepository;
@@ -32,11 +34,11 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public Product save(Product product) {
-        Tenant tenant = new Tenant();
-        tenant.setName("tenant_sample");
-        tenant.setDescription("tenant");
-        tenant.setCode("000");
-        tenantRepository.save(tenant);
+        Tenant tenant = null;
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (principal instanceof User user) {
+            tenant = user.getTenant();
+        }
         product.setTenant(tenant);
         return productRepository.save(product);
     }

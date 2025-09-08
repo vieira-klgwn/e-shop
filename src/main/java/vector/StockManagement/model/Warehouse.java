@@ -57,7 +57,6 @@ public class Warehouse extends BaseEntity {
     @Column(name = "email")
     private String email;
 
-
     @OneToOne
     @JoinColumn(name = "manager_id")
     private User manager;

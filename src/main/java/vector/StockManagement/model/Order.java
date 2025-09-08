@@ -59,9 +59,9 @@ public class Order extends BaseEntity {
 //    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 //    private Distributor distributor;
 
-//    @ManyToOne(fetch = FetchType.LAZY)
-//    @JoinColumn(name = "store_id")
-//    private Store store;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "store_id")
+    private Store store;
 
     @NotNull
     @Enumerated(EnumType.STRING)
@@ -90,12 +90,15 @@ public class Order extends BaseEntity {
     @JsonIgnore
     private User approvedBy;
 
+
     @Column(name = "approved_at")
     private LocalDateTime approvedAt;
 
     @CreatedDate
     @Column(name = "submitted_at")
     private LocalDateTime submittedAt;
+
+    private Long orderAmount;
 
     @Column(name = "cancelled_at")
     private LocalDateTime cancelledAt;
@@ -108,10 +111,10 @@ public class Order extends BaseEntity {
     @Column(name = "cancellation_reason")
     private String cancellationReason;
 
-//    @ManyToOne(fetch = FetchType.LAZY)
-//    @JoinColumn(name = "tenant_id")//removed, nullable = false
-//    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
-//    private Tenant tenant;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "tenant_id")//removed, nullable = false
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+    private Tenant tenant;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.LAZY)//removed orphan removal
     @JsonIgnore
@@ -120,9 +123,9 @@ public class Order extends BaseEntity {
     @Column(name = "delivery_date")
     private LocalDateTime deliveryDate;
 
+
     @Column(name = "delivery_address", length = 500)
     private String deliveryAddress;
-
 
 
     public Order(OrderLevel level, String currency, User createdBy, Tenant tenant) {
@@ -133,6 +136,8 @@ public class Order extends BaseEntity {
 //        this.tenant = tenant;
         this.number = generateOrderNumber();
     }
+
+
 
     // Helper methods
 //    private void initializeTotals() {

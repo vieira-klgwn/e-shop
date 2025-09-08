@@ -1,21 +1,25 @@
 package vector.StockManagement.controllers;
 
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import vector.StockManagement.auth.AuthenticationResponse;
 import vector.StockManagement.model.Store;
+import vector.StockManagement.model.dto.StoreDTO;
 import vector.StockManagement.services.StoreService;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("api/stores")
+@RequiredArgsConstructor
 public class StoreController {
 
-    @Autowired
-    private StoreService storeService;
+
+    private final StoreService storeService;
 
     @GetMapping
     public List<Store> getAll() {
@@ -29,18 +33,14 @@ public class StoreController {
     }
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('STORE_MANAGER')")
-    public Store create(@RequestBody Store store) {
-        return storeService.save(store);
+    @PreAuthorize("hasAnyRole('ADMIN')")
+    public AuthenticationResponse create(@RequestBody StoreDTO storeDTO) {
+        return storeService.save(storeDTO);
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<Store> update(@PathVariable Long id, @RequestBody Store store) {
-        Store existing = storeService.findById(id);
-        if (existing == null) return ResponseEntity.notFound().build();
-        store.setManager(existing.getManager());
-        //add more updates here
-        return ResponseEntity.ok(storeService.save(store));
+        return ResponseEntity.ok(storeService.update(id, store));
     }
 
     @DeleteMapping("/{id}")

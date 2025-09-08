@@ -5,6 +5,8 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.util.HashMap;
 import java.util.List;
@@ -20,8 +22,6 @@ import java.util.Map;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Store extends BaseEntity {
-
-
 
     @NotBlank
     @Size(max = 100)
@@ -39,6 +39,9 @@ public class Store extends BaseEntity {
     @Size(max = 100)
     @Column(name = "city")
     private String city;
+
+    @OneToMany(mappedBy = "store",fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private List<Order> orders;
 
     @Size(max = 100)
     @Column(name = "region")
@@ -68,13 +71,13 @@ public class Store extends BaseEntity {
     @Column(name = "is_active")
     private Boolean isActive = true;
 
-    @OneToMany(mappedBy = "store", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @Column(name = "sales_teams")
-    private List<SalesTeam> salesTeams;
+//    @OneToMany(mappedBy = "store", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+//    @Column(name = "sales_teams")
+//    private List<SalesTeam> salesTeams;
 
 
-    @Convert(converter = MapToJsonConverter.class)
-    @Column(name = "attributes", columnDefinition = "json")
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "attributes", columnDefinition = "jsonb")
     private Map<String, Object> attributes = new HashMap<>();
 
     @OneToOne(mappedBy = "store", cascade = CascadeType.ALL)

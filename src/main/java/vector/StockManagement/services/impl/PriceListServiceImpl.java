@@ -3,9 +3,12 @@ package vector.StockManagement.services.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import vector.StockManagement.model.PriceList;
 import vector.StockManagement.model.Tenant;
+import vector.StockManagement.model.User;
 import vector.StockManagement.repositories.PriceListRepository;
 import vector.StockManagement.repositories.ProductRepository;
 import vector.StockManagement.repositories.TenantRepository;
@@ -33,20 +36,21 @@ public class PriceListServiceImpl implements PriceListService {
 
     @Override
     public PriceList save(PriceList priceList) {
-
         priceList.getItems().forEach(item -> {
             item.getProduct().setPrice(item.getBasePrice());
         });
-       if (priceListRepository.count() != 0) {
+
+        if (priceListRepository.count() != 0) {
            for (PriceList price : priceListRepository.findAll()) {
                price.setIsActive(false);
            }
        }
-       Tenant tenant = new Tenant();
-       tenant.setName("tenant_sample");
-       tenant.setDescription("tenant");
-       tenant.setCode("000");
-       tenantRepository.save(tenant);
+
+       Tenant tenant = null;
+       Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+       if (principal instanceof User user) {
+           tenant = user.getTenant();
+       }
        priceList.setTenant(tenant);
         return priceListRepository.saveAndFlush(priceList);
     }
