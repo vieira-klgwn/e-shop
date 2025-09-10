@@ -1,22 +1,16 @@
-
 package vector.StockManagement.config;
-
 
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.enums.SecuritySchemeIn;
 import io.swagger.v3.oas.annotations.enums.SecuritySchemeType;
-import io.swagger.v3.oas.annotations.info.Contact;
 import io.swagger.v3.oas.annotations.info.Info;
-import io.swagger.v3.oas.annotations.info.License;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.security.SecurityScheme;
 import io.swagger.v3.oas.annotations.servers.Server;
 import org.springframework.context.annotation.Configuration;
 
-
 @OpenAPIDefinition(
         info = @Info(
-
                 description = "API for managing stock in a multi-tenant beverage supply chain",
                 title = "Stock Management API",
                 version = "1.0",
@@ -27,7 +21,10 @@ import org.springframework.context.annotation.Configuration;
                         description = "Local ENV",
                         url = "http://localhost:8080"
                 ),
-
+                @Server(
+                        description = "Render Deployment",
+                        url = "https://stockscout-yqt4.onrender.com"
+                )
         },
         security = {
                 @SecurityRequirement(
@@ -43,9 +40,6 @@ import org.springframework.context.annotation.Configuration;
         bearerFormat = "JWT",
         in = SecuritySchemeIn.HEADER
 )
-
 @Configuration
 public class OpenApiConfig {
 }
-
-
