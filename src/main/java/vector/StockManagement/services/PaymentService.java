@@ -1,7 +1,10 @@
 package vector.StockManagement.services;
 
+import vector.StockManagement.model.Invoice;
 import vector.StockManagement.model.Payment;
+import vector.StockManagement.model.enums.PaymentMethod;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 public interface PaymentService {
@@ -9,4 +12,5 @@ public interface PaymentService {
     Payment findById(Long id);
     Payment save(Payment payment);
     void delete(Long id);
+    Payment processPayment(Long invoiceId, BigDecimal amount, PaymentMethod method, String txnRef);
 }

@@ -33,8 +33,9 @@ public class WarehouseController {
     }
 
     @PostMapping
-    public Warehouse create(Warehouse warehouse) {
-        return warehouseService.save(warehouse);
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Warehouse> create(@RequestBody Warehouse warehouse) {
+        return ResponseEntity.ok(warehouseService.save(warehouse));
     }
 
 

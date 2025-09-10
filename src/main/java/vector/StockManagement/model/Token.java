@@ -23,7 +23,7 @@ public class Token {
     @SequenceGenerator(name = "token_seq", sequenceName = "token_seq", allocationSize = 1)
     private Long id;
 
-    @Column(nullable = false, length = 1024)
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String token;
 
     @Enumerated(EnumType.STRING)

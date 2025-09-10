@@ -69,6 +69,9 @@ public class StockTransaction extends BaseEntity {
     @Column(name = "timestamp", nullable = false)
     private LocalDateTime timestamp;
 
+    @Column(name = "transaction_date", nullable = false)
+    private LocalDateTime transactionDate;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by", nullable = false)
     private User createdBy;
@@ -80,6 +83,21 @@ public class StockTransaction extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "tenant_id", nullable = false)
     private Tenant tenant;
+
+    @NotNull
+    @Enumerated(EnumType.STRING)
+    @Column(name = "location_type", nullable = false)
+    private LocationType locationType;
+
+    @Column(name = "location_id")
+    private Long locationId;
+
+    @Size(max = 50)
+    @Column(name = "reference_type")
+    private String referenceType;
+
+    @Column(name = "reference_id")
+    private Long referenceId;
 
     @Column(name = "batch_number")
     private String batchNumber;

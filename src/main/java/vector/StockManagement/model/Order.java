@@ -27,6 +27,7 @@ import java.util.Map;
 // Order Entity
 @EqualsAndHashCode(callSuper = true)
 @Entity
+@org.hibernate.annotations.Filter(name = "tenantFilter", condition = "tenant_id = :tenantId")
 @Table(name = "orders", indexes = {
         @Index(name = "idx_order_number", columnList = "number", unique = true),
         @Index(name = "idx_order_status", columnList = "status"),
@@ -63,6 +64,10 @@ public class Order extends BaseEntity {
     @JoinColumn(name = "store_id")
     private Store store;
 
+    @ManyToOne
+    @JoinColumn(name = "warehouse_id")
+    private Warehouse warehouse;
+
     @NotNull
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
@@ -81,7 +86,6 @@ public class Order extends BaseEntity {
     @JoinColumn(name = "created_by")//, nullable = false
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     @JsonIgnore
-//    @CreatedBy
     private User createdBy;
 
     @ManyToOne(fetch = FetchType.LAZY)

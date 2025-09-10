@@ -2,6 +2,10 @@ package vector.StockManagement.controllers;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -9,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import vector.StockManagement.model.Order;
 import vector.StockManagement.model.User;
 import vector.StockManagement.model.dto.OrderDTO;
-import vector.StockManagement.model.enums.OrderStatus;
+import vector.StockManagement.repositories.UserRepository;
 import vector.StockManagement.services.OrderService;
 
 import java.util.List;
@@ -20,10 +24,16 @@ import java.util.List;
 public class OrderController {
 
     private final OrderService orderService;
+    private final UserRepository userRepository;
 
     @GetMapping
-    public List<Order> getAll() {
-        return orderService.findAll();
+    public Page<Order> getAll(@RequestParam(defaultValue = "0") int page,
+                              @RequestParam(defaultValue = "20") int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        List<Order> orders = orderService.findAll();
+        int start = Math.min((int) pageable.getOffset(), orders.size());
+        int end = Math.min(start + pageable.getPageSize(), orders.size());
+        return new PageImpl<>(orders.subList(start, end), pageable, orders.size());
     }
 
     @GetMapping("/{id}")
@@ -32,27 +42,25 @@ public class OrderController {
         return order != null ? ResponseEntity.ok(order) : ResponseEntity.notFound().build();
     }
 
-
     @PreAuthorize("hasAnyRole('DISTRIBUTOR','STORE_MANAGER')")
     @PostMapping
     public ResponseEntity<Order> create(@AuthenticationPrincipal User user, @RequestBody OrderDTO orderDTO) {
-
-        return ResponseEntity.ok(orderService.save(user.getId(),orderDTO));
+        return ResponseEntity.ok(orderService.save(user.getId(), orderDTO));
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<Order> update(@PathVariable Long id, @RequestBody OrderDTO orderdto) {
-        //add more updates here
-        return ResponseEntity.ok(orderService.update(id,orderdto));
+        return ResponseEntity.ok(orderService.update(id, orderdto));
     }
 
     @PutMapping("/approve/{id}")
-    public ResponseEntity<Order> approve(@PathVariable Long id) {
-
+    public ResponseEntity<Order> approve(@AuthenticationPrincipal User user, @PathVariable Long id) {
         Order order = orderService.findById(id);
         if (order == null) return ResponseEntity.notFound().build();
-        return ResponseEntity.ok(orderService.approve(order));
-
+        if (userRepository.findById(user.getId()).isPresent()) {
+            return ResponseEntity.ok(orderService.approve(user.getId(), order));
+        }
+        return ResponseEntity.notFound().build();
     }
 
     @PutMapping("/reject/{id}")
@@ -62,7 +70,16 @@ public class OrderController {
         return ResponseEntity.ok(orderService.reject(order));
     }
 
+    @PutMapping("/submit/{id}")
+    public ResponseEntity<Order> submit(@AuthenticationPrincipal User user, @PathVariable Long id) {
+        // keep compatibility by calling service method via update flow in implementation
+        return ResponseEntity.ok(((vector.StockManagement.services.impl.OrderServiceImpl) orderService).submitOrder(id, user.getId()));
+    }
 
+    @PutMapping("/fulfill/{id}")
+    public ResponseEntity<Order> fulfill(@AuthenticationPrincipal User user, @PathVariable Long id) {
+        return ResponseEntity.ok(((vector.StockManagement.services.impl.OrderServiceImpl) orderService).fulfillOrder(id, user.getId()));
+    }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {

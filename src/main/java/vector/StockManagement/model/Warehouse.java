@@ -61,11 +61,11 @@ public class Warehouse extends BaseEntity {
     @JoinColumn(name = "manager_id")
     private User manager;
 
-    @OneToOne(mappedBy = "warehouse", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToOne(mappedBy = "warehouse", cascade = CascadeType.ALL)
     private Distributor distributor;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "tenant_id", nullable = false)
+    @JoinColumn(name = "tenant_id")
     private Tenant tenant;
 
     @Column(name = "is_active", nullable = false)
@@ -74,6 +74,15 @@ public class Warehouse extends BaseEntity {
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "attributes", columnDefinition = "json")
     private Map<String, Object> attributes = new HashMap<>();
+
+    @OneToMany(mappedBy = "warehouse")
+    private List<Product> products = new ArrayList<>();
+
+    @OneToMany(mappedBy = "warehouse")
+    private List<Notification> notifications = new ArrayList<>();
+
+    @OneToMany(mappedBy = "warehouse")
+    private List<Order> orders = new ArrayList<>();
 
 
 
@@ -84,14 +93,14 @@ public class Warehouse extends BaseEntity {
         this.tenant = tenant;
     }
 
-    // --- toString ---
     @Override
     public String toString() {
-        return "Warehouse{" +
-                ", name='" + name + '\'' +
-                ", code='" + code + '\'' +
-                ", distributor=" + (distributor != null ? distributor.getCompanyName() : null) +
+        return "User{" +
+                ", username='" + name + '\'' +
+                ", email='" + email + '\'' +
                 ", isActive=" + isActive +
                 '}';
     }
+
+
 }

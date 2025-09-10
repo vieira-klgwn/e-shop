@@ -65,7 +65,21 @@ public class Adjustment extends BaseEntity {
     @JoinColumn(name = "tenant_id", nullable = false)
     private Tenant tenant;
 
+    @Column(name = "new_qty")
+    private Integer newQty;
 
+    @Column(name = "old_qty")
+    private Integer oldQty;
+
+    @Column(name = "unit_cost", precision = 15, scale = 2)
+    private java.math.BigDecimal unitCost;
+
+    @Column(name = "processed_at")
+    private LocalDateTime processedAt;
+
+    @Size(max = 500)
+    @Column(name = "notes")
+    private String notes;
 
     public Adjustment(LocationType level, Long locationId, Product product,
                       Integer qtyDelta, AdjustmentReason reason, User createdBy, Tenant tenant) {
@@ -77,6 +91,11 @@ public class Adjustment extends BaseEntity {
         this.createdBy = createdBy;
         this.tenant = tenant;
     }
+
+    // Getter/setter methods for service compatibility
+    public LocationType getLocationType() { return level; }
+    public void setProcessedAt(LocalDateTime processedAt) { this.processedAt = processedAt; }
+    public void setOldQty(Integer oldQty) { this.oldQty = oldQty; }
 
 
     // Helper methods

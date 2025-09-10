@@ -13,10 +13,12 @@ import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 
 @EqualsAndHashCode(callSuper = true)
 @Entity
+@org.hibernate.annotations.Filter(name = "tenantFilter", condition = "tenant_id = :tenantId")
 @Table(name = "inventory", indexes = {
         @Index(name = "idx_inventory_location_product", columnList = "location_type, location_id, product_id", unique = true),
         @Index(name = "idx_inventory_product", columnList = "product_id"),
@@ -42,6 +44,7 @@ public class Inventory extends BaseEntity {
     @JsonManagedReference
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private Product product;
+
 
     @NotNull
     @Min(0)
@@ -106,7 +109,7 @@ public class Inventory extends BaseEntity {
                     .add(unitCost.multiply(BigDecimal.valueOf(quantity)));
             int totalQty = qtyOnHand + quantity;
 
-            this.avgUnitCost = totalQty > 0 ? totalCost.divide(BigDecimal.valueOf(totalQty), 2, BigDecimal.ROUND_HALF_UP) : BigDecimal.ZERO;
+            this.avgUnitCost = totalQty > 0 ? totalCost.divide(BigDecimal.valueOf(totalQty), 2, java.math.RoundingMode.HALF_UP) : BigDecimal.ZERO;
             this.qtyOnHand = totalQty;
             this.lastStockIn = LocalDateTime.now();
         }

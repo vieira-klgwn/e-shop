@@ -32,8 +32,8 @@ public class TenantController {
     }
 
     @PostMapping("/admin")
-    public AuthenticationResponse create(@RequestBody TenantDTO tenantdto) {
-        return tenantService.save(tenantdto);
+    public ResponseEntity<AuthenticationResponse> create(@RequestBody TenantDTO tenantdto) {
+        return ResponseEntity.ok(tenantService.save(tenantdto));
     }
 
     @PutMapping("/{id}")

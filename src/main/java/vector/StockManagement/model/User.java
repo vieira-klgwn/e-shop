@@ -91,4 +91,10 @@ public class User implements UserDetails {
     public boolean isEnabled() {
         return true;
     }
+
+    // Compatibility methods for services
+    public String getFirstname() { return firstName; }
+    public String getLastname() { return lastName; }
+    public String getFirstName() { return firstName; }
+    public String getLastName() { return lastName; }
 }

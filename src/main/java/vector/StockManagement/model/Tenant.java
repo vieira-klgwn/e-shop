@@ -38,14 +38,20 @@ public class Tenant extends BaseEntity {
     @Column(name = "setting_value", length = 1000)
     private Map<String, String> settings = new HashMap<>();
 
-    @Column(name = "active", nullable = false)
+    @Column(name = "active")
     private Boolean active = true;
+
+
+    @OneToMany(mappedBy = "tenant")
+    private List<Warehouse> warehouses = new ArrayList<>();
 
 
     public Tenant(String name, String code) {
         this.name = name;
         this.code = code;
     }
+
+
 
    @OneToMany(mappedBy = "tenant")
    @JsonIgnore

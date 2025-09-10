@@ -3,19 +3,24 @@ package vector.StockManagement.services.impl;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import vector.StockManagement.config.TenantContext;
 import vector.StockManagement.model.*;
 import vector.StockManagement.model.dto.OrderDTO;
-import vector.StockManagement.model.enums.OrderStatus;
-import vector.StockManagement.model.enums.Role;
+import vector.StockManagement.model.enums.*;
 import vector.StockManagement.repositories.*;
 import vector.StockManagement.services.OrderService;
+import vector.StockManagement.services.InventoryService;
+import vector.StockManagement.services.NotificationSerivice;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
-
-import static org.springframework.security.authorization.AuthorityAuthorizationManager.hasRole;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -26,86 +31,271 @@ public class OrderServiceImpl implements OrderService {
     private final ProductRepository productRepository;
     private final UserRepository userRepository;
     private final TenantRepository tenantRepository;
+    private final InvoiceRepository invoiceRepository;
+    private final StoreRepository storeRepository;
+    private final WarehouseRepository warehouseRepository;
+    private final InventoryService inventoryService;
+    private final NotificationSerivice notificationService;
+    private final InventoryRepository inventoryRepository;
 
     @Override
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'DISTRIBUTOR', 'STORE_MANAGER', 'SALES_MANAGER')")
     public List<Order> findAll() {
         return orderRepository.findAll();
-
     }
 
     @Override
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'DISTRIBUTOR', 'STORE_MANAGER', 'SALES_MANAGER', 'ACCOUNTANT')")
     public Order findById(Long id) {
-        return orderRepository.findById(id).orElse(null);
+        return orderRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Order not found with id: " + id));
     }
 
     @Transactional
     @Override
-    public Order save( Long userId,OrderDTO orderDto) {
-        Product product = productRepository.findById(orderDto.getProductId()).orElseThrow(() -> new RuntimeException("Product not found"));
-        User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
+    @PreAuthorize("hasAnyRole('DISTRIBUTOR', 'STORE_MANAGER', 'ADMIN')")
+    public Order save(Long userId, OrderDTO orderDto) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
         Tenant tenant = user.getTenant();
-
-
+        
+        if (tenant == null) {
+            throw new RuntimeException("User must belong to a tenant");
+        }
 
         Order order = new Order();
         order.setTenant(tenant);
         order.setCreatedBy(user);
-        order.setNumber(orderDto.getOrderNumber());
+        order.setNumber("ORD-" + System.currentTimeMillis());
         order.setDeliveryAddress(orderDto.getDeliveryAddress());
-        order.setDeliveryDate(LocalDateTime.now());
-        order.setStatus(OrderStatus.SUBMITTED);
+        order.setDeliveryDate(orderDto.getOrderDate() != null ? orderDto.getOrderDate() : LocalDateTime.now().plusDays(1));
+        order.setStatus(OrderStatus.DRAFT);
+        order.setCurrency("USD");
+        
+        if (orderDto.getWarehouseId() != null) {
+            Warehouse warehouse = warehouseRepository.findById(orderDto.getWarehouseId())
+                    .orElseThrow(() -> new RuntimeException("Warehouse not found"));
+            order.setWarehouse(warehouse);
+        }
 
         Order savedOrder = orderRepository.saveAndFlush(order);
-        List<OrderLine> lines = orderDto.getOrderLines().stream().map(
-                lineReq -> {
-                    OrderLine orderLine = new OrderLine();
-                    orderLine.setOrder(order);
-                    orderLine.setQty(lineReq.getQty());
-                    orderLine.setUnitPrice(product.getPrice());
-                    orderLine.setProduct(product);
-                    orderLine.setLineTotal(product.getPrice() * lineReq.getQty());
-                    return orderLineRepository.saveAndFlush(orderLine);
-                }
-        ).toList();
-        order.setOrderLines(lines);
-        for (OrderLine orderLine : orderDto.getOrderLines()) {
-            Long amount = order.getOrderAmount();
-            order.setOrderAmount(amount += orderLine.getProduct().getPrice() * orderLine.getQty());
-
+        
+        // Create order lines and calculate totals
+        Long totalAmount = 0L;
+        if (orderDto.getOrderLines() != null && !orderDto.getOrderLines().isEmpty()) {
+            for (OrderLine lineDto : orderDto.getOrderLines()) {
+                Product product = productRepository.findById(lineDto.getProduct().getId())
+                        .orElseThrow(() -> new RuntimeException("Product not found"));
+                
+                OrderLine orderLine = new OrderLine();
+                orderLine.setOrder(savedOrder);
+                orderLine.setProduct(product);
+                orderLine.setQty(lineDto.getQty());
+                orderLine.setUnitPrice(product.getPrice());
+                orderLine.setLineTotal(product.getPrice() * lineDto.getQty());
+                
+                orderLineRepository.save(orderLine);
+                totalAmount += orderLine.getLineTotal();
+            }
         }
-        return orderRepository.save(order);
+        
+        savedOrder.setOrderAmount(totalAmount);
+        return orderRepository.save(savedOrder);
     }
 
     @Override
+    @PreAuthorize("hasRole('ADMIN')")
     public void delete(Long id) {
+        Order order = findById(id);
+        if (order.getStatus() != OrderStatus.DRAFT && order.getStatus() != OrderStatus.CANCELLED) {
+            throw new RuntimeException("Cannot delete order that is not in DRAFT or CANCELLED status");
+        }
         orderRepository.deleteById(id);
     }
-
-    @Override
-    public Order update(Long id, OrderDTO order){
-        Order existing = orderRepository.findById(id).orElseThrow(() -> new RuntimeException("Order not found"));
-        if (existing != null) {
-            existing.setDeliveryDate(order.getOrderDate());
-            existing.setDeliveryAddress(order.getDeliveryAddress());
-            existing.setStatus(OrderStatus.APPROVED);
-            orderRepository.save(existing);
-            return existing;
+    
+    @Transactional
+    public Order fulfillOrder(Long orderId, Long userId) {
+        Order order = findById(orderId);
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        
+        if (order.getStatus() != OrderStatus.APPROVED) {
+            throw new RuntimeException("Can only fulfill approved orders");
         }
-        else {
-            throw new RuntimeException("Order not found");
+        
+        // Process inventory movement
+        for (OrderLine orderLine : order.getOrderLines()) {
+            Inventory inventory = inventoryRepository.findByProductAndLocationTypeAndLocationId(
+                    orderLine.getProduct(), LocationType.WAREHOUSE, order.getWarehouse().getId());
+            
+            if (inventory != null) {
+                // Release reserved stock and remove from inventory
+                inventory.releaseReservedStock(orderLine.getQty());
+                inventory.removeStock(orderLine.getQty());
+                inventoryRepository.save(inventory);
+                
+                // Create stock transaction record
+                // This would be implemented in StockTransactionService
+            }
         }
-    }
-
-    @Override
-    public Order approve(Order order) {
-        order.setStatus(OrderStatus.APPROVED);
+        
+        order.setStatus(OrderStatus.FULFILLED);
+        createOrderNotifications(order, "Order Fulfilled");
+        
         return orderRepository.save(order);
-
+    }
+    
+    public Order submitOrder(Long orderId, Long userId) {
+        Order order = findById(orderId);
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        
+        if (!order.canBeSubmitted()) {
+            throw new RuntimeException("Order cannot be submitted");
+        }
+        
+        order.submit();
+        createOrderNotifications(order, "Order Submitted");
+        
+        return orderRepository.save(order);
     }
 
     @Override
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'STORE_MANAGER', 'DISTRIBUTOR')")
+    public Order update(Long id, OrderDTO orderDto) {
+        Order existing = orderRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Order not found"));
+        
+        // Only allow updates if order is still in DRAFT status
+        if (existing.getStatus() != OrderStatus.DRAFT) {
+            throw new RuntimeException("Cannot update order that is not in DRAFT status");
+        }
+        
+        if (orderDto.getDeliveryAddress() != null) {
+            existing.setDeliveryAddress(orderDto.getDeliveryAddress());
+        }
+        if (orderDto.getOrderDate() != null) {
+            existing.setDeliveryDate(orderDto.getOrderDate());
+        }
+        
+        return orderRepository.save(existing);
+    }
+
+    @Transactional
+    @Override
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'SALES_MANAGER')")
+    public Order approve(Long userId, Order order) {
+        User approver = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Approver not found"));
+        
+        if (!order.canBeApproved()) {
+            throw new RuntimeException("Order cannot be approved in current status: " + order.getStatus());
+        }
+        
+        // Approve the order
+        order.approve(approver);
+        
+        // Reserve inventory for order lines
+        for (OrderLine orderLine : order.getOrderLines()) {
+            Inventory inventory = inventoryRepository.findByProductAndLocationTypeAndLocationId(
+                    orderLine.getProduct(), LocationType.WAREHOUSE, order.getWarehouse().getId());
+            
+            if (inventory == null) {
+                throw new RuntimeException("No inventory found for product: " + orderLine.getProduct().getSku());
+            }
+            
+            if (!inventory.canReserve(orderLine.getQty())) {
+                throw new RuntimeException("Insufficient inventory for product: " + orderLine.getProduct().getSku() + 
+                        ". Available: " + inventory.getQtyAvailable() + ", Required: " + orderLine.getQty());
+            }
+            
+            inventory.reserveStock(orderLine.getQty());
+            inventoryRepository.save(inventory);
+        }
+        
+        // Generate invoice
+        Invoice invoice = createInvoiceFromOrder(order, approver);
+        invoiceRepository.save(invoice);
+        
+        // Send notifications
+        createOrderNotifications(order, "Order Approved");
+        
+        return orderRepository.save(order);
+    }
+    
+    private Invoice createInvoiceFromOrder(Order order, User issuedBy) {
+        Invoice invoice = new Invoice();
+        invoice.setNumber("INV-" + System.currentTimeMillis());
+        invoice.setOrder(order);
+        invoice.setStore(order.getStore());
+        invoice.setTenant(order.getTenant());
+        invoice.setStatus(InvoiceStatus.DRAFT);
+        invoice.setIssuedBy(issuedBy);
+        invoice.setCurrency(order.getCurrency());
+        invoice.setDueDate(LocalDate.now().plusDays(30));
+        
+        // Set amounts
+        Map<String, BigDecimal> amounts = new HashMap<>();
+        BigDecimal totalAmount = BigDecimal.valueOf(order.getOrderAmount());
+        amounts.put("net", totalAmount);
+        amounts.put("tax", BigDecimal.ZERO); // Can be calculated based on tax rules
+        amounts.put("total", totalAmount);
+        amounts.put("paid", BigDecimal.ZERO);
+        amounts.put("balance", totalAmount);
+        invoice.setAmounts(amounts);
+        
+        return invoice;
+    }
+    
+    private void createOrderNotifications(Order order, String eventType) {
+        try {
+            // Notification to store
+            if (order.getStore() != null) {
+                Notification storeNotification = new Notification();
+                storeNotification.setType(NotificationType.ORDER_UPDATE);
+                storeNotification.setChannel(NotificationChannel.EMAIL);
+                storeNotification.setTitle(eventType);
+                storeNotification.setSubject(eventType + ": Order " + order.getNumber());
+                storeNotification.setMessage("Order " + order.getNumber() + " has been " + eventType.toLowerCase() + 
+                        ". Delivery scheduled for " + order.getDeliveryDate());
+                storeNotification.setTenant(order.getTenant());
+                storeNotification.setReferenceType("ORDER");
+                storeNotification.setReferenceId(order.getId());
+                notificationService.save(storeNotification);
+            }
+            
+            // Notification to warehouse
+            if (order.getWarehouse() != null) {
+                Notification warehouseNotification = new Notification();
+                warehouseNotification.setType(NotificationType.ORDER_UPDATE);
+                warehouseNotification.setChannel(NotificationChannel.EMAIL);
+                warehouseNotification.setTitle(eventType);
+                warehouseNotification.setSubject(eventType + ": Prepare Order " + order.getNumber());
+                warehouseNotification.setMessage("Please prepare order " + order.getNumber() + 
+                        " for delivery to " + order.getDeliveryAddress());
+                warehouseNotification.setTenant(order.getTenant());
+                warehouseNotification.setReferenceType("ORDER");
+                warehouseNotification.setReferenceId(order.getId());
+                notificationService.save(warehouseNotification);
+            }
+        } catch (Exception e) {
+            // Log error but don't fail the transaction
+            System.err.println("Failed to create notifications: " + e.getMessage());
+        }
+    }
+
+    @Override
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'SALES_MANAGER')")
     public Order reject(Order order) {
+        if (order.getStatus() != OrderStatus.SUBMITTED) {
+            throw new RuntimeException("Can only reject submitted orders");
+        }
+        
         order.setStatus(OrderStatus.REJECTED);
+        
+        // Create notification
+        createOrderNotifications(order, "Order Rejected");
+        
         return orderRepository.save(order);
     }
 

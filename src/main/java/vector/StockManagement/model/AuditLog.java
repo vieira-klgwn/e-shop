@@ -71,6 +71,26 @@ public class AuditLog extends BaseEntity {
     @Column(name = "description")
     private String description;
 
+    @Size(max = 100)
+    @Column(name = "entity_type")
+    private String entityType;
+
+    @Size(max = 100)
+    @Column(name = "operation")
+    private String operation;
+
+    @Column(name = "old_values", columnDefinition = "text")
+    private String oldValues;
+
+    @Column(name = "new_values", columnDefinition = "text")
+    private String newValues;
+
+    @Column(name = "user_id")
+    private Long userId;
+
+    @Size(max = 200)
+    @Column(name = "user_name")
+    private String userName;
 
     public AuditLog(User actor, String action, String entity, Long entityId, Tenant tenant) {
         this();

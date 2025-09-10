@@ -18,6 +18,7 @@ import java.util.Map;
 
 // Product Entity
 @Entity
+@org.hibernate.annotations.Filter(name = "tenantFilter", condition = "tenant_id = :tenantId")
 @Table(name = "products")
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -82,6 +83,10 @@ public class Product extends BaseEntity {
     @Size(max = 500)
     @Column(name = "image_url")
     private String imageUrl;
+
+    @ManyToOne
+    @JoinColumn(name = "warehouse_id")
+    private Warehouse warehouse;
 
 
     public Product(String sku, String name, Tenant tenant,ProductCategory category) {

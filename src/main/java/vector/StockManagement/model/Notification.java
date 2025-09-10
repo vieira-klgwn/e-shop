@@ -32,12 +32,22 @@ public class Notification extends BaseEntity {
 
     @NotNull
     @Enumerated(EnumType.STRING)
-    @Column(name = "type", nullable = false)
+    @Column(name = "type")
     private NotificationType type;
+
+    private String title;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "warehouse_id")
+    private Warehouse warehouse;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "store_id")
+    private Store store;
 
     @NotNull
     @Enumerated(EnumType.STRING)
-    @Column(name = "channel", nullable = false)
+    @Column(name = "channel")
     private NotificationChannel channel;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -55,6 +65,7 @@ public class Notification extends BaseEntity {
 
     @Column(name = "message", length = 1000)
     private String message;
+
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "payload", columnDefinition = "json")

@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.MailException;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -45,6 +46,7 @@ public class AuthenticationService {
     @Value("${spring.mail.from}")
     private String fromEmail;
 
+
     public AuthenticationResponse register(RegisterRequest request) {
         // Validate input
         if (userRepository.findByEmail(request.getEmail()).isPresent()) {
@@ -63,10 +65,6 @@ public class AuthenticationService {
             throw new IllegalStateException("Invalid gender value: " + request.getGender());
         }
 
-
-
-
-        // Create and save new user
         var user = User.builder()
                 .firstName(request.getFirstName())
                 .lastName(request.getLastName())

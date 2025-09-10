@@ -43,6 +43,14 @@ public class Store extends BaseEntity {
     @OneToMany(mappedBy = "store",fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<Order> orders;
 
+    @OneToMany(mappedBy = "store")
+    private List<Invoice> invoices;
+
+    @OneToMany(mappedBy = "store")
+    private List<Notification> notifications;
+
+
+
     @Size(max = 100)
     @Column(name = "region")
     private String region;

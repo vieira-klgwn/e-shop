@@ -67,6 +67,7 @@ public class SecurityConfig {
                                 .requestMatchers(WHITE_LIST_URL).permitAll()
                                 .requestMatchers(SWAGGER_WHITELIST).permitAll()
                                 .requestMatchers("/api/auth/register").hasRole("ADMIN")
+                                .requestMatchers("api/tenants/admin").permitAll()
                                 .requestMatchers(HttpMethod.GET, "/api/users/me").authenticated()
                                 .requestMatchers(HttpMethod.GET, "/api/users").hasRole("ADMIN")
                                 .requestMatchers("/api/management/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_MANAGER")
@@ -76,7 +77,7 @@ public class SecurityConfig {
                                 .requestMatchers(HttpMethod.DELETE, "/api/management/**").hasAnyRole("ADMIN_DELETE", "MANAGER_DELETE")
                                 .anyRequest().authenticated()
                 )
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
                 .authenticationProvider(authenticationProvider)
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .logout(logout -> logout

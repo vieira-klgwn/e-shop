@@ -14,7 +14,7 @@
 	<name>TaskSync</name>
 	<description>A Task Management and Collaboration Platform</description>
 	<properties>
-		<java.version>23</java.version>
+		<java.version>21</java.version>
 	</properties>
 	<dependencies>
 
@@ -70,6 +70,7 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-validation</artifactId>
 		</dependency>
+
 
 
 

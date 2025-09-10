@@ -20,6 +20,7 @@ import java.util.Map;
  */
 @EqualsAndHashCode(callSuper = true)
 @Entity
+@org.hibernate.annotations.Filter(name = "tenantFilter", condition = "tenant_id = :tenantId")
 @Table(name = "invoices", indexes = {
         @Index(name = "idx_invoice_number", columnList = "number", unique = true),
         @Index(name = "idx_invoice_order", columnList = "order_id"),
@@ -30,7 +31,7 @@ import java.util.Map;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class Invoice extends BaseEntity {
+public class Invoice extends BaseEntity implements TenantScoped {
 
     @NotBlank
     @Size(max = 50)

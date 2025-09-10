@@ -1,14 +1,21 @@
 package vector.StockManagement.services.impl;
 
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-import vector.StockManagement.model.Transfer;
+import vector.StockManagement.model.*;
+import vector.StockManagement.model.enums.LocationType;
+import vector.StockManagement.model.enums.StockTransactionType;
+import vector.StockManagement.model.enums.TransferStatus;
+import vector.StockManagement.repositories.InventoryRepository;
 import vector.StockManagement.repositories.TransferRepository;
+import vector.StockManagement.services.StockTransactionService;
 import vector.StockManagement.services.TransferService;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -16,6 +23,8 @@ import java.util.List;
 public class TransferServiceImpl implements TransferService {
 
     private final TransferRepository transferRepository;
+    private final InventoryRepository inventoryRepository;
+    private final StockTransactionService stockTransactionService;
 
     @Override
     public List<Transfer> findAll() {
@@ -30,9 +39,63 @@ public class TransferServiceImpl implements TransferService {
     @Override
     public Transfer save(Transfer transfer) {
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (principal instanceof User user) {
+            transfer.setTenant(user.getTenant());
+        }
+        return transferRepository.save(transfer);
+    }
 
+    @Transactional
+    public Transfer completeTransfer(Long transferId) {
+        Transfer transfer = findById(transferId);
+        if (transfer == null || transfer.getStatus() != TransferStatus.PENDING) {
+            throw new RuntimeException("Transfer not found or already completed");
+        }
+
+        // Update inventory at source location (remove stock)
+        Inventory sourceInventory = inventoryRepository.findByProductAndLocationTypeAndLocationId(
+                transfer.getProduct(), transfer.getFromLocationType(), transfer.getFromLocationId());
+        if (sourceInventory != null && sourceInventory.getQtyOnHand() >= transfer.getQty()) {
+            sourceInventory.removeStock(transfer.getQty());
+            inventoryRepository.save(sourceInventory);
+        } else {
+            throw new RuntimeException("Insufficient stock at source location");
+        }
+
+        // Update inventory at destination location (add stock)
+        Inventory destInventory = inventoryRepository.findByProductAndLocationTypeAndLocationId(
+                transfer.getProduct(), transfer.getToLocationType(), transfer.getToLocationId());
+        if (destInventory == null) {
+            // Create new inventory record if doesn't exist
+            destInventory = new Inventory(transfer.getToLocationType(), transfer.getToLocationId(), 
+                    transfer.getProduct(), transfer.getTenant());
+        }
+        destInventory.addStock(transfer.getQty(), sourceInventory != null ? sourceInventory.getAvgUnitCost() : null);
+        inventoryRepository.save(destInventory);
+
+        // Log stock transactions
+        logStockTransaction(transfer, StockTransactionType.TRANSFER_OUT, transfer.getFromLocationType(), transfer.getFromLocationId(), -transfer.getQty());
+        logStockTransaction(transfer, StockTransactionType.TRANSFER_IN, transfer.getToLocationType(), transfer.getToLocationId(), transfer.getQty());
+
+        // Update transfer status
+        transfer.setStatus(TransferStatus.COMPLETED);
+        transfer.setCompletedAt(LocalDateTime.now());
 
         return transferRepository.save(transfer);
+    }
+
+    private void logStockTransaction(Transfer transfer, StockTransactionType type, LocationType locationType, Long locationId, Integer qty) {
+        StockTransaction transaction = new StockTransaction();
+        transaction.setProduct(transfer.getProduct());
+        transaction.setType(type);
+        transaction.setLocationType(locationType);
+        transaction.setLocationId(locationId);
+        transaction.setQty(qty);
+        transaction.setReferenceType("TRANSFER");
+        transaction.setReferenceId(transfer.getId());
+        transaction.setTenant(transfer.getTenant());
+        transaction.setTransactionDate(LocalDateTime.now());
+        stockTransactionService.save(transaction);
     }
 
     @Override

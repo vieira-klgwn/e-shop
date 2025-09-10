@@ -34,7 +34,7 @@ public class InventoryController {
     }
 
     @PostMapping
-    @PreAuthorize("hasRole('STORE_MANAGER')")
+    @PreAuthorize("hasRole('STORE_MANAGER') or hasRole('ADMIN')")
     public ResponseEntity<Inventory> create(@RequestBody Inventory inventory) {
         return ResponseEntity.ok(inventoryService.save(inventory));
     }

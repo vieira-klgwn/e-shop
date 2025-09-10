@@ -51,6 +51,7 @@ public class StoreServiceImpl implements StoreService {
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (principal instanceof User user) {
             tenant = user.getTenant();
+
         }
 
 

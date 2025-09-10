@@ -72,7 +72,16 @@ public class Transfer extends BaseEntity {
     @JoinColumn(name = "tenant_id", nullable = false)
     private Tenant tenant;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "product_id", nullable = false)
+    private Product product;
 
+    @NotNull
+    @Column(name = "qty", nullable = false)
+    private Integer qty;
+
+    @Column(name = "completed_at")
+    private LocalDateTime completedAt;
 
     public Transfer(LocationType fromLevel, Long fromLocationId, LocationType toLevel,
                     Long toLocationId, User createdBy, Tenant tenant) {
@@ -83,6 +92,13 @@ public class Transfer extends BaseEntity {
         this.createdBy = createdBy;
         this.tenant = tenant;
     }
+
+    // Getter/setter methods for service compatibility
+    public LocationType getFromLocationType() { return fromLevel; }
+    public LocationType getToLocationType() { return toLevel; }
+    public Long getFromLocationId() { return fromLocationId; }
+    public Long getToLocationId() { return toLocationId; }
+    public void setCompletedAt(LocalDateTime completedAt) { this.completedAt = completedAt; }
 
     // Helper methods
     public void approve(User approver) {

@@ -6,11 +6,17 @@ import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import vector.StockManagement.model.Token;
+import vector.StockManagement.model.User;
 import vector.StockManagement.repositories.TokenRepository;
 
 import java.io.IOException;
+import java.security.Principal;
 import java.util.Optional;
 
 @RestController
@@ -22,6 +28,12 @@ public class AuthenticationController {
     private final AuthenticationService authenticationService;
     private final TokenRepository tokenRepository;
 
+    // implment admin api(registrtion role- admi
+    // crudo users  preaouthrising on admin
+
+
+    // model business /
+    // users should hold
     @PostMapping("/register")
     public ResponseEntity<AuthenticationResponse> register(@RequestBody RegisterRequest registerRequest) {
         logger.debug("Register request for email: {}", registerRequest.getEmail());

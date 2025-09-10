@@ -34,8 +34,8 @@ public class StoreController {
 
     @PostMapping
     @PreAuthorize("hasAnyRole('ADMIN')")
-    public AuthenticationResponse create(@RequestBody StoreDTO storeDTO) {
-        return storeService.save(storeDTO);
+    public ResponseEntity<AuthenticationResponse> create(@RequestBody StoreDTO storeDTO) {
+        return ResponseEntity.ok(storeService.save(storeDTO));
     }
 
     @PutMapping("/{id}")
