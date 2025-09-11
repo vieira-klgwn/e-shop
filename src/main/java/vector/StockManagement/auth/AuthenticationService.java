@@ -83,6 +83,7 @@ public class AuthenticationService {
                 .gender(gender)
                 .phone(request.getPhone())
                 .tenant(request.getTenant())
+                .nationality(request.getNationality())
                 .build();
         user.setCreatedAt(LocalDateTime.now());
         var savedUser = userRepository.save(user);
@@ -101,6 +102,51 @@ public class AuthenticationService {
                 .build();
     }
 
+    public AuthenticationResponse createManagingDirector (RegisterRequest request) {
+        if (userRepository.findByEmail(request.getEmail()).isPresent()) {
+            throw new IllegalStateException("Email already taken: " + request.getEmail());
+        }
+        if (!request.getPassword().equals(request.getConfirmPassword())) {
+            throw new IllegalStateException("Passwords do not match");
+        }
+        if (request.getGender() == null || request.getGender().isEmpty()) {
+            throw new IllegalStateException("Gender is required");
+        }
+        Gender gender;
+        try {
+            gender = Gender.valueOf(request.getGender().toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new IllegalStateException("Invalid gender value: " + request.getGender());
+        }
+
+        var user = User.builder()
+                .firstName(request.getFirstName())
+                .lastName(request.getLastName())
+                .email(request.getEmail())
+                .password(passwordEncoder.encode(request.getPassword()))
+                .role(Role.MANAGING_DIRECTOR)
+                .gender(gender)
+                .phone(request.getPhone())
+                .tenant(request.getTenant())
+                .nationality(request.getNationality())
+                .build();
+        user.setCreatedAt(LocalDateTime.now());
+        var savedUser = userRepository.save(user);
+
+        // Generate and save tokens
+        var token = jwtService.generateToken(user);
+        var refreshToken = jwtService.generateRefreshToken(user);
+        saveUserToken(savedUser, token);
+        saveUserToken(savedUser, refreshToken);
+//        logger.info("Access token: {}", token);
+//        logger.info("Refresh token: {}", refreshToken);
+
+        return AuthenticationResponse.builder()
+                .accessToken(token)
+                .refreshToken(refreshToken)
+                .build();
+
+    }
 
 
 

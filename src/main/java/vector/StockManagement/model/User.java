@@ -60,6 +60,7 @@ public class User implements UserDetails {
     private String imageUrl;
 
     private LocalDateTime createdAt;
+    private String nationality;
 
 
 

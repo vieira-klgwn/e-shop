@@ -52,6 +52,11 @@ public class AuthenticationController {
         return ResponseEntity.ok(authenticationService.register(registerRequest));
     }
 
+    @PostMapping("/register/md")
+    public ResponseEntity<AuthenticationResponse> registerManagingDirector(@RequestBody RegisterRequest registerRequest) {
+        return ResponseEntity.ok(authenticationService.createManagingDirector(registerRequest));
+    }
+
     @PostMapping("/login")
     public ResponseEntity<AuthenticationResponse> authenticate(@RequestBody AuthenticationRequest authenticationRequest) {
         logger.debug("Login request for email: {}", authenticationRequest.getEmail());
