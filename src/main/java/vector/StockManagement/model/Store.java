@@ -88,8 +88,7 @@ public class Store extends BaseEntity {
     @Column(name = "attributes", columnDefinition = "jsonb")
     private Map<String, Object> attributes = new HashMap<>();
 
-    @OneToOne(mappedBy = "store", cascade = CascadeType.ALL)
-    private Distributor distributor;
+
 
 
     // --- toString ---

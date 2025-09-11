@@ -5,19 +5,26 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import vector.StockManagement.model.Token;
 import vector.StockManagement.model.User;
 import vector.StockManagement.repositories.TokenRepository;
+import vector.StockManagement.services.UserService;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.Principal;
 import java.util.Optional;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -26,7 +33,12 @@ public class AuthenticationController {
 
     private static final Logger logger = LoggerFactory.getLogger(AuthenticationController.class);
     private final AuthenticationService authenticationService;
+    private final UserService userService;
     private final TokenRepository tokenRepository;
+
+
+    @Value("${app.upload.dir:uploads}")
+    private String uploadDir;
 
     // implment admin api(registrtion role- admi
     // crudo users  preaouthrising on admin
@@ -55,6 +67,29 @@ public class AuthenticationController {
             logger.error("Failed to refresh token: {}", e.getMessage());
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid refresh token");
         }
+    }
+
+    @PostMapping("/{id}/upload-image")
+    @PreAuthorize("hasAnyRole('ADMIN','DISTRIBUTOR')")
+    public ResponseEntity<User> uploadImage(@PathVariable Long id, @RequestParam("file") MultipartFile file) throws IOException {
+        User user = userService.getUserById(id).orElseThrow(()-> new IllegalStateException("User with id " + id + " not found"));
+        if (user == null) return ResponseEntity.notFound().build();
+
+        Path dir = Paths.get(uploadDir);
+        if (!Files.exists(dir)) {
+            Files.createDirectories(dir);
+        }
+        String ext = "";
+        String original = file.getOriginalFilename();
+        if (original != null && original.contains(".")) {
+            ext = original.substring(original.lastIndexOf('.'));
+        }
+        String filename = UUID.randomUUID() + ext;
+        Path target = dir.resolve(filename);
+        file.transferTo(target.toFile());
+
+        user.setImageUrl("/" + uploadDir + "/" + filename);
+        return ResponseEntity.ok(userService.updateUser(id, user));
     }
 
     @PostMapping("/logout")

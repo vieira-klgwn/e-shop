@@ -10,6 +10,7 @@ import vector.StockManagement.model.enums.Role;
 import vector.StockManagement.model.enums.UserStatus;
 
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -54,6 +55,11 @@ public class User implements UserDetails {
     @JoinColumn(name = "tenant_id")
     @JsonIgnore
     private Tenant tenant;
+
+    private String phone;
+    private String imageUrl;
+
+    private LocalDateTime createdAt;
 
 
 

@@ -44,7 +44,9 @@ public enum Permission {
     ACCOUNTANT_INVOICES("accountant:invoices"),
     ACCOUNTANT_PAYMENTS("accountant:payments"),
     ACCOUNTANT_REPORTS("accountant:reports"),
-    ACCOUNTANT_CLOSE("accountant:close");
+    ACCOUNTANT_CLOSE("accountant:close"),
+
+    REPORT_READ("report:read");
 
 
     @Getter

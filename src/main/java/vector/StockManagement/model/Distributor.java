@@ -94,9 +94,6 @@ public class Distributor extends BaseEntity {
     @JoinColumn(name = "warehouse_id")
     private Warehouse warehouse;
 
-    @OneToOne
-    @JoinColumn(name = "store_id")
-    private Store store;
 
 
     @Size(max = 50)

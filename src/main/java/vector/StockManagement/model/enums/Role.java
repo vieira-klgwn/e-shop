@@ -55,7 +55,9 @@ public enum Role {
             Set.of(WAREHOUSE_MANAGER_READ, WAREHOUSE_MANAGER_CREATE, WAREHOUSE_MANAGER_UPDATE, 
                     WAREHOUSE_MANAGER_INVENTORY
             )
-    );
+    ),
+
+    MANAGING_DIRECTOR(Set.of(REPORT_READ));
 
     @Getter
     private final Set<Permission> permissions;

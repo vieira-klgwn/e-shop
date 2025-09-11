@@ -5,6 +5,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.ResponseEntity;
 import org.springframework.mail.MailException;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -16,6 +17,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
 import vector.StockManagement.config.JwtService;
 import vector.StockManagement.model.Tenant;
 import vector.StockManagement.model.Token;
@@ -26,8 +30,12 @@ import vector.StockManagement.model.enums.Gender;
 import vector.StockManagement.repositories.TokenRepository;
 import vector.StockManagement.repositories.UserRepository;
 import vector.StockManagement.services.TenantService;
+import vector.StockManagement.services.UserService;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.UUID;
 import java.util.logging.Logger;
@@ -38,6 +46,7 @@ public class AuthenticationService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final TokenRepository tokenRepository;
+    private final UserService userService;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
     private final JavaMailSender mailSender;
@@ -72,8 +81,10 @@ public class AuthenticationService {
                 .password(passwordEncoder.encode(request.getPassword()))
                 .role(request.getRole() != null ? request.getRole() : Role.USER)
                 .gender(gender)
+                .phone(request.getPhone())
                 .tenant(request.getTenant())
                 .build();
+        user.setCreatedAt(LocalDateTime.now());
         var savedUser = userRepository.save(user);
 
         // Generate and save tokens
@@ -89,6 +100,9 @@ public class AuthenticationService {
                 .refreshToken(refreshToken)
                 .build();
     }
+
+
+
 
     public AuthenticationResponse authenticate(AuthenticationRequest authenticationRequest) {
         authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(authenticationRequest.getEmail(), authenticationRequest.getPassword()));

@@ -25,7 +25,7 @@ public class ReportsController {
     private final ProductRepository productRepository;
 
     @GetMapping("/sales")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SALES_MANAGER', 'ACCOUNTANT')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SALES_MANAGER', 'ACCOUNTANT','MANAGING_DIRECTOR')")
     public ResponseEntity<Map<String, Object>> getSalesReport(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime from,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime to) {
@@ -39,7 +39,7 @@ public class ReportsController {
     }
 
     @GetMapping("/inventory")
-    @PreAuthorize("hasAnyRole('ADMIN', 'STORE_MANAGER', 'SALES_MANAGER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STORE_MANAGER', 'SALES_MANAGER','MANAGING_DIRECTOR')")
     public ResponseEntity<Map<String, Object>> getInventoryReport() {
         Map<String, Object> report = new HashMap<>();
         
@@ -54,7 +54,7 @@ public class ReportsController {
     }
 
     @GetMapping("/financials")
-    @PreAuthorize("hasAnyRole('ADMIN', 'ACCOUNTANT')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'ACCOUNTANT','MANAGING_DIRECTOR')")
     public ResponseEntity<Map<String, Object>> getFinancialReport(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime from,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime to) {

@@ -15,7 +15,6 @@ public interface DistributorService {
 
 
 
-    Distributor createDistributorByStore(long storeId, Distributor distributor);
 
 
 

@@ -4,23 +4,33 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import vector.StockManagement.model.ChangePasswordRequest;
+import vector.StockManagement.model.Product;
 import vector.StockManagement.model.User;
 import vector.StockManagement.model.dto.UserDTO;
 import vector.StockManagement.services.UserService;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.Principal;
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/users")
 @RequiredArgsConstructor
 public class UserController {
+    @Value("${app.upload.dir:uploads}")
+    private String uploadDir;
 
     private final UserService userService;
     private static final Logger logger = LoggerFactory.getLogger(UserController.class);
@@ -32,6 +42,8 @@ public class UserController {
         User createdUser = userService.createUser(user);
         return new ResponseEntity<>(createdUser, HttpStatus.CREATED);
     }
+
+
 
     @GetMapping
     public ResponseEntity<List<User>> getAllUsers() {

@@ -43,14 +43,6 @@ public class DistributorServiceImpl implements DistributorService {
 
 
     @Override
-    public Distributor createDistributorByStore(long storeId, Distributor distributor) {
-
-        Store store = storeRepository.findById(storeId).orElseThrow(() -> new IllegalArgumentException("Store not found"));
-        distributor.setStore(store);
-        return distributorRepository.save(distributor);
-    }
-
-    @Override
     public Distributor save(Distributor distributor) {
         return distributorRepository.save(distributor);
     }

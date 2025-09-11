@@ -36,10 +36,7 @@ public class DistributorController {
 
     }
 
-    @PostMapping("/store/{id}")
-    public ResponseEntity<Distributor> createDistributorByStore(@PathVariable String id, @RequestBody Distributor distributor) {
-        return ResponseEntity.ok(distributorService.createDistributorByStore(Long.parseLong(id), distributor));
-    }
+
 
     @PutMapping("/{id}")
     public ResponseEntity<Distributor> update(@PathVariable Long id, @RequestBody Distributor distributor) {
