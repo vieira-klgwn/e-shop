@@ -46,7 +46,12 @@ public enum Permission {
     ACCOUNTANT_REPORTS("accountant:reports"),
     ACCOUNTANT_CLOSE("accountant:close"),
 
-    REPORT_READ("report:read");
+    REPORT_READ("report:read"),
+
+    TENANT_CREATE("tenant:create"),
+    TENANT_READ("tenant:read"),
+    TENANT_UPDATE("tenant:update"),
+    TENANT_DELETE("tenant:delete");
 
 
     @Getter

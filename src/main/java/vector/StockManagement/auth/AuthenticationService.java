@@ -21,12 +21,14 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 import vector.StockManagement.config.JwtService;
+import vector.StockManagement.config.TenantContext;
 import vector.StockManagement.model.Tenant;
 import vector.StockManagement.model.Token;
 import vector.StockManagement.model.enums.Role;
 import vector.StockManagement.model.enums.TokenType;
 import vector.StockManagement.model.User;
 import vector.StockManagement.model.enums.Gender;
+import vector.StockManagement.repositories.TenantRepository;
 import vector.StockManagement.repositories.TokenRepository;
 import vector.StockManagement.repositories.UserRepository;
 import vector.StockManagement.services.TenantService;
@@ -51,12 +53,60 @@ public class AuthenticationService {
     private final AuthenticationManager authenticationManager;
     private final JavaMailSender mailSender;
     private static final Logger logger = Logger.getLogger(AuthenticationService.class.getName());
+    private final TenantRepository tenantRepository;
 
     @Value("${spring.mail.from}")
     private String fromEmail;
 
 
     public AuthenticationResponse register(RegisterRequest request) {
+        // Validate input
+        if (userRepository.findByEmail(request.getEmail()).isPresent()) {
+            throw new IllegalStateException("Email already taken: " + request.getEmail());
+        }
+        if (!request.getPassword().equals(request.getConfirmPassword())) {
+            throw new IllegalStateException("Passwords do not match");
+        }
+        if (request.getGender() == null || request.getGender().isEmpty()) {
+            throw new IllegalStateException("Gender is required");
+        }
+        Gender gender;
+        try {
+            gender = Gender.valueOf(request.getGender().toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new IllegalStateException("Invalid gender value: " + request.getGender());
+        }
+        Tenant tenant = tenantRepository.findById(TenantContext.getTenantId()).orElseThrow(() -> new IllegalStateException("Tenant not found"));
+
+        var user = User.builder()
+                .firstName(request.getFirstName())
+                .lastName(request.getLastName())
+                .email(request.getEmail())
+                .password(passwordEncoder.encode(request.getPassword()))
+                .role(request.getRole() != null ? request.getRole() : Role.USER)
+                .gender(gender)
+                .tenant(tenant)
+                .phone(request.getPhone())
+                .nationality(request.getNationality())
+                .build();
+        user.setCreatedAt(LocalDateTime.now());
+        var savedUser = userRepository.save(user);
+
+        // Generate and save tokens
+        var token = jwtService.generateToken(user);
+        var refreshToken = jwtService.generateRefreshToken(user);
+        saveUserToken(savedUser, token);
+        saveUserToken(savedUser, refreshToken);
+//        logger.info("Access token: {}", token);
+//        logger.info("Refresh token: {}", refreshToken);
+
+        return AuthenticationResponse.builder()
+                .accessToken(token)
+                .refreshToken(refreshToken)
+                .build();
+    }
+
+    public AuthenticationResponse registerAdmin(RegisterRequest request) {
         // Validate input
         if (userRepository.findByEmail(request.getEmail()).isPresent()) {
             throw new IllegalStateException("Email already taken: " + request.getEmail());
@@ -81,16 +131,16 @@ public class AuthenticationService {
                 .password(passwordEncoder.encode(request.getPassword()))
                 .role(request.getRole() != null ? request.getRole() : Role.USER)
                 .gender(gender)
-                .phone(request.getPhone())
                 .tenant(request.getTenant())
+                .phone(request.getPhone())
                 .nationality(request.getNationality())
                 .build();
         user.setCreatedAt(LocalDateTime.now());
         var savedUser = userRepository.save(user);
 
         // Generate and save tokens
-        var token = jwtService.generateToken(user);
-        var refreshToken = jwtService.generateRefreshToken(user);
+        var token = jwtService.generateTokenOnSignUp(user ,request.getTenant().getId());
+        var refreshToken = jwtService.generateRefreshToken(user); // adding tenant id to the tenantContext not implemented
         saveUserToken(savedUser, token);
         saveUserToken(savedUser, refreshToken);
 //        logger.info("Access token: {}", token);
@@ -101,6 +151,7 @@ public class AuthenticationService {
                 .refreshToken(refreshToken)
                 .build();
     }
+
 
     public AuthenticationResponse createManagingDirector (RegisterRequest request) {
         if (userRepository.findByEmail(request.getEmail()).isPresent()) {
@@ -126,8 +177,8 @@ public class AuthenticationService {
                 .password(passwordEncoder.encode(request.getPassword()))
                 .role(Role.MANAGING_DIRECTOR)
                 .gender(gender)
+                .tenant(tenantRepository.findById(TenantContext.getTenantId()).orElseThrow(() -> new IllegalStateException("Tenant not found")))
                 .phone(request.getPhone())
-                .tenant(request.getTenant())
                 .nationality(request.getNationality())
                 .build();
         user.setCreatedAt(LocalDateTime.now());
@@ -135,11 +186,12 @@ public class AuthenticationService {
 
         // Generate and save tokens
         var token = jwtService.generateToken(user);
-        var refreshToken = jwtService.generateRefreshToken(user);
+        var refreshToken = jwtService.generateRefreshToken(user); // Functionality to add tenant to tenant Context not implemented
         saveUserToken(savedUser, token);
         saveUserToken(savedUser, refreshToken);
 //        logger.info("Access token: {}", token);
 //        logger.info("Refresh token: {}", refreshToken);
+
 
         return AuthenticationResponse.builder()
                 .accessToken(token)

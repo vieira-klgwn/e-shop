@@ -13,6 +13,7 @@ import vector.StockManagement.auth.AuthenticationResponse;
 import vector.StockManagement.auth.AuthenticationService;
 import vector.StockManagement.auth.RegisterRequest;
 import vector.StockManagement.config.JwtService;
+import vector.StockManagement.config.TenantContext;
 import vector.StockManagement.model.Tenant;
 import vector.StockManagement.model.Token;
 import vector.StockManagement.model.User;
@@ -54,6 +55,7 @@ public class TenantServiceImpl implements TenantService {
     @Transactional
     @Override
     public AuthenticationResponse save(TenantDTO dto) {
+        TenantContext.clear();
 
         if (userRepository.findByEmail(dto.getEmail()).isPresent()) {
             throw new IllegalStateException("Email already taken: " + dto.getEmail());
@@ -82,7 +84,9 @@ public class TenantServiceImpl implements TenantService {
         request.setRole(Role.ADMIN);
         request.setTenant(tenant);
 
-        return authenticationService.register(request);
+        TenantContext.setTenantId(tenant.getId());
+
+        return authenticationService.registerAdmin(request);
 
     }
 

@@ -19,6 +19,7 @@ public class RegisterRequest {
     private String confirmPassword;
     private Role role;
     private String gender;
+    private Long tenantId;
     private Tenant tenant;
     private String phone;
     private String nationality;

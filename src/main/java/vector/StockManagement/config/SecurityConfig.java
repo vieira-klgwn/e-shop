@@ -70,6 +70,7 @@ public class SecurityConfig {
                                 .requestMatchers("api/tenants/admin").permitAll()
                                 .requestMatchers(HttpMethod.GET, "/api/users/me").authenticated()
                                 .requestMatchers(HttpMethod.GET, "/api/users").hasRole("ADMIN")
+                                .requestMatchers(HttpMethod.POST, "/api/tenants/***").hasRole("SUPER_ADMIN")
                                 .requestMatchers("/api/management/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_MANAGER")
                                 .requestMatchers(HttpMethod.GET, "/api/management/**").hasAnyRole("ADMIN_READ", "MANAGER_READ")
                                 .requestMatchers(HttpMethod.POST, "/api/management/**").hasAnyRole("ADMIN_CREATE", "MANAGER_CREATE")

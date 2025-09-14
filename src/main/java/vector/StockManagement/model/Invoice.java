@@ -1,5 +1,6 @@
 package vector.StockManagement.model;
 
+import org.hibernate.annotations.Filter;
 import vector.StockManagement.model.enums.InvoiceStatus;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
@@ -20,6 +21,7 @@ import java.util.Map;
  */
 @EqualsAndHashCode(callSuper = true)
 @Entity
+@Filter(name = "tenantFilter", condition = "tenant_id = :tenantId")
 @org.hibernate.annotations.Filter(name = "tenantFilter", condition = "tenant_id = :tenantId")
 @Table(name = "invoices", indexes = {
         @Index(name = "idx_invoice_number", columnList = "number", unique = true),

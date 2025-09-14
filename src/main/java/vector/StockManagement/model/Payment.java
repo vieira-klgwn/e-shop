@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.Filter;
 import vector.StockManagement.model.enums.AdjustmentReason;
 import vector.StockManagement.model.enums.LocationType;
 import vector.StockManagement.model.enums.PaymentMethod;
@@ -23,6 +24,7 @@ import java.time.LocalDateTime;
 // Payment Entity
 @EqualsAndHashCode(callSuper = true)
 @Entity
+@Filter(name = "tenantFilter", condition = "tenant_id = :tenantId")
 @Table(name = "payments", indexes = {
         @Index(name = "idx_payment_invoice", columnList = "invoice_id"),
         @Index(name = "idx_payment_method", columnList = "method"),

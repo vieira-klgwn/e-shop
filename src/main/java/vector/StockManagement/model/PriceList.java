@@ -2,6 +2,7 @@ package vector.StockManagement.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import org.hibernate.annotations.Filter;
 import vector.StockManagement.model.enums.PriceListLevel;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
@@ -16,6 +17,7 @@ import java.util.List;
 // Price List Entity
 @EqualsAndHashCode(callSuper = true)
 @Entity
+@Filter(name = "tenantFilter", condition = "tenant_id = :tenantId")
 @Table(name = "price_lists")
 @Data
 @NoArgsConstructor

@@ -1,6 +1,7 @@
 package vector.StockManagement.model;
 
 
+import org.hibernate.annotations.Filter;
 import vector.StockManagement.model.enums.LocationType;
 import vector.StockManagement.model.enums.StockTransactionType;
 
@@ -20,6 +21,7 @@ import lombok.*;
 // Stock Transaction Entity
 @EqualsAndHashCode(callSuper = true)
 @Entity
+@Filter(name = "tenantFilter", condition = "tenant_id = :tenantId")
 @Table(name = "stock_transactions", indexes = {
         @Index(name = "idx_stock_txn_product", columnList = "product_id"),
         @Index(name = "idx_stock_txn_type_level", columnList = "type, level"),

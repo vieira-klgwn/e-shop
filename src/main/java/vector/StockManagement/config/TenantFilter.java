@@ -15,8 +15,19 @@ public class TenantFilter implements Filter {
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
+
+        HttpServletRequest httpRequest = (HttpServletRequest) request;
+        String requestURI = httpRequest.getRequestURI();
+
+        // Skip filter for /api/tenants/admin
+        if ("/api/tenants/admin".equals(requestURI)) {
+            chain.doFilter(request, response);
+            return;
+        }
+
         try {
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
             if (auth != null && auth.getPrincipal() instanceof User user && user.getTenant() != null) {
                 TenantContext.setTenantId(user.getTenant().getId());
             }

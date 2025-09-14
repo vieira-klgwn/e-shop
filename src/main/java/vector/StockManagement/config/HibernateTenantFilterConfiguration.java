@@ -19,7 +19,9 @@ public class HibernateTenantFilterConfiguration {
 
     public void enableTenantFilter() {
         Long tenantId = TenantContext.getTenantId();
-        if (tenantId == null) return;
+        if (tenantId == null) {
+            throw new IllegalStateException("Tenant ID is null; cannot apply tenant filter");
+        }
         Session session = entityManager.unwrap(Session.class);
         var filter = session.enableFilter("tenantFilter");
         filter.setParameter("tenantId", tenantId);

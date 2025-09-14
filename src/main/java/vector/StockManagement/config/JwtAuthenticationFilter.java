@@ -35,7 +35,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String method = request.getMethod();
 
         // Skip filter for OPTIONS requests and whitelisted endpoints
-        if (method.equals("OPTIONS") || requestURI.startsWith("/api/auth/") || requestURI.equals("/error")) {
+        if (method.equals("OPTIONS") || requestURI.startsWith("/api/auth/") || requestURI.equals("/error") || requestURI.equals("/api/tenants/admin")) {
             logger.debug("Skipping JWT filter for request: {} {}", method, requestURI);
             filterChain.doFilter(request, response);
             return;
@@ -63,6 +63,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                 if (jwtService.isTokenValid(jwt, userDetails)) {
                     List<String> authorities = jwtService.extractAuthorities(jwt);
+
+                    Long tenantId = jwtService.extractTenantId(jwt);
+
+                    if (tenantId != null) {
+                        TenantContext.setTenantId(tenantId);
+                    }
+
+
                     List<SimpleGrantedAuthority> grantedAuthorities = authorities != null
                             ? authorities.stream().map(SimpleGrantedAuthority::new).collect(Collectors.toList())
                             : List.of();
@@ -85,6 +93,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             // Proceed without authentication instead of throwing an exception
         }
 
-        filterChain.doFilter(request, response);
+        try {
+            filterChain.doFilter(request, response);
+        } finally {
+            TenantContext.clear();
+        }
     }
 }

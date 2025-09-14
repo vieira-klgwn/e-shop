@@ -3,8 +3,13 @@ package vector.StockManagement.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.Filter;
+import org.hibernate.annotations.FilterDef;
+import org.hibernate.annotations.Filters;
+import org.hibernate.annotations.ParamDef;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import vector.StockManagement.config.TenantFilterConfig;
 import vector.StockManagement.model.enums.Gender;
 import vector.StockManagement.model.enums.Role;
 import vector.StockManagement.model.enums.UserStatus;
@@ -16,6 +21,8 @@ import java.util.Collection;
 import java.util.List;
 
 @Entity
+//@FilterDef(name = "tenantFilter", parameters = @ParamDef(name = "tenantId", type = Long.class))
+@Filters(@Filter(name = "tenantFilter", condition = "tenant_id = :tenantId"))
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor

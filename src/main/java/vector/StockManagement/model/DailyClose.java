@@ -1,6 +1,7 @@
 package vector.StockManagement.model;
 
 import lombok.*;
+import org.hibernate.annotations.Filter;
 import vector.StockManagement.model.enums.*;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Index;
@@ -22,6 +23,7 @@ import java.util.Map;
 // Daily Close Entity
 @EqualsAndHashCode(callSuper = true)
 @Entity
+@Filter(name = "tenantFilter", condition = "tenant_id = :tenantId")
 @Table(name = "daily_closes", indexes = {
         @Index(name = "idx_daily_close_location_date", columnList = "level, location_id, date", unique = true),
         @Index(name = "idx_daily_close_status", columnList = "status"),

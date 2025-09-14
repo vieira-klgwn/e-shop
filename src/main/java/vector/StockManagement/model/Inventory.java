@@ -3,6 +3,7 @@ package vector.StockManagement.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import org.hibernate.annotations.Filter;
 import vector.StockManagement.model.enums.LocationType;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.DecimalMin;
@@ -18,6 +19,7 @@ import java.util.List;
 
 @EqualsAndHashCode(callSuper = true)
 @Entity
+@Filter(name = "tenantFilter", condition = "tenant_id = :tenantId")
 @org.hibernate.annotations.Filter(name = "tenantFilter", condition = "tenant_id = :tenantId")
 @Table(name = "inventory", indexes = {
         @Index(name = "idx_inventory_location_product", columnList = "location_type, location_id, product_id", unique = true),

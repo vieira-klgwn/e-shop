@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.*;
+import org.hibernate.annotations.Filter;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 import vector.StockManagement.model.enums.ProductCategory;
@@ -18,7 +19,7 @@ import java.util.Map;
 
 // Product Entity
 @Entity
-@org.hibernate.annotations.Filter(name = "tenantFilter", condition = "tenant_id = :tenantId")
+@Filter(name = "tenantFilter", condition = "tenant_id = :tenantId")
 @Table(name = "products")
 @Data
 @EqualsAndHashCode(callSuper = true)

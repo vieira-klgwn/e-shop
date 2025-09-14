@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.experimental.WithBy;
 import org.aspectj.weaver.ast.Or;
+import org.hibernate.annotations.Filter;
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
 import vector.StockManagement.model.enums.OrderChannel;
@@ -27,6 +28,7 @@ import java.util.Map;
 // Order Entity
 @EqualsAndHashCode(callSuper = true)
 @Entity
+@Filter(name = "tenantFilter", condition = "tenant_id = :tenantId")
 @org.hibernate.annotations.Filter(name = "tenantFilter", condition = "tenant_id = :tenantId")
 @Table(name = "orders", indexes = {
         @Index(name = "idx_order_number", columnList = "number", unique = true),

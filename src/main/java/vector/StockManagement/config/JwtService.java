@@ -77,11 +77,30 @@ public class JwtService {
         }
     }
 
+    public Long extractTenantId(String token) {
+        try {
+            return extractClaim(token, claims -> claims.get("tenantId", Long.class));
+        } catch (Exception e) {
+            logger.error("Failed to extract tenantId from token: {}", e.getMessage());
+            throw new IllegalStateException("Invalid token: tenantId missing", e);
+        }
+    }
+
+
     public String generateToken(UserDetails userDetails) {
         Map<String, Object> extraClaims = new HashMap<>();
         extraClaims.put("authorities", userDetails.getAuthorities().stream()
                 .map(Object::toString)
                 .collect(Collectors.toList()));
+        return generateToken(extraClaims, userDetails);
+    }
+
+    public String generateTokenOnSignUp(UserDetails userDetails, Long tenantId) {
+        Map<String, Object> extraClaims = new HashMap<>();
+        extraClaims.put("authorities", userDetails.getAuthorities().stream()
+                .map(Object::toString)
+                .collect(Collectors.toList()));
+        extraClaims.put("tenantId", tenantId);
         return generateToken(extraClaims, userDetails);
     }
 

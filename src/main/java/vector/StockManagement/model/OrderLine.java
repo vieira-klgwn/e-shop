@@ -6,12 +6,14 @@ import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.*;
+import org.hibernate.annotations.Filter;
 
 import java.math.BigDecimal;
 
 // Order Line Entity
 @EqualsAndHashCode(callSuper = true)
 @Entity
+@Filter(name = "tenantFilter", condition = "tenant_id = :tenantId")
 @Table(name = "order_lines", indexes = {
         @Index(name = "idx_order_line_order", columnList = "order_id"),
         @Index(name = "idx_order_line_product", columnList = "product_id")

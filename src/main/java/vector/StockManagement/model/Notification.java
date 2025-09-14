@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.*;
+import org.hibernate.annotations.Filter;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 import vector.StockManagement.model.enums.NotificationChannel;
@@ -17,6 +18,7 @@ import java.util.Map;
 
 // Notification Entity
 @Entity
+@Filter(name = "tenantFilter", condition = "tenant_id = :tenantId")
 @Table(name = "notifications", indexes = {
         @Index(name = "idx_notification_type", columnList = "type"),
         @Index(name = "idx_notification_channel", columnList = "channel"),

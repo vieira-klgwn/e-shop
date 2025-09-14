@@ -1,5 +1,6 @@
 package vector.StockManagement.model;
 
+import org.hibernate.annotations.Filter;
 import vector.StockManagement.model.enums.LocationType;
 import vector.StockManagement.model.enums.TransferStatus;
 import jakarta.persistence.Entity;
@@ -14,6 +15,7 @@ import java.time.LocalDateTime;
 // Transfer Entity
 @EqualsAndHashCode(callSuper = true)
 @Entity
+@Filter(name = "tenantFilter", condition = "tenant_id = :tenantId")
 @Table(name = "transfers", indexes = {
         @Index(name = "idx_transfer_from_location", columnList = "from_level, from_location_id"),
         @Index(name = "idx_transfer_to_location", columnList = "to_level, to_location_id"),
