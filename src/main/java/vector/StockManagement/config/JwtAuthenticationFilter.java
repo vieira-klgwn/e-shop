@@ -96,7 +96,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         try {
             filterChain.doFilter(request, response);
         } finally {
-            TenantContext.clear();
+//            TenantContext.clear();
+            System.out.println("Tenant filter executed");
         }
     }
 }

@@ -3,6 +3,7 @@ package vector.StockManagement.auth;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
@@ -76,7 +77,8 @@ public class AuthenticationService {
         } catch (IllegalArgumentException e) {
             throw new IllegalStateException("Invalid gender value: " + request.getGender());
         }
-        Tenant tenant = tenantRepository.findById(TenantContext.getTenantId()).orElseThrow(() -> new IllegalStateException("Tenant not found"));
+
+        Tenant tenant = tenantRepository.findById(15L).orElseThrow(() -> new IllegalStateException("Tenant not found"));
 
         var user = User.builder()
                 .firstName(request.getFirstName())
@@ -178,6 +180,62 @@ public class AuthenticationService {
                 .role(Role.MANAGING_DIRECTOR)
                 .gender(gender)
                 .tenant(tenantRepository.findById(TenantContext.getTenantId()).orElseThrow(() -> new IllegalStateException("Tenant not found")))
+                .phone(request.getPhone())
+                .nationality(request.getNationality())
+                .build();
+        user.setCreatedAt(LocalDateTime.now());
+        var savedUser = userRepository.save(user);
+
+        // Generate and save tokens
+        var token = jwtService.generateToken(user);
+        var refreshToken = jwtService.generateRefreshToken(user); // Functionality to add tenant to tenant Context not implemented
+        saveUserToken(savedUser, token);
+        saveUserToken(savedUser, refreshToken);
+//        logger.info("Access token: {}", token);
+//        logger.info("Refresh token: {}", refreshToken);
+
+
+        return AuthenticationResponse.builder()
+                .accessToken(token)
+                .refreshToken(refreshToken)
+                .build();
+
+    }
+
+
+
+    @Transactional
+    public AuthenticationResponse createSuperAdmin (RegisterRequest request) {
+        if (userRepository.findByEmail(request.getEmail()).isPresent()) {
+            throw new IllegalStateException("Email already taken: " + request.getEmail());
+        }
+        if (!request.getPassword().equals(request.getConfirmPassword())) {
+            throw new IllegalStateException("Passwords do not match");
+        }
+        if (request.getGender() == null || request.getGender().isEmpty()) {
+            throw new IllegalStateException("Gender is required");
+        }
+        Gender gender;
+        try {
+            gender = Gender.valueOf(request.getGender().toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new IllegalStateException("Invalid gender value: " + request.getGender());
+        }
+        Tenant tenant = new Tenant();
+        tenant.setName("Super Admin1");
+        tenant.setDescription("Super Admin Description");
+        tenant.setCode("0001");
+        tenantRepository.saveAndFlush(tenant);
+        TenantContext.setTenantId(tenant.getId());
+
+        var user = User.builder()
+                .firstName(request.getFirstName())
+                .lastName(request.getLastName())
+                .email(request.getEmail())
+                .password(passwordEncoder.encode(request.getPassword()))
+                .role(Role.SUPER_ADMIN)
+                .gender(gender)
+                .tenant(tenant)
                 .phone(request.getPhone())
                 .nationality(request.getNationality())
                 .build();

@@ -57,9 +57,20 @@ public class AuthenticationController {
         return ResponseEntity.ok(authenticationService.createManagingDirector(registerRequest));
     }
 
+    @PostMapping("/register/super")
+    public ResponseEntity<AuthenticationResponse> registerSuperUser(@RequestBody RegisterRequest registerRequest) {
+        return ResponseEntity.ok(authenticationService.createSuperAdmin(registerRequest));
+    }
+
     @PostMapping("/login")
     public ResponseEntity<AuthenticationResponse> authenticate(@RequestBody AuthenticationRequest authenticationRequest) {
         logger.debug("Login request for email: {}", authenticationRequest.getEmail());
+        return ResponseEntity.ok(authenticationService.authenticate(authenticationRequest));
+    }
+
+
+    @PostMapping("/super_user/login")
+    public ResponseEntity<AuthenticationResponse> superUsesrLogin(@RequestBody AuthenticationRequest authenticationRequest) {
         return ResponseEntity.ok(authenticationService.authenticate(authenticationRequest));
     }
 

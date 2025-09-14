@@ -24,9 +24,10 @@ public class TenantFilterAspect {
         ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
         if (attributes != null) {
             String requestUri = attributes.getRequest().getRequestURI();
-            if ("/api/tenants/admin".equals(requestUri)) {
+            if (requestUri.contains("/api/tenants") || requestUri.startsWith("/api/auth/") || requestUri.contains("super_user/login")) {
                 return; // Skip applying the tenant filter
             }
+
         }
 
         config.enableTenantFilter();

@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
+import vector.StockManagement.model.User;
 
 import java.security.Key;
 import java.util.*;
@@ -92,6 +93,10 @@ public class JwtService {
         extraClaims.put("authorities", userDetails.getAuthorities().stream()
                 .map(Object::toString)
                 .collect(Collectors.toList()));
+        // Add tenantId if user has one (skip for SUPER_ADMIN with null tenant)
+        if (userDetails instanceof User user && user.getTenant() != null) {
+            extraClaims.put("tenantId", user.getTenant().getId());
+        }
         return generateToken(extraClaims, userDetails);
     }
 

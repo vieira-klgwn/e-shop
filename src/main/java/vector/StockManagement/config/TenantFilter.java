@@ -20,7 +20,7 @@ public class TenantFilter implements Filter {
         String requestURI = httpRequest.getRequestURI();
 
         // Skip filter for /api/tenants/admin
-        if ("/api/tenants/admin".equals(requestURI)) {
+        if ("/api/tenants/admin".equals(requestURI) || requestURI.startsWith("/api/auth/") || requestURI.contains("super_user/login") || requestURI.contains("api/tenants")) {
             chain.doFilter(request, response);
             return;
         }
@@ -33,7 +33,9 @@ public class TenantFilter implements Filter {
             }
             chain.doFilter(request, response);
         } finally {
-            TenantContext.clear();
+//            TenantContext.clear();
+            System.out.println("Tenant filter executed");
+
         }
     }
 }
