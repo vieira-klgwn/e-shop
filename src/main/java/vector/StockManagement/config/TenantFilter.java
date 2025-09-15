@@ -35,10 +35,13 @@ public class TenantFilter implements Filter {
         whiteList.add("/api/products/");
         whiteList.add("/api/auth/");
         whiteList.add("super_user/login");
-        if (requestURI.contains(whiteList.toString())) {
-            chain.doFilter(request, response);
-            return;
+        for (String uri : whiteList) {
+            if (requestURI.startsWith(uri)) {
+                chain.doFilter(request, response);
+                return;
+            }
         }
+
 
         try {
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();

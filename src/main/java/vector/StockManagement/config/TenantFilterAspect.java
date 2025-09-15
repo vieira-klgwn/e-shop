@@ -36,8 +36,12 @@ public class TenantFilterAspect {
             whiteList.add("/api/products/");
             whiteList.add("/api/auth/");
             whiteList.add("super_user/login");
-            if (requestUri.contains(whiteList.toString())) {
-                return; // Skip applying the tenant filter
+
+
+            for (String uri : whiteList) {
+                if (requestUri.startsWith(uri)) {
+                    return;
+                }
             }
 
         }
