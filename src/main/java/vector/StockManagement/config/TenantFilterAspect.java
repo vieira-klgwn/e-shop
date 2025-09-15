@@ -40,6 +40,7 @@ public class TenantFilterAspect {
             ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
             if (attributes != null) {
                 String requestUri = attributes.getRequest().getRequestURI();
+                logger.debug("TenantFilterAspect before repository call for URI: {} with tenantId: {}", requestUri, TenantContext.getTenantId());
                 
                 if (isWhitelisted(requestUri)) {
                     logger.debug("Skipping tenant filter for whitelisted repository access: {}", requestUri);

@@ -7,6 +7,7 @@ import lombok.Data;
 public class PriceListItemDTO {
     private Long priceListId;
     private Long productId;
+    private Long tenantId;
     private Long basePrice;
     private Long minPrice;
 }

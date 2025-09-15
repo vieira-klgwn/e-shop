@@ -9,6 +9,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import vector.StockManagement.model.User;
+import org.slf4j.MDC;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -38,6 +39,7 @@ public class TenantFilter implements Filter {
         
         HttpServletRequest httpRequest = (HttpServletRequest) request;
         String requestURI = httpRequest.getRequestURI();
+        MDC.put("http.path", requestURI);
 
         // Skip filter for whitelisted endpoints
         if (isWhitelisted(requestURI)) {
@@ -52,10 +54,12 @@ public class TenantFilter implements Filter {
                 if (auth.getPrincipal() instanceof User user) {
                     if (user.getTenant() != null) {
                         TenantContext.setTenantId(user.getTenant().getId());
+                        MDC.put("tenant.id", String.valueOf(user.getTenant().getId()));
                         logger.info("Set tenant context from User principal to ID: {}", user.getTenant().getId());
                     } else if (user.getRole().name().equals("SUPER_ADMIN")) {
                         // SUPER_ADMIN gets global access with tenant ID 0
                         TenantContext.setTenantId(0L);
+                        MDC.put("tenant.id", "0");
                         logger.info("Set tenant context to 0L for SUPER_ADMIN from User principal");
                     } else {
                         logger.warn("User {} has no tenant but is not SUPER_ADMIN", user.getEmail());
@@ -71,6 +75,7 @@ public class TenantFilter implements Filter {
         } finally {
             // Note: Don't clear context here as JwtAuthenticationFilter will handle it
             logger.debug("TenantFilter completed for URI: {}", requestURI);
+            MDC.clear();
         }
     }
 

@@ -17,6 +17,7 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import vector.StockManagement.model.User;
+import org.slf4j.MDC;
 
 import java.io.IOException;
 import java.util.List;
@@ -34,6 +35,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
         String requestURI = request.getRequestURI();
         String method = request.getMethod();
+        MDC.put("http.method", method);
+        MDC.put("http.path", requestURI);
 
         // Skip filter for OPTIONS requests and explicit public endpoints only
         if (method.equals("OPTIONS") || requestURI.equals("/api/auth/login") || requestURI.equals("/api/auth/refresh-token") || requestURI.equals("/api/auth/forgot-password") || requestURI.equals("/api/auth/request-password-reset") || requestURI.equals("/api/auth/reset-password") || requestURI.equals("/error") || requestURI.equals("/api/tenants/admin")) {
@@ -56,6 +59,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         try {
             String userEmail = jwtService.extractUsername(jwt);
+            MDC.put("user.email", userEmail);
             logger.debug("Extracted Email: {}", userEmail);
 
             if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
@@ -70,11 +74,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         Long tenantId = jwtService.extractTenantId(jwt);
                         if (tenantId != null) {
                             TenantContext.setTenantId(tenantId);
+                            MDC.put("tenant.id", String.valueOf(tenantId));
                             logger.info("Set tenant context from JWT to ID: {}", tenantId);
                         } else {
                             // Handle SUPER_ADMIN case - set to 0L for global access
                             if (userDetails instanceof User user && user.getRole().name().equals("SUPER_ADMIN")) {
                                 TenantContext.setTenantId(0L);
+                                MDC.put("tenant.id", "0");
                                 logger.info("Set tenant context to 0L for SUPER_ADMIN");
                             } else {
                                 logger.warn("No tenant ID found in JWT token for user: {}", userEmail);
@@ -85,6 +91,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         // For SUPER_ADMIN, set to 0L as fallback
                         if (userDetails instanceof User user && user.getRole().name().equals("SUPER_ADMIN")) {
                             TenantContext.setTenantId(0L);
+                            MDC.put("tenant.id", "0");
                             logger.info("Set tenant context to 0L for SUPER_ADMIN (fallback)");
                         }
                     }
@@ -107,7 +114,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 logger.debug("No email extracted or authentication already exists.");
             }
         } catch (Exception e) {
-            logger.error("JWT authentication failed: {}", e.getMessage());
+            logger.error("JWT authentication failed: {}", e.getMessage(), e);
             // Proceed without authentication instead of throwing an exception
         }
 
@@ -116,6 +123,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         } finally {
             TenantContext.clear();
             logger.debug("JWT filter completed, cleared tenant context");
+            MDC.clear();
         }
     }
 }

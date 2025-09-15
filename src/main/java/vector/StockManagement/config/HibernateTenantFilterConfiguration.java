@@ -18,6 +18,7 @@ public class HibernateTenantFilterConfiguration {
 
     public void enableTenantFilter() {
         Long tenantId = TenantContext.getTenantId();
+        logger.debug("Attempting to enable tenant filter with tenantId={}", tenantId);
         
         if (tenantId == null) {
             logger.warn("Tenant ID is null; skipping tenant filter application");

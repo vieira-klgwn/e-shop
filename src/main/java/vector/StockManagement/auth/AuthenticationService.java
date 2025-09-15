@@ -6,23 +6,14 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.ResponseEntity;
 import org.springframework.mail.MailException;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.multipart.MultipartFile;
 import vector.StockManagement.config.JwtService;
-//import vector.StockManagement.config.TenantContext;
 import vector.StockManagement.model.Tenant;
 import vector.StockManagement.model.Token;
 import vector.StockManagement.model.enums.Role;
@@ -32,13 +23,9 @@ import vector.StockManagement.model.enums.Gender;
 import vector.StockManagement.repositories.TenantRepository;
 import vector.StockManagement.repositories.TokenRepository;
 import vector.StockManagement.repositories.UserRepository;
-import vector.StockManagement.services.TenantService;
-import vector.StockManagement.services.UserService;
+ 
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.UUID;
 import java.util.logging.Logger;
@@ -49,7 +36,6 @@ public class AuthenticationService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final TokenRepository tokenRepository;
-    private final UserService userService;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
     private final JavaMailSender mailSender;
@@ -61,6 +47,7 @@ public class AuthenticationService {
 
 
     public AuthenticationResponse register(RegisterRequest request) {
+        logger.info("Registering user email=" + request.getEmail() + ", tenantId=" + request.getTenantId() + ", role=" + request.getRole());
         // Validate input
         if (userRepository.findByEmail(request.getEmail()).isPresent()) {
             throw new IllegalStateException("Email already taken: " + request.getEmail());
@@ -93,14 +80,14 @@ public class AuthenticationService {
                 .build();
         user.setCreatedAt(LocalDateTime.now());
         var savedUser = userRepository.save(user);
+        logger.info("User saved with id=" + savedUser.getId() + ", tenantId=" + (savedUser.getTenant()!=null ? savedUser.getTenant().getId() : null));
 
         // Generate and save tokens
         var token = jwtService.generateToken(user);
         var refreshToken = jwtService.generateRefreshToken(user);
+        logger.info("Generated tokens for user=" + savedUser.getEmail());
         saveUserToken(savedUser, token);
         saveUserToken(savedUser, refreshToken);
-//        logger.info("Access token: {}", token);
-//        logger.info("Refresh token: {}", refreshToken);
 
         return AuthenticationResponse.builder()
                 .accessToken(token)
@@ -109,6 +96,7 @@ public class AuthenticationService {
     }
 
     public AuthenticationResponse registerAdmin(RegisterRequest request) {
+        logger.info("Registering tenant admin email=" + request.getEmail() + ", tenantId=" + (request.getTenant()!=null?request.getTenant().getId():null));
         // Validate input
         if (userRepository.findByEmail(request.getEmail()).isPresent()) {
             throw new IllegalStateException("Email already taken: " + request.getEmail());
@@ -139,14 +127,14 @@ public class AuthenticationService {
                 .build();
         user.setCreatedAt(LocalDateTime.now());
         var savedUser = userRepository.save(user);
+        logger.info("Admin saved with id=" + savedUser.getId());
 
         // Generate and save tokens
         var token = jwtService.generateTokenOnSignUp(user ,request.getTenant().getId());
         var refreshToken = jwtService.generateRefreshToken(user); // adding tenant id to the tenantContext not implemented
+        logger.info("Generated tokens for admin=" + savedUser.getEmail());
         saveUserToken(savedUser, token);
         saveUserToken(savedUser, refreshToken);
-//        logger.info("Access token: {}", token);
-//        logger.info("Refresh token: {}", refreshToken);
 
         return AuthenticationResponse.builder()
                 .accessToken(token)
@@ -156,6 +144,7 @@ public class AuthenticationService {
 
 
     public AuthenticationResponse createManagingDirector (RegisterRequest request) {
+        logger.info("Creating Managing Director email=" + request.getEmail());
         if (userRepository.findByEmail(request.getEmail()).isPresent()) {
             throw new IllegalStateException("Email already taken: " + request.getEmail());
         }
@@ -185,14 +174,14 @@ public class AuthenticationService {
                 .build();
         user.setCreatedAt(LocalDateTime.now());
         var savedUser = userRepository.save(user);
+        logger.info("Managing Director saved with id=" + savedUser.getId());
 
         // Generate and save tokens
         var token = jwtService.generateToken(user);
         var refreshToken = jwtService.generateRefreshToken(user); // Functionality to add tenant to tenant Context not implemented
+        logger.info("Generated tokens for MD=" + savedUser.getEmail());
         saveUserToken(savedUser, token);
         saveUserToken(savedUser, refreshToken);
-//        logger.info("Access token: {}", token);
-//        logger.info("Refresh token: {}", refreshToken);
 
 
         return AuthenticationResponse.builder()
@@ -206,6 +195,7 @@ public class AuthenticationService {
 
     @Transactional
     public AuthenticationResponse createSuperAdmin (RegisterRequest request) {
+        logger.info("Creating Super Admin email=" + request.getEmail());
         if (userRepository.findByEmail(request.getEmail()).isPresent()) {
             throw new IllegalStateException("Email already taken: " + request.getEmail());
         }
@@ -226,7 +216,7 @@ public class AuthenticationService {
         tenant.setDescription("Super Admin Description");
         tenant.setCode("0001");
         tenantRepository.saveAndFlush(tenant);
-//        TenantContext.setTenantId(tenant.getId());
+        logger.info("Created tenant for super admin id=" + tenant.getId());
 
         var user = User.builder()
                 .firstName(request.getFirstName())
@@ -241,14 +231,14 @@ public class AuthenticationService {
                 .build();
         user.setCreatedAt(LocalDateTime.now());
         var savedUser = userRepository.save(user);
+        logger.info("Super Admin saved with id=" + savedUser.getId());
 
         // Generate and save tokens
         var token = jwtService.generateToken(user);
         var refreshToken = jwtService.generateRefreshToken(user); // Functionality to add tenant to tenant Context not implemented
+        logger.info("Generated tokens for Super Admin=" + savedUser.getEmail());
         saveUserToken(savedUser, token);
         saveUserToken(savedUser, refreshToken);
-//        logger.info("Access token: {}", token);
-//        logger.info("Refresh token: {}", refreshToken);
 
 
         return AuthenticationResponse.builder()
@@ -261,6 +251,7 @@ public class AuthenticationService {
 
 
     public AuthenticationResponse authenticate(AuthenticationRequest authenticationRequest) {
+        logger.info("Authenticating email=" + authenticationRequest.getEmail());
         authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(authenticationRequest.getEmail(), authenticationRequest.getPassword()));
         var user = userRepository.findByEmail(authenticationRequest.getEmail()).orElseThrow(() -> new IllegalStateException("User not found: " + authenticationRequest.getEmail()));
         var token = jwtService.generateToken(user);
@@ -268,6 +259,7 @@ public class AuthenticationService {
         revokeAllUserTokens(user);
         saveUserToken(user, refreshToken);
         saveUserToken(user, token);
+        logger.info("Authenticated email=" + authenticationRequest.getEmail() + ", tenantId=" + (user.getTenant()!=null?user.getTenant().getId():null));
         return AuthenticationResponse.builder()
                 .accessToken(token)
                 .refreshToken(refreshToken)

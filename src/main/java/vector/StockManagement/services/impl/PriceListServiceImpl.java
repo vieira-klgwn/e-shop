@@ -46,12 +46,9 @@ public class PriceListServiceImpl implements PriceListService {
            }
        }
 
-       Tenant tenant = null;
-       Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-       if (principal instanceof User user) {
-           tenant = user.getTenant();
-       }
-       priceList.setTenant(tenant);
+
+
+
         return priceListRepository.saveAndFlush(priceList);
     }
 

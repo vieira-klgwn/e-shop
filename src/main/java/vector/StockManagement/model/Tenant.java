@@ -45,6 +45,9 @@ public class Tenant extends BaseEntity {
     @OneToMany(mappedBy = "tenant")
     private List<Warehouse> warehouses = new ArrayList<>();
 
+    @OneToMany(mappedBy = "tenant")
+    private List<PriceList> priceLists = new ArrayList<>();
+
 
     public Tenant(String name, String code) {
         this.name = name;

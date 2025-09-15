@@ -16,6 +16,7 @@ import vector.StockManagement.model.enums.ProductCategory;
 import vector.StockManagement.repositories.PriceListItemRepository;
 import vector.StockManagement.repositories.PriceListRepository;
 import vector.StockManagement.repositories.ProductRepository;
+import vector.StockManagement.repositories.TenantRepository;
 import vector.StockManagement.services.PriceListItemService;
 
 import java.time.LocalDate;
@@ -28,6 +29,7 @@ public class PriceListItemServiceImpl implements PriceListItemService {
     private final PriceListItemRepository priceListItemRepository;
     private final ProductRepository productRepository;
     private final PriceListRepository priceListRepository;
+    private final TenantRepository tenantRepository;
 
     @Override
     public List<PriceListItem> findAll() {
@@ -51,6 +53,7 @@ public class PriceListItemServiceImpl implements PriceListItemService {
         priceListItem.setPriceList(priceList);
         priceListItem.setBasePrice(priceListItemDTO.getBasePrice());
         priceListItem.setMinPrice(priceListItemDTO.getMinPrice());
+        priceListItem.setTenant(tenantRepository.findById(priceListItemDTO.getTenantId()).orElseThrow(() -> new RuntimeException("Tenant not found")));
 
         return priceListItemRepository.save(priceListItem);
     }

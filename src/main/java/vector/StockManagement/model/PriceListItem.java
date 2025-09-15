@@ -44,6 +44,11 @@ public class PriceListItem extends BaseEntity {
     @Column(name = "min_price", precision = 15, scale = 2)
     private Long minPrice;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "tenant_id")
+    @JsonIgnore
+    private Tenant tenant;
+
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "taxes", columnDefinition = "json")
     private Map<String, Object> taxes = new HashMap<>();
