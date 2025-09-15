@@ -9,6 +9,9 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import vector.StockManagement.auth.AuthenticationController;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Aspect
 @Component
 public class TenantFilterAspect {
@@ -28,11 +31,17 @@ public class TenantFilterAspect {
         ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
         if (attributes != null) {
             String requestUri = attributes.getRequest().getRequestURI();
-            if (requestUri.contains("/api/tenants") || requestUri.startsWith("/api/auth/") || requestUri.contains("super_user/login") || requestUri.contains("/api/users")) {
+            List<String> whiteList = new ArrayList<>();
+            whiteList.add("/api/tenants/");
+            whiteList.add("/api/products/");
+            whiteList.add("/api/auth/");
+            whiteList.add("super_user/login");
+            if (requestUri.contains(whiteList.toString())) {
                 return; // Skip applying the tenant filter
             }
 
         }
+
 
         config.enableTenantFilter();
     }

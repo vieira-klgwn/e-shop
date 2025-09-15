@@ -19,6 +19,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Component
@@ -66,9 +67,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                     Long tenantId = jwtService.extractTenantId(jwt);
 
-                    if (tenantId != null) {
-                        TenantContext.setTenantId(tenantId);
-                    }
+                    TenantContext.setTenantId(Objects.requireNonNullElseGet(tenantId, () -> Long.parseLong("19")));
 
 
                     List<SimpleGrantedAuthority> grantedAuthorities = authorities != null

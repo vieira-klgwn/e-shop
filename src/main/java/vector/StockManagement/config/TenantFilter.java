@@ -5,6 +5,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -12,6 +13,9 @@ import vector.StockManagement.model.User;
 
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 @Component
 public class TenantFilter implements Filter {
@@ -26,27 +30,32 @@ public class TenantFilter implements Filter {
 
 
         // Skip filter for /api/tenants/admin
-        if ("/api/tenants/admin".equals(requestURI) || requestURI.startsWith("/api/auth/") || requestURI.contains("super_user/login") || requestURI.contains("api/tenants") || requestURI.contains("api/users")) {
+        List<String> whiteList = new ArrayList<>();
+        whiteList.add("/api/tenants/");
+        whiteList.add("/api/products/");
+        whiteList.add("/api/auth/");
+        whiteList.add("super_user/login");
+        if (requestURI.contains(whiteList.toString())) {
             chain.doFilter(request, response);
             return;
         }
 
         try {
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-
-
-            logger.info("Authenticated user: {}", auth);
-            logger.info("Authenticated user: {}", auth.getName());
-            logger.info("Authenticated user: {}", auth.getPrincipal());
-            logger.info("Authenticated user: {}", auth.getDetails());
-            logger.info("Authenticated user: {}", auth.getAuthorities());
-            logger.info("Authenticated user: {}", auth.getCredentials());
-
-
-            if (auth != null && auth.getPrincipal() instanceof User user && user.getTenant() != null) {
-                TenantContext.setTenantId(user.getTenant().getId());
-                logger.info("Authenticated user: {}", user.getTenant().getId());
+            if (auth != null) {
+                if (auth instanceof AnonymousAuthenticationToken) {
+                    logger.debug("Anonymous user detected; skipping tenant context setting");
+                } else if (auth.getPrincipal() instanceof User user && user.getTenant() != null) {
+                    TenantContext.setTenantId(user.getTenant().getId());
+                    logger.info("Set tenant context to ID: {}", user.getTenant().getId());
+                } else {
+                    logger.warn("Authenticated user has no tenant; setting default tenant ID: 0");
+                    TenantContext.setTenantId(Long.parseLong("19")); // Fallback for SUPER_ADMIN
+                }
+            } else {
+                logger.debug("No authentication present; skipping tenant context setting");
             }
+
             chain.doFilter(request, response);
         } finally {
 //            TenantContext.clear();

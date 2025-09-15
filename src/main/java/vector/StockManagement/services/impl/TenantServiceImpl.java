@@ -55,7 +55,7 @@ public class TenantServiceImpl implements TenantService {
     @Transactional
     @Override
     public AuthenticationResponse save(TenantDTO dto) {
-        TenantContext.clear();
+//        TenantContext.clear();
 
         if (userRepository.findByEmail(dto.getEmail()).isPresent()) {
             throw new IllegalStateException("Email already taken: " + dto.getEmail());
@@ -101,9 +101,6 @@ public class TenantServiceImpl implements TenantService {
     public Tenant update(Long id, Tenant tenant) {
         Tenant existing = tenantRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Tenant not found"));
         if (existing != null) {
-            existing.setName(tenant.getName());
-            existing.setCode(tenant.getCode());
-            existing.setDescription(tenant.getDescription());
             existing.setActive(tenant.getActive());
             return tenantRepository.save(existing);
         }

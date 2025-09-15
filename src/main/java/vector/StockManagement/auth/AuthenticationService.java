@@ -78,7 +78,7 @@ public class AuthenticationService {
             throw new IllegalStateException("Invalid gender value: " + request.getGender());
         }
 
-        Tenant tenant = tenantRepository.findById(15L).orElseThrow(() -> new IllegalStateException("Tenant not found"));
+        Tenant tenant = tenantRepository.findById(TenantContext.getTenantId()).orElseThrow(() -> new IllegalStateException("Tenant not found"));
 
         var user = User.builder()
                 .firstName(request.getFirstName())
