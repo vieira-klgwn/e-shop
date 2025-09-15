@@ -7,9 +7,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
-import vector.StockManagement.auth.AuthenticationController;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @Aspect
@@ -19,6 +18,16 @@ public class TenantFilterAspect {
 
     private final HibernateTenantFilterConfiguration config;
 
+    // Whitelisted endpoints that don't require tenant filtering
+    private static final List<String> REPOSITORY_WHITELIST = Arrays.asList(
+            "/api/auth/",
+            "/api/tenants/admin",
+            "/error",
+            "/v3/api-docs",
+            "/swagger-ui",
+            "/actuator"
+    );
+
     public TenantFilterAspect(HibernateTenantFilterConfiguration config) {
         this.config = config;
     }
@@ -26,27 +35,30 @@ public class TenantFilterAspect {
     // Enable filter before any repository method is executed
     @Before("execution(* org.springframework.data.repository.Repository+.*(..))")
     public void applyTenantFilter() {
-
-        // Check if the current request is for /api/tenants/admin
-        ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
-        if (attributes != null) {
-            String requestUri = attributes.getRequest().getRequestURI();
-            List<String> whiteList = new ArrayList<>();
-            whiteList.add("/api/tenants/");
-            whiteList.add("/api/products/");
-            whiteList.add("/api/auth/");
-            whiteList.add("super_user/login");
-
-
-            for (String uri : whiteList) {
-                if (requestUri.startsWith(uri)) {
+        try {
+            // Check if the current request is whitelisted
+            ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+            if (attributes != null) {
+                String requestUri = attributes.getRequest().getRequestURI();
+                
+                if (isWhitelisted(requestUri)) {
+                    logger.debug("Skipping tenant filter for whitelisted repository access: {}", requestUri);
                     return;
                 }
+                
+                logger.debug("Applying tenant filter for repository access: {}", requestUri);
+            } else {
+                logger.debug("No request context available, applying tenant filter by default");
             }
 
+            config.enableTenantFilter();
+        } catch (Exception e) {
+            logger.error("Error in tenant filter aspect: {}", e.getMessage(), e);
+            // Don't rethrow to avoid breaking repository operations
         }
+    }
 
-
-        config.enableTenantFilter();
+    private boolean isWhitelisted(String requestUri) {
+        return REPOSITORY_WHITELIST.stream().anyMatch(requestUri::startsWith);
     }
 }

@@ -6,7 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-import vector.StockManagement.config.TenantContext;
+//import vector.StockManagement.config.TenantContext;
 import vector.StockManagement.model.*;
 import vector.StockManagement.model.dto.OrderDTO;
 import vector.StockManagement.model.enums.*;

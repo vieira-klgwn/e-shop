@@ -93,9 +93,13 @@ public class JwtService {
         extraClaims.put("authorities", userDetails.getAuthorities().stream()
                 .map(Object::toString)
                 .collect(Collectors.toList()));
-        // Add tenantId if user has one (skip for SUPER_ADMIN with null tenant)
-        if (userDetails instanceof User user && user.getTenant() != null) {
-            extraClaims.put("tenantId", user.getTenant().getId());
+        // Add tenantId. For SUPER_ADMIN use 0L (global), otherwise use user's tenant id if present
+        if (userDetails instanceof User user) {
+            if (user.getRole() != null && user.getRole().name().equals("SUPER_ADMIN")) {
+                extraClaims.put("tenantId", 0L);
+            } else if (user.getTenant() != null) {
+                extraClaims.put("tenantId", user.getTenant().getId());
+            }
         }
         return generateToken(extraClaims, userDetails);
     }

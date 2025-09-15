@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 import vector.StockManagement.config.JwtService;
-import vector.StockManagement.config.TenantContext;
+//import vector.StockManagement.config.TenantContext;
 import vector.StockManagement.model.Tenant;
 import vector.StockManagement.model.Token;
 import vector.StockManagement.model.enums.Role;
@@ -78,7 +78,7 @@ public class AuthenticationService {
             throw new IllegalStateException("Invalid gender value: " + request.getGender());
         }
 
-        Tenant tenant = tenantRepository.findById(TenantContext.getTenantId()).orElseThrow(() -> new IllegalStateException("Tenant not found"));
+        Tenant tenant = tenantRepository.findById(request.getTenantId()).orElseThrow(() -> new IllegalStateException("Tenant not found"));
 
         var user = User.builder()
                 .firstName(request.getFirstName())
@@ -179,7 +179,7 @@ public class AuthenticationService {
                 .password(passwordEncoder.encode(request.getPassword()))
                 .role(Role.MANAGING_DIRECTOR)
                 .gender(gender)
-                .tenant(tenantRepository.findById(TenantContext.getTenantId()).orElseThrow(() -> new IllegalStateException("Tenant not found")))
+                .tenant(tenantRepository.findById(request.getTenantId()).orElseThrow(() -> new IllegalStateException("Tenant not found")))
                 .phone(request.getPhone())
                 .nationality(request.getNationality())
                 .build();
@@ -226,7 +226,7 @@ public class AuthenticationService {
         tenant.setDescription("Super Admin Description");
         tenant.setCode("0001");
         tenantRepository.saveAndFlush(tenant);
-        TenantContext.setTenantId(tenant.getId());
+//        TenantContext.setTenantId(tenant.getId());
 
         var user = User.builder()
                 .firstName(request.getFirstName())

@@ -4,7 +4,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.NonNull;
+import org.springframework.lang.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,10 +16,10 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+import vector.StockManagement.model.User;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Component
@@ -35,8 +35,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String requestURI = request.getRequestURI();
         String method = request.getMethod();
 
-        // Skip filter for OPTIONS requests and whitelisted endpoints
-        if (method.equals("OPTIONS") || requestURI.startsWith("/api/auth/") || requestURI.equals("/error") || requestURI.equals("/api/tenants/admin")) {
+        // Skip filter for OPTIONS requests and explicit public endpoints only
+        if (method.equals("OPTIONS") || requestURI.equals("/api/auth/login") || requestURI.equals("/api/auth/refresh-token") || requestURI.equals("/api/auth/forgot-password") || requestURI.equals("/api/auth/request-password-reset") || requestURI.equals("/api/auth/reset-password") || requestURI.equals("/error") || requestURI.equals("/api/tenants/admin")) {
             logger.debug("Skipping JWT filter for request: {} {}", method, requestURI);
             filterChain.doFilter(request, response);
             return;
@@ -65,10 +65,29 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 if (jwtService.isTokenValid(jwt, userDetails)) {
                     List<String> authorities = jwtService.extractAuthorities(jwt);
 
-                    Long tenantId = jwtService.extractTenantId(jwt);
-
-                    TenantContext.setTenantId(Objects.requireNonNullElseGet(tenantId, () -> Long.parseLong("19")));
-
+                    // Extract and set tenant ID from JWT token
+                    try {
+                        Long tenantId = jwtService.extractTenantId(jwt);
+                        if (tenantId != null) {
+                            TenantContext.setTenantId(tenantId);
+                            logger.info("Set tenant context from JWT to ID: {}", tenantId);
+                        } else {
+                            // Handle SUPER_ADMIN case - set to 0L for global access
+                            if (userDetails instanceof User user && user.getRole().name().equals("SUPER_ADMIN")) {
+                                TenantContext.setTenantId(0L);
+                                logger.info("Set tenant context to 0L for SUPER_ADMIN");
+                            } else {
+                                logger.warn("No tenant ID found in JWT token for user: {}", userEmail);
+                            }
+                        }
+                    } catch (Exception e) {
+                        logger.error("Failed to extract tenant ID from JWT: {}", e.getMessage());
+                        // For SUPER_ADMIN, set to 0L as fallback
+                        if (userDetails instanceof User user && user.getRole().name().equals("SUPER_ADMIN")) {
+                            TenantContext.setTenantId(0L);
+                            logger.info("Set tenant context to 0L for SUPER_ADMIN (fallback)");
+                        }
+                    }
 
                     List<SimpleGrantedAuthority> grantedAuthorities = authorities != null
                             ? authorities.stream().map(SimpleGrantedAuthority::new).collect(Collectors.toList())
@@ -95,8 +114,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         try {
             filterChain.doFilter(request, response);
         } finally {
-//            TenantContext.clear();
-            System.out.println("Tenant filter executed");
+            TenantContext.clear();
+            logger.debug("JWT filter completed, cleared tenant context");
         }
     }
 }

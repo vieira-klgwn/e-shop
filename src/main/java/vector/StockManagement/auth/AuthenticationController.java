@@ -7,10 +7,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
+import jakarta.validation.Valid;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import vector.StockManagement.model.Token;
@@ -22,7 +20,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.security.Principal;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -47,7 +44,8 @@ public class AuthenticationController {
     // model business /
     // users should hold
     @PostMapping("/register")
-    public ResponseEntity<AuthenticationResponse> register(@RequestBody RegisterRequest registerRequest) {
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN','ADMIN','MANAGING_DIRECTOR')")
+    public ResponseEntity<AuthenticationResponse> register(@Valid @RequestBody RegisterRequest registerRequest) {
         logger.debug("Register request for email: {}", registerRequest.getEmail());
         return ResponseEntity.ok(authenticationService.register(registerRequest));
     }
@@ -134,7 +132,7 @@ public class AuthenticationController {
     public ResponseEntity<String> requestPasswordReset(@RequestBody ForgotPasswordRequest request) {
         logger.debug("Password reset request for email: {}", request.getEmail());
         try {
-            String resetToken = authenticationService.requestPasswordReset(request.getEmail());
+            authenticationService.requestPasswordReset(request.getEmail());
             return ResponseEntity.ok("Password reset email sent successfully");
         } catch (Exception e) {
             logger.error("Failed to process password reset: {}", e.getMessage());

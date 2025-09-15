@@ -6,8 +6,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
-import vector.StockManagement.config.TenantContext;
-import vector.StockManagement.config.TenantTransactionSynchronization;
+//import vector.StockManagement.config.TenantContext;
+//import vector.StockManagement.config.TenantTransactionSynchronization;
 import vector.StockManagement.model.*;
 import vector.StockManagement.repositories.PriceListItemRepository;
 import vector.StockManagement.repositories.ProductRepository;
@@ -39,12 +39,12 @@ public class ProductServiceImpl implements ProductService {
     public Product save(Product product) {
 
         Tenant tenant = null;
-//        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-//        if (principal instanceof User user) {
-//            tenant = user.getTenant();
-//        }
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (principal instanceof User user) {
+            tenant = user.getTenant();
+        }
 
-        tenant = tenantRepository.findById(TenantContext.getTenantId()).orElseThrow(() -> new RuntimeException("Tenant not found"));
+//        tenant = tenantRepository.findById(TenantContext.getTenantId()).orElseThrow(() -> new RuntimeException("Tenant not found"));
         product.setTenant(tenant);
         return productRepository.save(product);
     }

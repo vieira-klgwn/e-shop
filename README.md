@@ -1,3 +1,34 @@
+## Multi-Tenancy Setup & Fixes
+
+This application uses a per-request `TenantContext` backed by `ThreadLocal<Long>` to scope data access via a Hibernate dynamic filter named `tenantFilter`.
+
+### Request Flow
+- Incoming request → `TenantFilter` (sets tenant from authenticated principal as fallback) → `JwtAuthenticationFilter` (authenticates, extracts `tenantId` claim, sets `TenantContext`) → Controllers/Services → Spring Data Repositories (AOP `TenantFilterAspect` enables Hibernate filter) → Response; context cleared in JWT filter `finally`.
+
+### Key Components
+- `TenantContext`: Stores current tenantId in a `ThreadLocal`; must be set per request.
+- `JwtService`: Embeds `tenantId` in access tokens. For `SUPER_ADMIN`, the `tenantId` is `0` (global).
+- `JwtAuthenticationFilter`: Authenticates Bearer tokens, extracts `tenantId` and sets `TenantContext`. For `SUPER_ADMIN` or missing claim, defaults to `0` when role is `SUPER_ADMIN`.
+- `TenantFilter`: For authenticated requests where JWT extraction is skipped or unavailable, sets `TenantContext` from the `User` principal; SUPER_ADMIN → `tenantId=0`.
+- `TenantFilterAspect`: Before any Spring Data repository call, enables Hibernate filter; whitelists auth and public endpoints.
+- `HibernateTenantFilterConfiguration`: Enables `tenantFilter` with parameter `tenantId`. Skips enabling when `tenantId` is `null` or `0`.
+
+### Security
+- Public endpoints are explicitly whitelisted: `/api/auth/login`, `/api/auth/refresh-token`, password reset endpoints, `/api/tenants/admin`, swagger and error pages.
+- `/api/auth/register` requires `SUPER_ADMIN`, `ADMIN`, or `MANAGING_DIRECTOR`.
+
+### Entity Filters
+- Entities include `@Filter(name = "tenantFilter", condition = "tenant_id = :tenantId")` to scope queries by tenant.
+- For SUPER_ADMIN (`tenantId=0`), the filter is not enabled, allowing global visibility.
+
+### Best Practices
+- Always clear `TenantContext` in a `finally` block (handled by `JwtAuthenticationFilter`).
+- Use `@Transactional` in services performing write operations.
+- Validate DTOs with `@Valid` and surface errors via `@ControllerAdvice`.
+
+### Troubleshooting
+- If you see "Tenant ID is null; skipping tenant filter application": ensure the JWT contains `tenantId` and that the request is not whitelisted unexpectedly.
+- If authenticated but tenant-scoped queries return empty, verify `tenant_id` is populated in data and the claim is set.
 # Stock Management - Backend API
 
 ## System Architecture Overview

@@ -28,6 +28,7 @@ public class SecurityConfig {
 
     private final AuthenticationProvider authenticationProvider;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final TenantFilter tenantFilter;
     private final LogoutHandler logoutHandler;
 
     private static final String[] SWAGGER_WHITELIST = {
@@ -40,7 +41,11 @@ public class SecurityConfig {
     };
 
     private static final String[] WHITE_LIST_URL = {
-            "/api/auth/**",
+            "/api/auth/login",
+            "/api/auth/refresh-token",
+            "/api/auth/forgot-password",
+            "/api/auth/request-password-reset",
+            "/api/auth/reset-password",
             "/api/tenants/admin",
             "/v2/api-docs",
             "/v3/api-docs",
@@ -57,7 +62,7 @@ public class SecurityConfig {
     };
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http, TenantFilter tenantFilter) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(AbstractHttpConfigurer::disable)
@@ -67,7 +72,7 @@ public class SecurityConfig {
                                 .requestMatchers(WHITE_LIST_URL).permitAll()
                                 .requestMatchers(SWAGGER_WHITELIST).permitAll()
                                 .requestMatchers("/api/auth/register").hasAnyRole("ADMIN", "SUPER_ADMIN", "MANAGING_DIRECTOR")
-                                .requestMatchers("api/tenants/admin").permitAll()
+                                .requestMatchers("/api/tenants/admin").permitAll()
                                 .requestMatchers(HttpMethod.GET, "/api/users/me").authenticated()
                                 .requestMatchers(HttpMethod.GET, "/api/users").hasAnyRole("ADMIN", "SUPER_ADMIN")
                                 .requestMatchers(HttpMethod.POST, "/api/tenants/***").hasRole("SUPER_ADMIN")
