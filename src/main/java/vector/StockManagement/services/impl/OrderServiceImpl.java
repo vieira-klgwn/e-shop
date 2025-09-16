@@ -63,21 +63,17 @@ public class OrderServiceImpl implements OrderService {
             throw new RuntimeException("User must belong to a tenant");
         }
 
+
         Order order = new Order();
         order.setTenant(tenant);
         order.setCreatedBy(user);
         order.setNumber("ORD-" + System.currentTimeMillis());
         order.setDeliveryAddress(orderDto.getDeliveryAddress());
-        order.setDeliveryDate(orderDto.getOrderDate() != null ? orderDto.getOrderDate() : LocalDateTime.now().plusDays(1));
         order.setStatus(OrderStatus.DRAFT);
         order.setCurrency("USD");
-        
-        if (orderDto.getWarehouseId() != null) {
-            Warehouse warehouse = warehouseRepository.findById(orderDto.getWarehouseId())
-                    .orElseThrow(() -> new RuntimeException("Warehouse not found"));
-            order.setWarehouse(warehouse);
-        }
+        Product product1 = productRepository.findById(orderDto.getProductId()).orElseThrow(() -> new RuntimeException("Product not found"));
 
+///  here you can only register an order if you have an orderline and an order line should also have a product,
         Order savedOrder = orderRepository.saveAndFlush(order);
         
         // Create order lines and calculate totals

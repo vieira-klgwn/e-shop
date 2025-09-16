@@ -130,6 +130,9 @@ public class Order extends BaseEntity {
     @Column(name = "delivery_address", length = 500)
     private String deliveryAddress;
 
+    @Column(name = "order_date")
+    private LocalDateTime orderDate = LocalDateTime.now();
+
 
     public Order(OrderLevel level, String currency, User createdBy, Tenant tenant) {
         this();

@@ -107,6 +107,7 @@ public class UserController {
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
 
+
         String email = authentication.getName();
         logger.debug("Fetching current user with email: {}", email);
         return userService.getUserByEmail(email)
@@ -119,6 +120,7 @@ public class UserController {
                     userDTO.setEmail(user.getEmail());
                     userDTO.setRole(user.getRole().toString());
                     userDTO.setGender(user.getGender() != null ? user.getGender().toString() : null);
+                    userDTO.setTenantId(Long.toString(user.getTenant().getId()));
                     return new ResponseEntity<>(userDTO, HttpStatus.OK);
                 })
                 .orElseGet(() -> {

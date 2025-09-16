@@ -42,8 +42,9 @@ public class OrderController {
         return order != null ? ResponseEntity.ok(order) : ResponseEntity.notFound().build();
     }
 
-    @PreAuthorize("hasAnyRole('DISTRIBUTOR','STORE_MANAGER')")
+
     @PostMapping
+    @PreAuthorize("hasAnyRole('DISTRIBUTOR','STORE_MANAGER')")
     public ResponseEntity<Order> create(@AuthenticationPrincipal User user, @RequestBody OrderDTO orderDTO) {
         return ResponseEntity.ok(orderService.save(user.getId(), orderDTO));
     }

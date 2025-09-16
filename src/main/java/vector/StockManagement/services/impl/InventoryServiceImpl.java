@@ -58,6 +58,13 @@ public class InventoryServiceImpl implements InventoryService {
     }
 
     @Override
+    public Inventory updateQtyOnHand(Long inventoryId, Integer qtyOnHand) {
+        Inventory inventory = inventoryRepository.findById(inventoryId).orElseThrow(() -> new IllegalArgumentException("Invalid inventoryId: " + inventoryId));
+        inventory.setQtyOnHand(qtyOnHand);
+        return inventoryRepository.save(inventory);
+    }
+
+    @Override
     public Inventory findInventoryByProduct(Long productId){
         Product product = productRepository.findById(productId).orElseThrow(() -> new IllegalArgumentException("Product not found"));
         return inventoryRepository.findByProduct(product);

@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import vector.StockManagement.model.Inventory;
+import vector.StockManagement.model.dto.UpdateInventoryDTO;
 import vector.StockManagement.services.InventoryService;
 
 import java.util.List;
@@ -46,6 +47,12 @@ public class InventoryController {
         existing.setQtyOnHand(inventory.getQtyOnHand());
         //add more updates here
         return ResponseEntity.ok(inventoryService.save(inventory));
+    }
+
+    @PutMapping("/updateInventory/{id}")
+    @PreAuthorize("hasRole('STORE_MANAGER')")
+    public ResponseEntity<Inventory> updateQtyOnHand(@PathVariable Long id, @RequestBody UpdateInventoryDTO request) {
+        return ResponseEntity.ok(inventoryService.updateQtyOnHand(id, request.getQtyOnHand()));
     }
 
     @DeleteMapping("/{id}")

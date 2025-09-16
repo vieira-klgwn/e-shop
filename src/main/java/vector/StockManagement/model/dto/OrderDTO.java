@@ -16,7 +16,6 @@ public class OrderDTO {
     private String deliveryAddress;
     private Long productId;
     private Long userId;
-    private Long warehouseId;
     private Integer quantity;
     private BigDecimal unitPrice;
     List<OrderLine> orderLines;
