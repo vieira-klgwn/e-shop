@@ -30,6 +30,7 @@ public class ProductController {
     private String uploadDir;
 
     @GetMapping
+    @PreAuthorize("hasAnyRole('SALES_MANAGER','ACCOUNTANT','WAREHOUSE_MANAGER', 'DISTRIBUTOR')")
     public List<Product> getAll() {
         return productService.findAll();
     }
