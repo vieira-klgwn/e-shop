@@ -21,12 +21,12 @@ public class HibernateTenantFilterConfiguration {
         logger.debug("Attempting to enable tenant filter with tenantId={}", tenantId);
         
         if (tenantId == null) {
-            logger.warn("Tenant ID is null; skipping tenant filter application");
+            logger.error("TENANT FILTER ERROR - Tenant ID is null; skipping tenant filter application. This may cause data leakage!");
             return; // Skip enabling when unknown; controllers/services should ensure it's set
         }
         // For SUPER_ADMIN/global access, use 0L to indicate no tenant restriction
         if (tenantId == 0L) {
-            logger.debug("Tenant ID is 0 (SUPER_ADMIN/global), skipping tenant filter");
+            logger.debug("Tenant ID is 0 (SUPER_ADMIN/global), skipping tenant filter for global access");
             return;
         }
 
@@ -37,13 +37,14 @@ public class HibernateTenantFilterConfiguration {
             if (session.getEnabledFilter("tenantFilter") == null) {
                 var filter = session.enableFilter("tenantFilter");
                 filter.setParameter("tenantId", tenantId);
-                logger.debug("Enabled tenant filter with tenantId: {}", tenantId);
+                logger.info("Successfully enabled tenant filter with tenantId: {}", tenantId);
             } else {
                 logger.debug("Tenant filter already enabled for tenantId: {}", tenantId);
             }
         } catch (Exception e) {
-            logger.error("Failed to enable tenant filter: {}", e.getMessage(), e);
-            // Don't throw exception to prevent breaking the application
+            logger.error("TENANT FILTER CRITICAL ERROR - Failed to enable tenant filter for tenantId: {} | Error: {}", 
+                        tenantId, e.getMessage(), e);
+            // Don't throw exception to prevent breaking the application, but log as critical
         }
     }
     

@@ -39,7 +39,11 @@ public class TenantFilter implements Filter {
         
         HttpServletRequest httpRequest = (HttpServletRequest) request;
         String requestURI = httpRequest.getRequestURI();
+        String method = httpRequest.getMethod();
         MDC.put("http.path", requestURI);
+        MDC.put("http.method", method);
+
+        logger.debug("TenantFilter processing request: {} {}", method, requestURI);
 
         // Skip filter for whitelisted endpoints
         if (isWhitelisted(requestURI)) {
@@ -52,29 +56,40 @@ public class TenantFilter implements Filter {
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             if (auth != null && !(auth instanceof AnonymousAuthenticationToken)) {
                 if (auth.getPrincipal() instanceof User user) {
+                    logger.debug("Processing authenticated user: {} with role: {}", user.getEmail(), user.getRole());
+                    
                     if (user.getTenant() != null) {
                         TenantContext.setTenantId(user.getTenant().getId());
                         MDC.put("tenant.id", String.valueOf(user.getTenant().getId()));
-                        logger.info("Set tenant context from User principal to ID: {}", user.getTenant().getId());
+                        logger.info("Set tenant context from User principal to ID: {} for user: {} on URI: {}", 
+                                   user.getTenant().getId(), user.getEmail(), requestURI);
                     } else if (user.getRole().name().equals("SUPER_ADMIN")) {
                         // SUPER_ADMIN gets global access with tenant ID 0
                         TenantContext.setTenantId(0L);
                         MDC.put("tenant.id", "0");
-                        logger.info("Set tenant context to 0L for SUPER_ADMIN from User principal");
+                        logger.info("Set tenant context to 0L for SUPER_ADMIN: {} on URI: {}", user.getEmail(), requestURI);
                     } else {
-                        logger.warn("User {} has no tenant but is not SUPER_ADMIN", user.getEmail());
+                        logger.error("TENANT ERROR - User {} has no tenant but is not SUPER_ADMIN. Role: {} | URI: {} {}", 
+                                   user.getEmail(), user.getRole(), method, requestURI);
+                        // This could be a security issue - user without tenant trying to access protected resources
                     }
                 } else {
-                    logger.debug("Principal is not a User instance: {}", auth.getPrincipal().getClass());
+                    logger.warn("Principal is not a User instance: {} for URI: {} {}", 
+                               auth.getPrincipal().getClass(), method, requestURI);
                 }
             } else {
-                logger.debug("No valid authentication found, tenant context will remain unset");
+                logger.warn("No valid authentication found for URI: {} {} - tenant context will remain unset", 
+                           method, requestURI);
             }
 
             chain.doFilter(request, response);
+        } catch (Exception e) {
+            logger.error("TENANT FILTER ERROR - Exception in TenantFilter for URI: {} {} | Error: {}", 
+                        method, requestURI, e.getMessage(), e);
+            throw e;
         } finally {
             // Note: Don't clear context here as JwtAuthenticationFilter will handle it
-            logger.debug("TenantFilter completed for URI: {}", requestURI);
+            logger.debug("TenantFilter completed for URI: {} {}", method, requestURI);
             MDC.clear();
         }
     }

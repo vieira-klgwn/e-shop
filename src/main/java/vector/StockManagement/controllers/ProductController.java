@@ -2,16 +2,18 @@ package vector.StockManagement.controllers;
 
 
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import vector.StockManagement.config.TenantContext;
 import vector.StockManagement.model.Product;
 import vector.StockManagement.services.ProductService;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -21,9 +23,10 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/products")
-@RequiredArgsConstructor(onConstructor_ = {@Autowired})
+@RequiredArgsConstructor
 public class ProductController {
 
+    private static final Logger logger = LoggerFactory.getLogger(ProductController.class);
     private final ProductService productService;
 
     @Value("${app.upload.dir:uploads}")
@@ -42,9 +45,20 @@ public class ProductController {
     }
 
     @PostMapping
-    @PreAuthorize("hasRole('SALES_MANAGER') or hasRole('ADMIN')")
     public Product create(@RequestBody Product product) {
-        return productService.save(product);
+        Long tenantId = TenantContext.getTenantId();
+        logger.info("Creating product: {} for tenant: {}", product.getName(), tenantId);
+        
+        try {
+            Product savedProduct = productService.save(product);
+            logger.info("Successfully created product: {} with ID: {} for tenant: {}", 
+                       savedProduct.getName(), savedProduct.getId(), tenantId);
+            return savedProduct;
+        } catch (Exception e) {
+            logger.error("Failed to create product: {} for tenant: {} | Error: {}", 
+                        product.getName(), tenantId, e.getMessage(), e);
+            throw e;
+        }
     }
 
     @PutMapping("/{id}")
