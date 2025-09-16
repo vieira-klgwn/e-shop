@@ -15,12 +15,7 @@ import java.util.Map;
 // Audit Log Entity
 @EqualsAndHashCode(callSuper = true)
 @Entity
-@Table(name = "audit_logs", indexes = {
-        @Index(name = "idx_audit_actor", columnList = "actor_id"),
-        @Index(name = "idx_audit_entity", columnList = "entity, entity_id"),
-        @Index(name = "idx_audit_action", columnList = "action"),
-        @Index(name = "idx_audit_timestamp", columnList = "timestamp")
-})
+@Table(name = "audit_logs")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

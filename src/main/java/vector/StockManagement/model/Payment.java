@@ -1,5 +1,6 @@
 package vector.StockManagement.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -25,11 +26,7 @@ import java.time.LocalDateTime;
 @EqualsAndHashCode(callSuper = true)
 @Entity
 @Filter(name = "tenantFilter", condition = "tenant_id = :tenantId")
-@Table(name = "payments", indexes = {
-        @Index(name = "idx_payment_invoice", columnList = "invoice_id"),
-        @Index(name = "idx_payment_method", columnList = "method"),
-        @Index(name = "idx_payment_paid_at", columnList = "paid_at")
-})
+@Table(name = "payments")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -37,6 +34,7 @@ public class Payment extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "invoice_id", nullable = false)
+    @JsonIgnore
     private Invoice invoice;
 
     @NotNull
@@ -75,6 +73,7 @@ public class Payment extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "tenant_id", nullable = false)
+    @JsonIgnore
     private Tenant tenant;
 
 

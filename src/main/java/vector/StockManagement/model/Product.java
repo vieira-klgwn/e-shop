@@ -1,5 +1,6 @@
 package vector.StockManagement.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
@@ -38,6 +39,7 @@ public class Product extends BaseEntity {
     private String name;
 
     @OneToMany(mappedBy = "product")
+    @JsonIgnore
     private List<OrderLine> orderLines;
 
     @Size(max = 1000)
@@ -72,6 +74,7 @@ public class Product extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "tenant_id") // removed , nullable = false
+    @JsonIgnore
     private Tenant tenant;
 
     @Column(name = "barcode")
@@ -87,6 +90,7 @@ public class Product extends BaseEntity {
 
     @ManyToOne
     @JoinColumn(name = "warehouse_id")
+    @JsonIgnore
     private Warehouse warehouse;
 
 

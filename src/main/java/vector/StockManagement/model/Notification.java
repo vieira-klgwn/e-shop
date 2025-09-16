@@ -1,5 +1,6 @@
 package vector.StockManagement.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -19,13 +20,7 @@ import java.util.Map;
 // Notification Entity
 @Entity
 @Filter(name = "tenantFilter", condition = "tenant_id = :tenantId")
-@Table(name = "notifications", indexes = {
-        @Index(name = "idx_notification_type", columnList = "type"),
-        @Index(name = "idx_notification_channel", columnList = "channel"),
-        @Index(name = "idx_notification_status", columnList = "status"),
-        @Index(name = "idx_notification_recipient", columnList = "recipient_id"),
-        @Index(name = "idx_notification_created", columnList = "created_at")
-})
+@Table(name = "notifications")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -41,10 +36,12 @@ public class Notification extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "warehouse_id")
+    @JsonIgnore
     private Warehouse warehouse;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "store_id")
+    @JsonIgnore
     private Store store;
 
     @NotNull
@@ -54,6 +51,7 @@ public class Notification extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "recipient_id")
+    @JsonIgnore
     private User recipient;
 
     @Size(max = 200)
@@ -99,6 +97,7 @@ public class Notification extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "tenant_id", nullable = false)
+    @JsonIgnore
     private Tenant tenant;
 
     @Size(max = 100)

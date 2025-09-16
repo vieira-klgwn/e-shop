@@ -30,13 +30,7 @@ import java.util.Map;
 @Entity
 @Filter(name = "tenantFilter", condition = "tenant_id = :tenantId")
 @org.hibernate.annotations.Filter(name = "tenantFilter", condition = "tenant_id = :tenantId")
-@Table(name = "orders", indexes = {
-        @Index(name = "idx_order_number", columnList = "number", unique = true),
-        @Index(name = "idx_order_status", columnList = "status"),
-        @Index(name = "idx_order_distributor", columnList = "distributor_id"),
-        @Index(name = "idx_order_store", columnList = "store_id"),
-        @Index(name = "idx_order_created_at", columnList = "created_at")
-})
+@Table(name = "orders")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -64,10 +58,12 @@ public class Order extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "store_id")
+    @JsonIgnore
     private Store store;
 
     @ManyToOne
     @JoinColumn(name = "warehouse_id")
+    @JsonIgnore
     private Warehouse warehouse;
 
     @NotNull
@@ -120,6 +116,7 @@ public class Order extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "tenant_id")//removed, nullable = false
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+    @JsonIgnore
     private Tenant tenant;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.LAZY)//removed orphan removal

@@ -15,9 +15,7 @@ import java.util.Map;
 
 @EqualsAndHashCode(callSuper = true)
 @Entity
-@Table(name = "warehouses", indexes = {
-        @Index(name = "idx_warehouse_code_tenant", columnList = "code, tenant_id", unique = true)
-})
+@Table(name = "warehouses")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -61,8 +59,6 @@ public class Warehouse extends BaseEntity {
     @JoinColumn(name = "manager_id")
     private User manager;
 
-    @OneToOne(mappedBy = "warehouse", cascade = CascadeType.ALL)
-    private Distributor distributor;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "tenant_id")
@@ -86,8 +82,7 @@ public class Warehouse extends BaseEntity {
 
 
 
-    public Warehouse(Distributor distributor, String name, String code, Tenant tenant) {
-        this.distributor = distributor;
+    public Warehouse( String name, String code, Tenant tenant) {
         this.name = name;
         this.code = code;
         this.tenant = tenant;

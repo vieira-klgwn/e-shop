@@ -1,5 +1,6 @@
 package vector.StockManagement.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -16,10 +17,7 @@ import java.util.Map;
 @EqualsAndHashCode(callSuper = true)
 @Entity
 @Filter(name = "tenantFilter", condition = "tenant_id = :tenantId")
-@Table(name = "stores", indexes = {
-        @Index(name = "idx_store_code", columnList = "code", unique = true),
-        @Index(name = "idx_store_distributor", columnList = "distributor_id")
-})
+@Table(name = "stores")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -43,12 +41,15 @@ public class Store extends BaseEntity {
     private String city;
 
     @OneToMany(mappedBy = "store",fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @JsonIgnore
     private List<Order> orders;
 
     @OneToMany(mappedBy = "store")
+    @JsonIgnore
     private List<Invoice> invoices;
 
     @OneToMany(mappedBy = "store")
+    @JsonIgnore
     private List<Notification> notifications;
 
 
@@ -76,6 +77,7 @@ public class Store extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "tenant_id", nullable = false)
+    @JsonIgnore
     private Tenant tenant;
 
     @Column(name = "is_active")

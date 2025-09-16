@@ -16,11 +16,7 @@ import java.time.LocalDateTime;
 @EqualsAndHashCode(callSuper = true)
 @Entity
 @Filter(name = "tenantFilter", condition = "tenant_id = :tenantId")
-@Table(name = "transfers", indexes = {
-        @Index(name = "idx_transfer_from_location", columnList = "from_level, from_location_id"),
-        @Index(name = "idx_transfer_to_location", columnList = "to_level, to_location_id"),
-        @Index(name = "idx_transfer_status", columnList = "status")
-})
+@Table(name = "transfers")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

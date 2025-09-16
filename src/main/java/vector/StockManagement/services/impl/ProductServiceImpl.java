@@ -1,6 +1,7 @@
 package vector.StockManagement.services.impl;
 
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -9,6 +10,8 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 //import vector.StockManagement.config.TenantContext;
 //import vector.StockManagement.config.TenantTransactionSynchronization;
 import vector.StockManagement.model.*;
+import vector.StockManagement.model.enums.LocationType;
+import vector.StockManagement.repositories.InventoryRepository;
 import vector.StockManagement.repositories.PriceListItemRepository;
 import vector.StockManagement.repositories.ProductRepository;
 import vector.StockManagement.repositories.TenantRepository;
@@ -23,6 +26,7 @@ public class ProductServiceImpl implements ProductService {
     private final ProductRepository productRepository;
     private final PriceListItemRepository priceListItemRepository;
     private final TenantRepository tenantRepository;
+    private final InventoryRepository inventoryRepository;
 
     @Override
     public List<Product> findAll() {
@@ -36,6 +40,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
 
+    @Transactional
     public Product save(Product product) {
 
         Tenant tenant = null;
@@ -44,9 +49,18 @@ public class ProductServiceImpl implements ProductService {
             tenant = user.getTenant();
         }
 
+
 //        tenant = tenantRepository.findById(TenantContext.getTenantId()).orElseThrow(() -> new RuntimeException("Tenant not found"));
         product.setTenant(tenant);
-        return productRepository.save(product);
+        productRepository.saveAndFlush(product);
+        Inventory inventory = new Inventory();
+        inventory.setProduct(product);
+        inventory.setLocationType(LocationType.L1);
+        inventory.setLocationId(12L);
+        inventory.setTenant(tenant);
+        inventory.setQtyOnHand(0);
+        inventoryRepository.saveAndFlush(inventory);
+        return productRepository.saveAndFlush(product);
     }
 
     @Override

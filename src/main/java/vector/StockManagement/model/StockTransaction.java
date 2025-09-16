@@ -22,12 +22,7 @@ import lombok.*;
 @EqualsAndHashCode(callSuper = true)
 @Entity
 @Filter(name = "tenantFilter", condition = "tenant_id = :tenantId")
-@Table(name = "stock_transactions", indexes = {
-        @Index(name = "idx_stock_txn_product", columnList = "product_id"),
-        @Index(name = "idx_stock_txn_type_level", columnList = "type, level"),
-        @Index(name = "idx_stock_txn_timestamp", columnList = "timestamp"),
-        @Index(name = "idx_stock_txn_ref", columnList = "ref_type, ref_id")
-})
+@Table(name = "stock_transactions")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

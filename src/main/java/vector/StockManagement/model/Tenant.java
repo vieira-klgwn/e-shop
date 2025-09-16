@@ -43,9 +43,11 @@ public class Tenant extends BaseEntity {
 
 
     @OneToMany(mappedBy = "tenant")
+    @JsonIgnore
     private List<Warehouse> warehouses = new ArrayList<>();
 
     @OneToMany(mappedBy = "tenant")
+    @JsonIgnore
     private List<PriceList> priceLists = new ArrayList<>();
 
 

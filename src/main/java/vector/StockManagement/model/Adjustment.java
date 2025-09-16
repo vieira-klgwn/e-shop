@@ -15,10 +15,7 @@ import java.time.LocalDateTime;
 // Adjustment Entity
 @EqualsAndHashCode(callSuper = true)
 @Entity
-@Table(name = "adjustments", indexes = {
-        @Index(name = "idx_adjustment_location", columnList = "level, location_id"),
-        @Index(name = "idx_adjustment_product", columnList = "product_id")
-})
+@Table(name = "adjustments")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

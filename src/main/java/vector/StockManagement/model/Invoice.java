@@ -1,5 +1,6 @@
 package vector.StockManagement.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.hibernate.annotations.Filter;
 import vector.StockManagement.model.enums.InvoiceStatus;
 import jakarta.persistence.*;
@@ -23,13 +24,7 @@ import java.util.Map;
 @Entity
 @Filter(name = "tenantFilter", condition = "tenant_id = :tenantId")
 @org.hibernate.annotations.Filter(name = "tenantFilter", condition = "tenant_id = :tenantId")
-@Table(name = "invoices", indexes = {
-        @Index(name = "idx_invoice_number", columnList = "number", unique = true),
-        @Index(name = "idx_invoice_order", columnList = "order_id"),
-        @Index(name = "idx_invoice_distributor", columnList = "distributor_id"),
-        @Index(name = "idx_invoice_store", columnList = "store_id"),
-        @Index(name = "idx_invoice_status", columnList = "status")
-})
+@Table(name = "invoices")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -42,6 +37,7 @@ public class Invoice extends BaseEntity implements TenantScoped {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "order_id", nullable = false)
+    @JsonIgnore
     private Order order;
 
 //    @ManyToOne(fetch = FetchType.LAZY)
@@ -50,6 +46,7 @@ public class Invoice extends BaseEntity implements TenantScoped {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "store_id")
+    @JsonIgnore
     private Store store;
 
     @NotNull
@@ -73,6 +70,7 @@ public class Invoice extends BaseEntity implements TenantScoped {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "tenant_id", nullable = false)
+    @JsonIgnore
     private Tenant tenant;
 
     @Size(max = 500)

@@ -20,9 +20,7 @@ import java.util.Map;
 // Distributor Entity
 @EqualsAndHashCode(callSuper = true)
 @Entity
-@Table(name = "distributors", indexes = {
-        @Index(name = "idx_distributor_email_tenant", columnList = "email, tenant_id", unique = true)
-})
+@Table(name = "distributors")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -85,9 +83,7 @@ public class Distributor extends BaseEntity {
     @Column(name = "status", nullable = false)
     private DistributorStatus status = DistributorStatus.ACTIVE;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "tenant_id", nullable = false)
-    private Tenant tenant;
+
 
     //this is a big problem , i must correct it.....I mean having warehouse and store fields in distributor class
     @OneToOne
@@ -113,7 +109,7 @@ public class Distributor extends BaseEntity {
     public Distributor(String companyName, String contactName, Tenant tenant) {
         this.companyName = companyName;
         this.contactName = contactName;
-        this.tenant = tenant;
+
     }
 
 

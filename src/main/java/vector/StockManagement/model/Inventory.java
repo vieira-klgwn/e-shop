@@ -1,6 +1,7 @@
 package vector.StockManagement.model;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import org.hibernate.annotations.Filter;
@@ -21,11 +22,7 @@ import java.util.List;
 @Entity
 @Filter(name = "tenantFilter", condition = "tenant_id = :tenantId")
 @org.hibernate.annotations.Filter(name = "tenantFilter", condition = "tenant_id = :tenantId")
-@Table(name = "inventory", indexes = {
-        @Index(name = "idx_inventory_location_product", columnList = "location_type, location_id, product_id", unique = true),
-        @Index(name = "idx_inventory_product", columnList = "product_id"),
-        @Index(name = "idx_inventory_location", columnList = "location_type, location_id")
-})
+@Table(name = "inventory")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -45,6 +42,7 @@ public class Inventory extends BaseEntity {
     @JoinColumn(name = "product_id", nullable = false)
     @JsonManagedReference
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+    @JsonIgnore
     private Product product;
 
 
@@ -79,6 +77,7 @@ public class Inventory extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "tenant_id", nullable = false)
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+    @JsonIgnore
     private Tenant tenant;
 
 

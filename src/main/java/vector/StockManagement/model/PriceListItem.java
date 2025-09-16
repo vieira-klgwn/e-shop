@@ -17,9 +17,7 @@ import java.util.Map;
 @EqualsAndHashCode(callSuper = true)
 @Entity
 @Filter(name = "tenantFilter", condition = "tenant_id = :tenantId")
-@Table(name = "price_list_items", indexes = {
-        @Index(name = "idx_price_list_product", columnList = "price_list_id, product_id", unique = true)
-})
+@Table(name = "price_list_items")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
