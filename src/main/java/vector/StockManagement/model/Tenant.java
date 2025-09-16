@@ -50,6 +50,10 @@ public class Tenant extends BaseEntity {
     @JsonIgnore
     private List<PriceList> priceLists = new ArrayList<>();
 
+    @OneToMany(mappedBy = "tenant")
+    @JsonIgnore
+    private List<OrderLine> orderLines = new ArrayList<>();
+
 
     public Tenant(String name, String code) {
         this.name = name;

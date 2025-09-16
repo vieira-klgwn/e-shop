@@ -15,6 +15,7 @@ import vector.StockManagement.model.User;
 import vector.StockManagement.model.dto.OrderDTO;
 import vector.StockManagement.repositories.UserRepository;
 import vector.StockManagement.services.OrderService;
+import vector.StockManagement.services.impl.OrderServiceImpl;
 
 import java.util.List;
 
@@ -25,8 +26,10 @@ public class OrderController {
 
     private final OrderService orderService;
     private final UserRepository userRepository;
+    private final OrderServiceImpl orderServiceImpl;
 
     @GetMapping
+    @PreAuthorize("hasAnyRole('DISTRIBUTOR','ACCOUNTANT','WAREHOUSE_MANAGER')")
     public Page<Order> getAll(@RequestParam(defaultValue = "0") int page,
                               @RequestParam(defaultValue = "20") int size) {
         Pageable pageable = PageRequest.of(page, size);
@@ -55,16 +58,13 @@ public class OrderController {
     }
 
     @PutMapping("/approve/{id}")
+    @PreAuthorize("hasRole('ACCOUNTANT')")
     public ResponseEntity<Order> approve(@AuthenticationPrincipal User user, @PathVariable Long id) {
-        Order order = orderService.findById(id);
-        if (order == null) return ResponseEntity.notFound().build();
-        if (userRepository.findById(user.getId()).isPresent()) {
-            return ResponseEntity.ok(orderService.approve(user.getId(), order));
-        }
-        return ResponseEntity.notFound().build();
+        return ResponseEntity.ok(orderServiceImpl.fulfillOrder(id, user.getId()));
     }
 
     @PutMapping("/reject/{id}")
+    @PreAuthorize("hasRole('ACCOUNTANT')")
     public ResponseEntity<Order> reject(@PathVariable Long id) {
         Order order = orderService.findById(id);
         if (order == null) return ResponseEntity.notFound().build();
@@ -72,12 +72,14 @@ public class OrderController {
     }
 
     @PutMapping("/submit/{id}")
+    @PreAuthorize("hasRole('DISTRIBUTOR')")
     public ResponseEntity<Order> submit(@AuthenticationPrincipal User user, @PathVariable Long id) {
         // keep compatibility by calling service method via update flow in implementation
         return ResponseEntity.ok(((vector.StockManagement.services.impl.OrderServiceImpl) orderService).submitOrder(id, user.getId()));
     }
 
     @PutMapping("/fulfill/{id}")
+    @PreAuthorize("hasRole('WAREHOUSE_MANAGER')")
     public ResponseEntity<Order> fulfill(@AuthenticationPrincipal User user, @PathVariable Long id) {
         return ResponseEntity.ok(((vector.StockManagement.services.impl.OrderServiceImpl) orderService).fulfillOrder(id, user.getId()));
     }

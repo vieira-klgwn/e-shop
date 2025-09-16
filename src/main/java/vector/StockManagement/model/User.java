@@ -63,6 +63,11 @@ public class User implements UserDetails {
     @JsonIgnore
     private Tenant tenant;
 
+    @OneToMany(mappedBy = "recipient")
+    @JsonIgnore
+    @ToString.Exclude
+    private List<Notification> notifications;
+
     private String phone;
     private String imageUrl;
 

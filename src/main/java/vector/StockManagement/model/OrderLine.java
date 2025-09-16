@@ -1,6 +1,7 @@
 package vector.StockManagement.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotNull;
@@ -28,6 +29,7 @@ public class OrderLine extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id", nullable = false)
     @JsonIgnore
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private Product product;
 
     @NotNull
@@ -57,6 +59,10 @@ public class OrderLine extends BaseEntity {
 
     @Column(name = "fulfilled_qty")
     private Integer fulfilledQty = 0;
+
+    @ManyToOne
+    @JoinColumn(name = "tenant_id")
+    private Tenant tenant;
 
 
     public OrderLine(Order order, Product product, Integer qty, Long unitPrice) {

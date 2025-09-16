@@ -67,11 +67,13 @@ public class OrderServiceImpl implements OrderService {
         Order order = new Order();
         order.setTenant(tenant);
         order.setCreatedBy(user);
+        order.setLevel(OrderLevel.L1);
         order.setNumber("ORD-" + System.currentTimeMillis());
         order.setDeliveryAddress(orderDto.getDeliveryAddress());
+        order.setDeliveryDate(LocalDateTime.now().plusDays(1));
         order.setStatus(OrderStatus.DRAFT);
         order.setCurrency("USD");
-        Product product1 = productRepository.findById(orderDto.getProductId()).orElseThrow(() -> new RuntimeException("Product not found"));
+
 
 ///  here you can only register an order if you have an orderline and an order line should also have a product,
         Order savedOrder = orderRepository.saveAndFlush(order);
@@ -79,24 +81,30 @@ public class OrderServiceImpl implements OrderService {
         // Create order lines and calculate totals
         Long totalAmount = 0L;
         if (orderDto.getOrderLines() != null && !orderDto.getOrderLines().isEmpty()) {
-            for (OrderLine lineDto : orderDto.getOrderLines()) {
-                Product product = productRepository.findById(lineDto.getProduct().getId())
-                        .orElseThrow(() -> new RuntimeException("Product not found"));
-                
+            for (OrderDTO.OrderLineDTO lineDto: orderDto.getOrderLines()) {
+                Product product = productRepository.findById(lineDto.getProductId()).orElseThrow(() -> new RuntimeException("Product not found"));
+
                 OrderLine orderLine = new OrderLine();
                 orderLine.setOrder(savedOrder);
                 orderLine.setProduct(product);
                 orderLine.setQty(lineDto.getQty());
                 orderLine.setUnitPrice(product.getPrice());
                 orderLine.setLineTotal(product.getPrice() * lineDto.getQty());
-                
+                orderLine.setTenant(tenant);
                 orderLineRepository.save(orderLine);
                 totalAmount += orderLine.getLineTotal();
+                savedOrder.getOrderLines().add(orderLine);
+                Inventory inventory = inventoryRepository.findByProduct(product);
+                inventory.reserveStock(lineDto.getQty());
             }
+
         }
+
         
         savedOrder.setOrderAmount(totalAmount);
-        return orderRepository.save(savedOrder);
+        orderRepository.save(savedOrder);
+        submitOrder(savedOrder.getId(),userId);
+        return savedOrder;
     }
 
     @Override
@@ -121,9 +129,8 @@ public class OrderServiceImpl implements OrderService {
         
         // Process inventory movement
         for (OrderLine orderLine : order.getOrderLines()) {
-            Inventory inventory = inventoryRepository.findByProductAndLocationTypeAndLocationId(
-                    orderLine.getProduct(), LocationType.WAREHOUSE, order.getWarehouse().getId());
-            
+            Inventory inventory = inventoryRepository.findByProduct(orderLine.getProduct());
+
             if (inventory != null) {
                 // Release reserved stock and remove from inventory
                 inventory.releaseReservedStock(orderLine.getQty());
@@ -179,7 +186,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Transactional
     @Override
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'SALES_MANAGER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'SALES_MANAGER','ACCOUNTANT')")
     public Order approve(Long userId, Order order) {
         User approver = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("Approver not found"));
@@ -231,14 +238,14 @@ public class OrderServiceImpl implements OrderService {
         invoice.setDueDate(LocalDate.now().plusDays(30));
         
         // Set amounts
-        Map<String, BigDecimal> amounts = new HashMap<>();
-        BigDecimal totalAmount = BigDecimal.valueOf(order.getOrderAmount());
-        amounts.put("net", totalAmount);
-        amounts.put("tax", BigDecimal.ZERO); // Can be calculated based on tax rules
-        amounts.put("total", totalAmount);
-        amounts.put("paid", BigDecimal.ZERO);
-        amounts.put("balance", totalAmount);
-        invoice.setAmounts(amounts);
+//        Map<String, BigDecimal> amounts = new HashMap<>();
+//        BigDecimal totalAmount = BigDecimal.valueOf(order.getOrderAmount());
+//        amounts.put("net", totalAmount);
+//        amounts.put("tax", BigDecimal.ZERO); // Can be calculated based on tax rules
+//        amounts.put("total", totalAmount);
+//        amounts.put("paid", BigDecimal.ZERO);
+//        amounts.put("balance", totalAmount);
+//        invoice.setAmounts(amounts);
         
         return invoice;
     }
@@ -247,37 +254,41 @@ public class OrderServiceImpl implements OrderService {
         try {
             // Notification to store
             if (order.getStore() != null) {
-                Notification storeNotification = new Notification();
-                storeNotification.setType(NotificationType.ORDER_UPDATE);
-                storeNotification.setChannel(NotificationChannel.EMAIL);
-                storeNotification.setTitle(eventType);
-                storeNotification.setSubject(eventType + ": Order " + order.getNumber());
-                storeNotification.setMessage("Order " + order.getNumber() + " has been " + eventType.toLowerCase() + 
+                Notification storeNotification = getNotification(eventType, ": Order ", order, "Order " + order.getNumber() + " has been " + eventType.toLowerCase() +
                         ". Delivery scheduled for " + order.getDeliveryDate());
-                storeNotification.setTenant(order.getTenant());
-                storeNotification.setReferenceType("ORDER");
-                storeNotification.setReferenceId(order.getId());
                 notificationService.save(storeNotification);
             }
             
             // Notification to warehouse
             if (order.getWarehouse() != null) {
-                Notification warehouseNotification = new Notification();
-                warehouseNotification.setType(NotificationType.ORDER_UPDATE);
-                warehouseNotification.setChannel(NotificationChannel.EMAIL);
-                warehouseNotification.setTitle(eventType);
-                warehouseNotification.setSubject(eventType + ": Prepare Order " + order.getNumber());
-                warehouseNotification.setMessage("Please prepare order " + order.getNumber() + 
+                Notification warehouseNotification = getNotification(eventType, ": Prepare Order ", order, "Please prepare order " + order.getNumber() +
                         " for delivery to " + order.getDeliveryAddress());
-                warehouseNotification.setTenant(order.getTenant());
-                warehouseNotification.setReferenceType("ORDER");
-                warehouseNotification.setReferenceId(order.getId());
                 notificationService.save(warehouseNotification);
             }
+            //Notification to distributor
+            if (order.getCreatedBy() != null) {
+                Notification distributorNotification = getNotification(eventType, " Distributor ", order, "Please distribute order " + order.getNumber());
+                order.getCreatedBy().getNotifications().add(distributorNotification);
+                notificationService.save(distributorNotification);
+            }
+
         } catch (Exception e) {
             // Log error but don't fail the transaction
             System.err.println("Failed to create notifications: " + e.getMessage());
         }
+    }
+
+    private static Notification getNotification(String eventType, String x, Order order, String order1) {
+        Notification storeNotification = new Notification();
+        storeNotification.setType(NotificationType.ORDER_UPDATE);
+        storeNotification.setChannel(NotificationChannel.EMAIL);
+        storeNotification.setTitle(eventType);
+        storeNotification.setSubject(eventType + x + order.getNumber());
+        storeNotification.setMessage(order1);
+        storeNotification.setTenant(order.getTenant());
+        storeNotification.setReferenceType("ORDER");
+        storeNotification.setReferenceId(order.getId());
+        return storeNotification;
     }
 
     @Override
