@@ -33,6 +33,8 @@ public class PriceListController {
 
 
 
+
+
     @PostMapping
     @PreAuthorize("hasRole('SALES_MANAGER')")
     public PriceList create(@RequestBody PriceList priceList) {

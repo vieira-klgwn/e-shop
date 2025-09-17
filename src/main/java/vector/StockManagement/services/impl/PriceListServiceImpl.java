@@ -49,8 +49,11 @@ public class PriceListServiceImpl implements PriceListService {
 
 
 
+
         return priceListRepository.saveAndFlush(priceList);
     }
+
+    public List<PriceList> findAllBy
 
     @Override
     public void delete(Long id) {

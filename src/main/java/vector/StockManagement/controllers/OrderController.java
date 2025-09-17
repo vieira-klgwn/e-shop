@@ -29,7 +29,7 @@ public class OrderController {
     private final OrderServiceImpl orderServiceImpl;
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('DISTRIBUTOR','ACCOUNTANT','WAREHOUSE_MANAGER')")
+    @PreAuthorize("hasAnyRole('DISTRIBUTOR','ACCOUNTANT','WAREHOUSE_MANAGER','ADMIN','SALES_MANAGER')")
     public Page<Order> getAll(@RequestParam(defaultValue = "0") int page,
                               @RequestParam(defaultValue = "20") int size) {
         Pageable pageable = PageRequest.of(page, size);
@@ -44,6 +44,8 @@ public class OrderController {
         Order order = orderService.findById(id);
         return order != null ? ResponseEntity.ok(order) : ResponseEntity.notFound().build();
     }
+
+
 
 
     @PostMapping

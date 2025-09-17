@@ -212,7 +212,7 @@ public class OrderServiceImpl implements OrderService {
                         ". Available: " + inventory.getQtyAvailable() + ", Required: " + orderLine.getQty());
             }
             
-            inventory.reserveStock(orderLine.getQty());
+            inventory.reserveStock(orderLine.getQty()); // you can also do this using the transferservice instead
             inventoryRepository.save(inventory);
         }
         
