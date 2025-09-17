@@ -22,4 +22,6 @@ public interface PriceListItemRepository extends JpaRepository<PriceListItem, Lo
     
     @Query("SELECT pli FROM PriceListItem pli WHERE pli.product = :product AND pli.priceList.validFrom <= :date AND (pli.priceList.validTo IS NULL OR pli.priceList.validTo >= :date)")
     List<PriceListItem> findActivePricesForProduct(@Param("product") Product product, @Param("date") LocalDateTime date);
+
+    List<PriceListItem> findByProductIdAndTenantId(Long productId, Long tenantId);
 }

@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import vector.StockManagement.config.TenantContext;
 import vector.StockManagement.model.Product;
+import vector.StockManagement.model.dto.PriceDisplayDTO;
 import vector.StockManagement.services.ProductService;
 
 import java.io.IOException;
@@ -42,6 +43,13 @@ public class ProductController {
     public ResponseEntity<Product> getById(@PathVariable Long id) {
         Product product = productService.findById(id);
         return product != null ? ResponseEntity.ok(product) : ResponseEntity.notFound().build();
+    }
+
+    @GetMapping("/{id}/prices")
+    @PreAuthorize("hasAnyRole('SALES_MANAGER', 'ADMIN')")
+    public ResponseEntity<PriceDisplayDTO> getProductPrices(@PathVariable Long id) {
+        Long tenantId = TenantContext.getTenantId();
+        return ResponseEntity.ok(productService.getProductPrices(id, tenantId));
     }
 
     @PostMapping
