@@ -8,6 +8,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 //import vector.StockManagement.config.TenantContext;
 //import vector.StockManagement.config.TenantTransactionSynchronization;
+import vector.StockManagement.config.TenantContext;
 import vector.StockManagement.model.*;
 import vector.StockManagement.model.dto.PriceDisplayDTO;
 import vector.StockManagement.model.enums.LocationType;
@@ -47,13 +48,8 @@ public class ProductServiceImpl implements ProductService {
     public Product save(Product product) {
 
         Tenant tenant = null;
-        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        if (principal instanceof User user) {
-            tenant = user.getTenant();
-        }
 
-
-//        tenant = tenantRepository.findById(TenantContext.getTenantId()).orElseThrow(() -> new RuntimeException("Tenant not found"));
+        tenant = tenantRepository.findById(TenantContext.getTenantId()).orElseThrow(() -> new RuntimeException("Tenant not found"));
         product.setTenant(tenant);
         productRepository.saveAndFlush(product);
         Inventory inventory = new Inventory();
@@ -84,10 +80,10 @@ public class ProductServiceImpl implements ProductService {
         // Fetch FACTORY price
         PriceListItem factoryItem = priceListItemRepository.findByProductIdAndTenantId(productId, tenantId)
                 .stream()
-                .filter(item -> item.getPriceList().getLevel() == PriceListLevel.FACTORY
-                        && item.getPriceList().isValidForDate(LocalDate.now()))
-                .findFirst()
-                .orElse(null);
+                .filter(item -> item.getPriceList().getLevel() == PriceListLevel.FACTORY).findFirst().orElse(null);
+        //                        && item.getPriceList().isValidForDate(LocalDate.now()))
+////                .findFirst()
+//                .orElse(null);
         if (factoryItem != null) {
             PriceDisplayDTO.FactoryPriceDTO factoryPrice = getFactoryPriceDTO(factoryItem);
             factoryPrice.setActive(factoryItem.getPriceList().getIsActive());
@@ -98,10 +94,10 @@ public class ProductServiceImpl implements ProductService {
         // Fetch DISTRIBUTOR price
         PriceListItem distributorItem = priceListItemRepository.findByProductIdAndTenantId(productId, tenantId)
                 .stream()
-                .filter(item -> item.getPriceList().getLevel() == PriceListLevel.DISTRIBUTOR
-                        && item.getPriceList().isValidForDate(LocalDate.now()))
-                .findFirst()
-                .orElse(null);
+                .filter(item -> item.getPriceList().getLevel() == PriceListLevel.DISTRIBUTOR).findFirst().orElse(null);
+//                        && item.getPriceList().isValidForDate(LocalDate.now()))
+////                .findFirst()
+//                .orElse(null);
         if (distributorItem != null) {
             PriceDisplayDTO.DistributorPriceDTO distributorPrice = getDistributorPriceDTO(distributorItem);
             dto.setDistributorPrice(distributorPrice);

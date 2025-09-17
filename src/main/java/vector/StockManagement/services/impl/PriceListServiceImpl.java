@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
+import vector.StockManagement.config.TenantContext;
 import vector.StockManagement.model.PriceList;
 import vector.StockManagement.model.Tenant;
 import vector.StockManagement.model.User;
@@ -40,11 +41,13 @@ public class PriceListServiceImpl implements PriceListService {
             item.getProduct().setPrice(item.getBasePrice());
         });
 
-        if (priceListRepository.count() != 0) {
-           for (PriceList price : priceListRepository.findAll()) {
-               price.setIsActive(false);
-           }
-       }
+        priceList.setTenant(tenantRepository.findById(TenantContext.getTenantId()).orElse(null));
+
+//        if (priceListRepository.count() != 0) {
+//           for (PriceList price : priceListRepository.findAll()) {
+//               price.setIsActive(false);
+//           }
+//       }
 
 
 
