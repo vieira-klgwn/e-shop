@@ -2,13 +2,17 @@ package vector.StockManagement.services.impl;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.crossstore.ChangeSetPersister;
+import org.springframework.data.domain.jaxb.SpringDataJaxb;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 //import vector.StockManagement.config.TenantContext;
 import vector.StockManagement.model.*;
 import vector.StockManagement.model.dto.OrderDTO;
+import vector.StockManagement.model.dto.OrderDisplayDTO;
 import vector.StockManagement.model.enums.*;
 import vector.StockManagement.repositories.*;
 import vector.StockManagement.services.OrderService;
@@ -21,6 +25,7 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -39,15 +44,44 @@ public class OrderServiceImpl implements OrderService {
     private final InventoryRepository inventoryRepository;
 
     @Override
-    public List<Order> findAll() {
-        return orderRepository.findAll();
+    public List<OrderDisplayDTO> findAll() {
+
+        List<OrderDisplayDTO> displayDTOs = orderRepository.findAll().stream().map(this::getOrderDisplayDTO).collect(Collectors.toList());
+
+        return displayDTOs;
+    }
+
+    private OrderDisplayDTO getOrderDisplayDTO(Order order) {
+        OrderDisplayDTO orderDisplayDTO = new OrderDisplayDTO();
+        orderDisplayDTO.setOrderNumber(order.getNumber());
+        orderDisplayDTO.setUpdatedAt(order.getUpdatedAt());
+        orderDisplayDTO.setCreatedAt(order.getCreatedAt());
+        orderDisplayDTO.setOrderCurrency(order.getCurrency());
+        orderDisplayDTO.setOrderLevel(order.getLevel().toString());
+        orderDisplayDTO.setOrderStatus(order.getStatus().toString());
+        orderDisplayDTO.setDeliveryDate(order.getDeliveryDate());
+        orderDisplayDTO.setDeliveryAddress(order.getDeliveryAddress());
+        orderDisplayDTO.setDeliveryDate(order.getDeliveryDate());
+        orderDisplayDTO.setOrderAmount(order.getOrderAmount());
+        orderDisplayDTO.setCreatedBy(order.getCreatedBy().getEmail());
+        return orderDisplayDTO;
     }
 
     @Override
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'DISTRIBUTOR', 'STORE_MANAGER', 'SALES_MANAGER', 'ACCOUNTANT')")
+    public OrderDisplayDTO findByIdDisplayed(Long id) {
+
+        Order order = orderRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Order not found"));
+
+//        Hibernate.initialize(order.getCreatedBy());
+//        Hibernate.initialize(order.getDeliveryAddress());
+
+        return getOrderDisplayDTO(order);
+    }
+
+    @Override
     public Order findById(Long id) {
-        return orderRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Order not found with id: " + id));
+        return orderRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Order not found"));
     }
 
     @Transactional
@@ -103,7 +137,6 @@ public class OrderServiceImpl implements OrderService {
         savedOrder.setOrderAmount(totalAmount);
         savedOrder.setStatus(OrderStatus.DRAFT);
         orderRepository.save(savedOrder);
-        submitOrder(savedOrder.getId(),userId);
         return savedOrder;
     }
 

@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 
 // Order Entity
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 @EqualsAndHashCode(callSuper = true)
 @Entity
 @Filter(name = "tenantFilter", condition = "tenant_id = :tenantId")

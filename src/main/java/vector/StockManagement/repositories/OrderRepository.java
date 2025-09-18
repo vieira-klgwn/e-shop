@@ -9,6 +9,7 @@ import vector.StockManagement.model.enums.OrderStatus;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface OrderRepository extends JpaRepository<Order, Long> {
@@ -21,4 +22,7 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
 
     @Query("select count(o) from Order o where (:from is null or o.createdAt >= :from) and (:to is null or o.createdAt <= :to)")
     Long countOrdersBetween(@Param("from") LocalDateTime from, @Param("to") LocalDateTime to);
+
+    @Query("SELECT o FROM Order o LEFT JOIN FETCH o.createdBy WHERE o.id = :id")
+    Optional<Order> findById(Long id);
 }

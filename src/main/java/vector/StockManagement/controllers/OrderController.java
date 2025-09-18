@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import vector.StockManagement.model.Order;
 import vector.StockManagement.model.User;
 import vector.StockManagement.model.dto.OrderDTO;
+import vector.StockManagement.model.dto.OrderDisplayDTO;
 import vector.StockManagement.repositories.UserRepository;
 import vector.StockManagement.services.OrderService;
 import vector.StockManagement.services.impl.OrderServiceImpl;
@@ -29,20 +30,19 @@ public class OrderController {
     private final OrderServiceImpl orderServiceImpl;
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('DISTRIBUTOR','ACCOUNTANT','WAREHOUSE_MANAGER','ADMIN','SALES_MANAGER')")
-    public Page<Order> getAll(@RequestParam(defaultValue = "0") int page,
+    @PreAuthorize("hasAnyRole('DISTRIBUTOR','ACCOUNTANT','WAREHOUSE_MANAGER','ADMIN','SALES_MANAGER','STORE_MANAGER')")
+    public Page<OrderDisplayDTO> getAll(@RequestParam(defaultValue = "0") int page,
                               @RequestParam(defaultValue = "20") int size) {
         Pageable pageable = PageRequest.of(page, size);
-        List<Order> orders = orderService.findAll();
+        List<OrderDisplayDTO> orders = orderService.findAll();
         int start = Math.min((int) pageable.getOffset(), orders.size());
         int end = Math.min(start + pageable.getPageSize(), orders.size());
         return new PageImpl<>(orders.subList(start, end), pageable, orders.size());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Order> getById(@PathVariable Long id) {
-        Order order = orderService.findById(id);
-        return order != null ? ResponseEntity.ok(order) : ResponseEntity.notFound().build();
+    public ResponseEntity<OrderDisplayDTO> getById(@PathVariable Long id) {
+        return  ResponseEntity.ok(orderService.findByIdDisplayed(id));
     }
 
 
