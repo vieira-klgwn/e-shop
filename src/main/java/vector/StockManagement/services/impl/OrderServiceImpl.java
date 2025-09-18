@@ -39,7 +39,6 @@ public class OrderServiceImpl implements OrderService {
     private final InventoryRepository inventoryRepository;
 
     @Override
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'DISTRIBUTOR', 'STORE_MANAGER', 'SALES_MANAGER')")
     public List<Order> findAll() {
         return orderRepository.findAll();
     }
