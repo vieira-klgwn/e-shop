@@ -14,6 +14,7 @@ import vector.StockManagement.model.Order;
 import vector.StockManagement.model.User;
 import vector.StockManagement.model.dto.OrderDTO;
 import vector.StockManagement.model.dto.OrderDisplayDTO;
+import vector.StockManagement.repositories.OrderRepository;
 import vector.StockManagement.repositories.UserRepository;
 import vector.StockManagement.services.OrderService;
 import vector.StockManagement.services.impl.OrderServiceImpl;
@@ -28,6 +29,7 @@ public class OrderController {
     private final OrderService orderService;
     private final UserRepository userRepository;
     private final OrderServiceImpl orderServiceImpl;
+    private final OrderRepository orderRepository;
 
     @GetMapping
     @PreAuthorize("hasAnyRole('DISTRIBUTOR','ACCOUNTANT','WAREHOUSE_MANAGER','ADMIN','SALES_MANAGER','STORE_MANAGER')")
@@ -62,7 +64,11 @@ public class OrderController {
     @PutMapping("/approve/{id}")
     @PreAuthorize("hasRole('ACCOUNTANT')")
     public ResponseEntity<Order> approve(@AuthenticationPrincipal User user, @PathVariable Long id) {
-        return ResponseEntity.ok(orderServiceImpl.fulfillOrder(id, user.getId()));
+        Order order = orderRepository.getOrderById(id);
+        if (order == null) {
+            throw new RuntimeException("Order not found");
+        }
+        return ResponseEntity.ok(orderServiceImpl.approve(user.getId(),order ));
     }
 
     @PutMapping("/reject/{id}")

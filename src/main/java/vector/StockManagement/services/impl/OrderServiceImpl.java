@@ -219,7 +219,6 @@ public class OrderServiceImpl implements OrderService {
 
     @Transactional
     @Override
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'SALES_MANAGER','ACCOUNTANT')")
     public Order approve(Long userId, Order order) {
         User approver = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("Approver not found"));
@@ -233,8 +232,7 @@ public class OrderServiceImpl implements OrderService {
         
         // Reserve inventory for order lines
         for (OrderLine orderLine : order.getOrderLines()) {
-            Inventory inventory = inventoryRepository.findByProductAndLocationTypeAndLocationId(
-                    orderLine.getProduct(), LocationType.WAREHOUSE, order.getWarehouse().getId());
+            Inventory inventory = inventoryRepository.findByProduct(orderLine.getProduct());
             
             if (inventory == null) {
                 throw new RuntimeException("No inventory found for product: " + orderLine.getProduct().getSku());
@@ -326,7 +324,6 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'SALES_MANAGER')")
     public Order reject(Order order) {
         if (order.getStatus() != OrderStatus.SUBMITTED) {
             throw new RuntimeException("Can only reject submitted orders");
