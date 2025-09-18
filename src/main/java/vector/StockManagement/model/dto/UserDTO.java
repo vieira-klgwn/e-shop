@@ -18,4 +18,5 @@ public class UserDTO {
     private String gender;
     private String phoneNumber;
     private String tenantId;
+    private String nationality;
 }

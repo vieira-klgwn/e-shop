@@ -121,6 +121,8 @@ public class UserController {
                     userDTO.setRole(user.getRole().toString());
                     userDTO.setGender(user.getGender() != null ? user.getGender().toString() : null);
                     userDTO.setTenantId(Long.toString(user.getTenant().getId()));
+                    userDTO.setNationality(user.getNationality());
+                    userDTO.setPhoneNumber(user.getPhone());
                     return new ResponseEntity<>(userDTO, HttpStatus.OK);
                 })
                 .orElseGet(() -> {
