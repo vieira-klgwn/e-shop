@@ -50,7 +50,7 @@ public class InventoryController {
     }
 
     @PutMapping("/updateInventory/{id}")
-    @PreAuthorize("hasRole('STORE_MANAGER')")
+    @PreAuthorize("hasRole('STORE_MANAGER','WAREHOUSE_MANAGER')")
     public ResponseEntity<Inventory> updateQtyOnHand(@PathVariable Long id, @RequestBody UpdateInventoryDTO request) {
         return ResponseEntity.ok(inventoryService.updateQtyOnHand(id, request.getQtyOnHand()));
     }
