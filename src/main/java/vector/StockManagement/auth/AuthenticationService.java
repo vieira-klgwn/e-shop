@@ -75,6 +75,7 @@ public class AuthenticationService {
                 .role(request.getRole() != null ? request.getRole() : Role.USER)
                 .gender(gender)
                 .tenant(tenant)
+                .birthDate(request.getBirthDate())
                 .phone(request.getPhone())
                 .nationality(request.getNationality())
                 .build();

@@ -10,6 +10,8 @@ import lombok.NoArgsConstructor;
 import vector.StockManagement.model.Tenant;
 import vector.StockManagement.model.enums.Role;
 
+import java.time.LocalDate;
+
 @Data
 @Builder
 @NoArgsConstructor
@@ -33,6 +35,7 @@ public class RegisterRequest {
     @NotNull
     private Long tenantId;
     private Tenant tenant;
+    private LocalDate birthDate;
     private String phone;
     private String nationality;
 }

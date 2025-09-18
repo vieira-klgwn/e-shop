@@ -15,6 +15,7 @@ import vector.StockManagement.model.enums.Role;
 import vector.StockManagement.model.enums.UserStatus;
 
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -44,6 +45,8 @@ public class User implements UserDetails {
 
     @Enumerated(EnumType.STRING)
     private Gender gender;
+
+    private LocalDate birthDate;
 
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JsonIgnore

@@ -70,7 +70,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'DISTRIBUTOR', 'STORE_MANAGER', 'SALES_MANAGER', 'ACCOUNTANT')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'DISTRIBUTOR', 'STORE_MANAGER', 'SALES_MANAGER', 'ACCOUNTANT','WAREHOUSE_MANAGER')")
     public OrderDisplayDTO findByIdDisplayed(Long id) {
 
         Order order = orderRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Order not found"));

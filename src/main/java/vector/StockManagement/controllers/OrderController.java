@@ -87,7 +87,7 @@ public class OrderController {
     }
 
     @PutMapping("/fulfill/{id}")
-    @PreAuthorize("hasRole('WAREHOUSE_MANAGER')")
+    @PreAuthorize("hasAnyRole('WAREHOUSE_MANAGER','STORE_MANAGER')")
     public ResponseEntity<Order> fulfill(@AuthenticationPrincipal User user, @PathVariable Long id) {
         return ResponseEntity.ok(((vector.StockManagement.services.impl.OrderServiceImpl) orderService).fulfillOrder(id, user.getId()));
     }

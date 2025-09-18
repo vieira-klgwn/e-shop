@@ -73,6 +73,7 @@ public class SecurityConfig {
                                 .requestMatchers(SWAGGER_WHITELIST).permitAll()
                                 .requestMatchers("/api/auth/register").hasAnyRole("ADMIN", "SUPER_ADMIN", "MANAGING_DIRECTOR")
                                 .requestMatchers("/api/tenants/admin").hasRole("SUPER_ADMIN")
+                                .requestMatchers("/api/tenants/{id}").permitAll()
                                 .requestMatchers(HttpMethod.POST,"/api/products").hasAnyRole("SALES_MANAGER","ADMIN")
                                 .requestMatchers(HttpMethod.GET,"/api/products").permitAll()
                                 .requestMatchers(HttpMethod.GET, "/api/users/me").authenticated()
