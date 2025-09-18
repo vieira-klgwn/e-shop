@@ -102,6 +102,7 @@ public class OrderServiceImpl implements OrderService {
 
         
         savedOrder.setOrderAmount(totalAmount);
+        savedOrder.setStatus(OrderStatus.DRAFT);
         orderRepository.save(savedOrder);
         submitOrder(savedOrder.getId(),userId);
         return savedOrder;
@@ -288,6 +289,7 @@ public class OrderServiceImpl implements OrderService {
         storeNotification.setTenant(order.getTenant());
         storeNotification.setReferenceType("ORDER");
         storeNotification.setReferenceId(order.getId());
+        storeNotification.setType(NotificationType.ORDER_UPDATE);
         return storeNotification;
     }
 
