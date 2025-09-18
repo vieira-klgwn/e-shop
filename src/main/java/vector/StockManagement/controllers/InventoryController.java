@@ -30,7 +30,7 @@ public class InventoryController {
 
     @GetMapping("/{id}")
     public ResponseEntity<Inventory> getById(@PathVariable Long id) {
-        Inventory inventory = inventoryService.findById(id);
+        Inventory inventory = inventoryService.findInventoryByProduct(id);
         return inventory != null ? ResponseEntity.ok(inventory) : ResponseEntity.notFound().build();
     }
 
