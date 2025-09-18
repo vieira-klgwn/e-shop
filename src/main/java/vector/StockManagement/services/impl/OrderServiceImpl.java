@@ -52,7 +52,9 @@ public class OrderServiceImpl implements OrderService {
     }
 
     private OrderDisplayDTO getOrderDisplayDTO(Order order) {
+
         OrderDisplayDTO orderDisplayDTO = new OrderDisplayDTO();
+        orderDisplayDTO.setOrderId(order.getId());
         orderDisplayDTO.setOrderNumber(order.getNumber());
         orderDisplayDTO.setUpdatedAt(order.getUpdatedAt());
         orderDisplayDTO.setCreatedAt(order.getCreatedAt());

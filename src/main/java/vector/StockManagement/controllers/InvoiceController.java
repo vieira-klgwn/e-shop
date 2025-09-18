@@ -24,7 +24,7 @@ public class InvoiceController {
     private final TenantAwareValidator tenantValidator;
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'ACCOUNTANT', 'SALES_MANAGER')")
+//    @PreAuthorize("hasAnyRole('ADMIN', 'ACCOUNTANT', 'SALES_MANAGER','WAREHOUSE_MANAGER','STORE_MANAGER')")
     public Page<Invoice> getAll(@RequestParam(defaultValue = "0") int page,
                                @RequestParam(defaultValue = "20") int size) {
         Pageable pageable = PageRequest.of(page, size);
