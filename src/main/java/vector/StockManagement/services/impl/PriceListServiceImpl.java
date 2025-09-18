@@ -42,6 +42,7 @@ public class PriceListServiceImpl implements PriceListService {
         });
 
         priceList.setTenant(tenantRepository.findById(TenantContext.getTenantId()).orElse(null));
+        priceList.setIsActive(true);
 
 //        if (priceListRepository.count() != 0) {
 //           for (PriceList price : priceListRepository.findAll()) {
