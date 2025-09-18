@@ -76,7 +76,7 @@ public class SecurityConfig {
                                 .requestMatchers(HttpMethod.POST,"/api/products").hasAnyRole("SALES_MANAGER","ADMIN")
                                 .requestMatchers(HttpMethod.GET,"/api/products").permitAll()
                                 .requestMatchers(HttpMethod.GET, "/api/users/me").authenticated()
-                                .requestMatchers(HttpMethod.GET, "/api/users").hasAnyRole("ADMIN", "SUPER_ADMIN")
+                                .requestMatchers(HttpMethod.GET, "/api/users").hasAnyRole("ADMIN", "SUPER_ADMIN","WAREHOUSE_MANAGER")
                                 .requestMatchers(HttpMethod.POST, "/api/tenants/***").hasRole("SUPER_ADMIN")
                                 .requestMatchers("/api/management/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_MANAGER")
                                 .requestMatchers(HttpMethod.GET, "/api/management/**").hasAnyRole("ADMIN_READ", "MANAGER_READ")
