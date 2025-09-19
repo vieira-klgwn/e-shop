@@ -131,6 +131,7 @@ public class OrderServiceImpl implements OrderService {
                 savedOrder.getOrderLines().add(orderLine);
                 Inventory inventory = inventoryRepository.findByProduct(product);
                 inventory.reserveStock(lineDto.getQty());
+
             }
 
         }
