@@ -227,7 +227,7 @@ class InventoryServiceTest {
         assertFalse(testInventory.canReserve(50)); // 50 - 10 < 50
 
         // Test addStock
-        testInventory.addStock(20, new BigDecimal("15.00"));
+        testInventory.addStock(20); //removed , new BigDecimal("15.00")
         assertEquals(70, testInventory.getQtyOnHand());
         assertNotNull(testInventory.getLastStockIn());
 

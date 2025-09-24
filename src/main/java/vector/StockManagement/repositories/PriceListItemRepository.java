@@ -24,4 +24,11 @@ public interface PriceListItemRepository extends JpaRepository<PriceListItem, Lo
     List<PriceListItem> findActivePricesForProduct(@Param("product") Product product, @Param("date") LocalDateTime date);
 
     List<PriceListItem> findByProductIdAndTenantId(Long productId, Long tenantId);
+
+
+    PriceListItem findPriceListItemByProduct(Product product);
+
+    List<PriceListItem> findPriceListItemByPriceList(PriceList priceList);
+
+    PriceListItem findByProduct(Product product);
 }

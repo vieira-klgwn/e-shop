@@ -3,25 +3,28 @@ package vector.StockManagement.services.impl;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 //import vector.StockManagement.config.TenantContext;
 //import vector.StockManagement.config.TenantTransactionSynchronization;
 import vector.StockManagement.config.TenantContext;
+import vector.StockManagement.controllers.TestErrorController;
 import vector.StockManagement.model.*;
 import vector.StockManagement.model.dto.PriceDisplayDTO;
+import vector.StockManagement.model.dto.ProductDisplayDTO;
 import vector.StockManagement.model.enums.LocationType;
 import vector.StockManagement.model.enums.PriceListLevel;
-import vector.StockManagement.repositories.InventoryRepository;
-import vector.StockManagement.repositories.PriceListItemRepository;
-import vector.StockManagement.repositories.ProductRepository;
-import vector.StockManagement.repositories.TenantRepository;
+import vector.StockManagement.repositories.*;
 import vector.StockManagement.services.ProductService;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor(onConstructor_ = {@Autowired})
@@ -31,10 +34,100 @@ public class ProductServiceImpl implements ProductService {
     private final PriceListItemRepository priceListItemRepository;
     private final TenantRepository tenantRepository;
     private final InventoryRepository inventoryRepository;
+    private final PriceListRepository priceListRepository;
+    private static final Logger logger = LoggerFactory.getLogger(ProductServiceImpl.class);
+    private final OrderRepository orderRepository;
+
 
     @Override
-    public List<Product> findAll() {
-        return productRepository.findAll();
+    public List<ProductDisplayDTO> findAll (PriceListLevel level) {
+        List<ProductDisplayDTO> productDisplayDTOs = new ArrayList<>();
+
+        if (level == PriceListLevel.DISTRIBUTOR){
+            Long productId = null;
+            List<Order> orders = orderRepository.findAll();
+            for(Order order: orders) {
+                for(OrderLine orderLine: order.getOrderLines()) {
+                    productId = orderLine.getProduct().getId();
+                }
+            }
+
+            for (Product  product: productRepository.findAll()) {
+                if (Objects.equals(product.getId(), productId)) {
+                    ProductDisplayDTO productDisplayDTO = getProductDisplayDTO(product);
+                    productDisplayDTO.setPrice(getProductPrice(product, level));
+                    productDisplayDTOs.add(productDisplayDTO);
+
+                }
+
+            }
+            return productDisplayDTOs;
+        }
+        else {
+            for (Product product: productRepository.findAll()) {
+
+                ProductDisplayDTO dto = getProductDisplayDTO(product);
+                dto.setPrice(getProductPrice(product, level));
+                productDisplayDTOs.add(dto);
+            }
+            return productDisplayDTOs;
+
+        }
+
+    }
+
+    private Long getProductPrice(Product product, PriceListLevel level) {
+        Long price = 0L;
+        Long distributorPrice = null;
+        Long factoryPrice = null;
+        for(PriceList priceList: priceListRepository.findAll()) {
+
+            if(priceList.getIsActive() == Boolean.TRUE) {
+                for(PriceListItem item: priceList.getItems()) {
+
+                    if (item.getPriceList().getLevel() == PriceListLevel.DISTRIBUTOR) {
+                        distributorPrice = item.getBasePrice();
+                    }
+                    else if (item.getPriceList().getLevel() == PriceListLevel.FACTORY) {
+                        factoryPrice = item.getBasePrice();
+                    }
+                }
+            }
+            else {
+                return price;
+            }
+        }
+        if (level == PriceListLevel.DISTRIBUTOR) {
+            return distributorPrice;
+        }
+        else if (level == PriceListLevel.FACTORY) {
+            return factoryPrice;
+        }
+        else {
+            return null;
+        }
+
+    }
+
+
+
+    private static ProductDisplayDTO getProductDisplayDTO(Product product) {
+        ProductDisplayDTO productDisplayDTO = new ProductDisplayDTO();
+        productDisplayDTO.setId(product.getId());
+        productDisplayDTO.setName(product.getName());
+        productDisplayDTO.setDescription(product.getDescription());
+        productDisplayDTO.setCategory(String.valueOf(product.getCategory()));
+        productDisplayDTO.setSize(product.getSize());
+        productDisplayDTO.setImageUrl(product.getImageUrl());
+        return productDisplayDTO;
+    }
+
+    @Override
+    public ProductDisplayDTO findById1(Long id, PriceListLevel level) {
+        Product product = productRepository.findById(id).orElse(null);
+        ProductDisplayDTO dto = getProductDisplayDTO(product);
+        dto.setPrice(getProductPrice(product, level));
+        return dto;
     }
 
     @Override
@@ -43,7 +136,6 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-
     @Transactional
     public Product save(Product product) {
 
@@ -54,7 +146,7 @@ public class ProductServiceImpl implements ProductService {
         productRepository.saveAndFlush(product);
         Inventory inventory = new Inventory();
         inventory.setProduct(product);
-        inventory.setLocationType(LocationType.L1);
+        inventory.setLocationType(LocationType.WAREHOUSE);
         inventory.setLocationId(12L);
         inventory.setTenant(tenant);
         inventory.setQtyOnHand(0);
@@ -63,9 +155,25 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    public List<Product> getAllStoreProducts(){
+        List<Product> products = productRepository.findAll();
+        List<Product> storeProducts = new ArrayList<>();
+        for (Product product : products) {
+            if(inventoryRepository.findByProduct(product).getLocationType() == LocationType.DISTRIBUTOR){
+                storeProducts.add(product);
+            }
+        }
+
+        return storeProducts;
+    }
+
+
+
+    @Override
     public void delete(Long id) {
         productRepository.deleteById(id);// TODO: cascade price list items if needed
     }
+
 
 
     public PriceDisplayDTO getProductPrices(Long productId, Long tenantId) {

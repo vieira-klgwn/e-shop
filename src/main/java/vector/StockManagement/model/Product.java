@@ -10,6 +10,7 @@ import lombok.*;
 import org.hibernate.annotations.Filter;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
+import vector.StockManagement.model.enums.Location;
 import vector.StockManagement.model.enums.ProductCategory;
 
 import java.math.BigDecimal;
@@ -92,6 +93,9 @@ public class Product extends BaseEntity {
     @JoinColumn(name = "warehouse_id")
     @JsonIgnore
     private Warehouse warehouse;
+
+    @Enumerated(EnumType.STRING)
+    private Location location;
 
 
     public Product(String sku, String name, Tenant tenant,ProductCategory category) {

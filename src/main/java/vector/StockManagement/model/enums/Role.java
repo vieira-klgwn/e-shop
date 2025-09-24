@@ -67,7 +67,9 @@ public enum Role {
             )
     ),
 
-    MANAGING_DIRECTOR(Set.of(REPORT_READ));
+    MANAGING_DIRECTOR(Set.of(REPORT_READ)),
+
+    RETAILER(Set.of(RETAILER_ORDER));
 
     @Getter
     private final Set<Permission> permissions;

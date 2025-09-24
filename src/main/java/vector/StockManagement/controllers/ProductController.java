@@ -13,6 +13,8 @@ import org.springframework.web.multipart.MultipartFile;
 import vector.StockManagement.config.TenantContext;
 import vector.StockManagement.model.Product;
 import vector.StockManagement.model.dto.PriceDisplayDTO;
+import vector.StockManagement.model.dto.ProductDisplayDTO;
+import vector.StockManagement.model.enums.PriceListLevel;
 import vector.StockManagement.services.ProductService;
 
 import java.io.IOException;
@@ -33,17 +35,29 @@ public class ProductController {
     @Value("${app.upload.dir:uploads}")
     private String uploadDir;
 
-    @GetMapping
-    @PreAuthorize("hasAnyRole('SALES_MANAGER','ACCOUNTANT','WAREHOUSE_MANAGER', 'DISTRIBUTOR')")
-    public List<Product> getAll() {
-        return productService.findAll();
+    @GetMapping("/factory")
+    public List<ProductDisplayDTO> getAllWarehouseProducts() {
+        PriceListLevel level = PriceListLevel.FACTORY;
+        return productService.findAll(level);
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<Product> getById(@PathVariable Long id) {
-        Product product = productService.findById(id);
-        return product != null ? ResponseEntity.ok(product) : ResponseEntity.notFound().build();
+    @GetMapping("/store")
+    public List<ProductDisplayDTO> getAllStoreProducts() {
+        PriceListLevel level = PriceListLevel.DISTRIBUTOR;
+        return productService.findAll(level);
     }
+
+    @GetMapping("/{id}/factory")
+    public ResponseEntity<ProductDisplayDTO> getById(@PathVariable Long id) {
+        PriceListLevel level = PriceListLevel.FACTORY;
+        ProductDisplayDTO dto = productService.findById1(id, level);
+        return dto != null ? ResponseEntity.ok(dto) : ResponseEntity.notFound().build();
+    }
+
+//    @GetMapping("/store")
+//    public ResponseEntity<List<Product>> getByStore(@RequestParam String store) {
+//        return ResponseEntity.ok(productService.getAllStoreProducts());
+//    }
 
     @GetMapping("/{id}/prices")
     @PreAuthorize("hasAnyRole('SALES_MANAGER', 'ADMIN','DISTRIBUTOR','WAREHOUSE_MANAGER')")
@@ -69,15 +83,15 @@ public class ProductController {
         }
     }
 
-    @PutMapping("/{id}")
-    @PreAuthorize("hasRole('SALES_MANAGER') or hasRole('ADMIN')")
-    public ResponseEntity<Product> update(@PathVariable Long id, @RequestBody Product product) {
-        Product existing = productService.findById(id);
-        if (existing == null) return ResponseEntity.notFound().build();
-        // Enforce tenant-aware access: ensure current user tenant matches entity tenant (filter already narrows queries, this is explicit double-check)
-        // Assuming filter prevents cross-tenant reads, existing will be null if not same tenant.
-        return ResponseEntity.ok(productService.update(id, product));
-    }
+//    @PutMapping("/{id}")
+//    @PreAuthorize("hasRole('SALES_MANAGER') or hasRole('ADMIN')")
+//    public ResponseEntity<ProductDisplayDTO> update(@PathVariable Long id, @RequestBody Product product) {
+//        Product existing = productService.findById(id);
+//        if (existing == null) return ResponseEntity.notFound().build();
+//        // Enforce tenant-aware access: ensure current user tenant matches entity tenant (filter already narrows queries, this is explicit double-check)
+//        // Assuming filter prevents cross-tenant reads, existing will be null if not same tenant.
+//        return ResponseEntity.ok(productService.update(id, product));
+//    }
 
     @PostMapping("/{id}/upload-image")
     @PreAuthorize("hasRole('SALES_MANAGER') or hasRole('ADMIN')")

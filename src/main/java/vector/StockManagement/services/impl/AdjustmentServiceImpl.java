@@ -64,7 +64,7 @@ public class AdjustmentServiceImpl implements AdjustmentService {
         // Update inventory
         if (adjustmentQty > 0) {
             // Positive adjustment (add stock)
-            inventory.addStock(adjustmentQty, adjustment.getUnitCost());
+            inventory.addStock(adjustmentQty); //removed , adjustment.getUnitCost()
         } else if (adjustmentQty < 0) {
             // Negative adjustment (remove stock)
             inventory.removeStock(Math.abs(adjustmentQty));

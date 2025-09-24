@@ -42,6 +42,18 @@ public class OrderController {
         return new PageImpl<>(orders.subList(start, end), pageable, orders.size());
     }
 
+    @GetMapping("/store_orders")
+    @PreAuthorize("hasAnyRole('DISTRIBUTOR','STORE_MANAGER')")
+    public Page<OrderDisplayDTO> getAllStoreOrders(@RequestParam(defaultValue = "0") int page,
+                                                   @RequestParam(defaultValue = "0") int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        List<OrderDisplayDTO> orders = orderService.getOrderDisplayDTOforStore();
+        int start = Math.min((int) pageable.getOffset(), orders.size());
+        int end = Math.min(start + pageable.getPageSize(), orders.size());
+        return new PageImpl<>(orders.subList(start, end), pageable, orders.size());
+
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<OrderDisplayDTO> getById(@PathVariable Long id) {
         return  ResponseEntity.ok(orderService.findByIdDisplayed(id));
@@ -51,7 +63,7 @@ public class OrderController {
 
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('DISTRIBUTOR','STORE_MANAGER')")
+    @PreAuthorize("hasAnyRole('DISTRIBUTOR','STORE_MANAGER','RETAILER')")
     public ResponseEntity<Order> create(@AuthenticationPrincipal User user, @RequestBody OrderDTO orderDTO) {
         return ResponseEntity.ok(orderService.save(user.getId(), orderDTO));
     }

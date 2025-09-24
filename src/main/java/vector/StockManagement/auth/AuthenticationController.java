@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import vector.StockManagement.model.Token;
 import vector.StockManagement.model.User;
+import vector.StockManagement.model.enums.Role;
 import vector.StockManagement.repositories.TokenRepository;
 import vector.StockManagement.services.UserService;
 
@@ -47,6 +48,20 @@ public class AuthenticationController {
     @PreAuthorize("hasAnyRole('SUPER_ADMIN','ADMIN','MANAGING_DIRECTOR')")
     public ResponseEntity<AuthenticationResponse> register(@Valid @RequestBody RegisterRequest registerRequest) {
         logger.debug("Register request for email: {}", registerRequest.getEmail());
+        return ResponseEntity.ok(authenticationService.register(registerRequest));
+    }
+
+    @PostMapping("/register/retailer")
+    @PreAuthorize("hasAnyRole('DISTRIBUTOR')")
+    public ResponseEntity<AuthenticationResponse> registerRetailer(@Valid @RequestBody RegisterRequest registerRequest) {
+        registerRequest.setRole(Role.RETAILER);
+        return ResponseEntity.ok(authenticationService.register(registerRequest));
+    }
+
+    @PostMapping("register/store_manager")
+    @PreAuthorize("hasAnyRole('DISTRIBUTOR')")
+    public ResponseEntity<AuthenticationResponse> registerStoreManager(@Valid @RequestBody RegisterRequest registerRequest) {
+        registerRequest.setRole(Role.STORE_MANAGER);
         return ResponseEntity.ok(authenticationService.register(registerRequest));
     }
 

@@ -10,9 +10,12 @@ import vector.StockManagement.model.Inventory;
 import vector.StockManagement.model.Product;
 import vector.StockManagement.model.Tenant;
 import vector.StockManagement.model.User;
+import vector.StockManagement.model.enums.LocationType;
+import vector.StockManagement.model.enums.Role;
 import vector.StockManagement.repositories.InventoryRepository;
 import vector.StockManagement.repositories.ProductRepository;
 import vector.StockManagement.repositories.TenantRepository;
+import vector.StockManagement.repositories.UserRepository;
 import vector.StockManagement.services.InventoryService;
 
 import java.util.List;
@@ -24,6 +27,8 @@ public class InventoryServiceImpl implements InventoryService {
     private final InventoryRepository inventoryRepository;
     private final ProductRepository productRepository;
     private final TenantRepository tenantRepository;
+    private final UserRepository userRepository;
+
 
     @Override
     public List<Inventory> findAll() {
@@ -58,6 +63,55 @@ public class InventoryServiceImpl implements InventoryService {
     }
 
     @Override
+    public boolean hasSufficientStock(Product product, Integer qty, LocationType locationType) {
+        Inventory inventory = inventoryRepository.findByProductAndLocationType(product, locationType);
+        if (inventory == null) return false;
+        return inventory.getQtyOnHand() >= qty;
+    }
+
+
+    @Override
+    public void releaseReservedStock(Product product, Integer qty, LocationType locationType) {
+        Inventory inventory = inventoryRepository.findByProductAndLocationType(product, locationType);
+        if (inventory == null) throw new RuntimeException("No inventory found for product at " + locationType);
+        inventory.releaseReservedStock(qty);
+        inventoryRepository.save(inventory);
+    }
+
+    @Override
+    public void reserveStock(Product product, Integer qty, LocationType locationType) {
+        Inventory inventory = inventoryRepository.findByProductAndLocationType(product, locationType);
+        if (inventory == null) throw new RuntimeException("No inventory found for product at " + locationType);
+        inventory.reserveStock(qty);
+        inventoryRepository.save(inventory);
+    }
+
+    @Override
+    public void removeStock(Product product, Integer qty, LocationType locationType) {
+        Inventory inventory = inventoryRepository.findByProductAndLocationType(product, locationType);
+        if (inventory == null) throw new RuntimeException("No inventory found for product at " + locationType);
+        inventory.releaseReservedStock(qty);
+        inventory.removeStock(qty);
+        inventoryRepository.save(inventory);
+    }
+
+    @Override
+    public void transferStock(Product product, Integer qty, LocationType from, LocationType to) {
+        removeStock(product, qty, from);
+        Inventory toInventory = inventoryRepository.findByProductAndLocationType(product, to);
+        if (toInventory == null) {
+            toInventory = new Inventory();
+            toInventory.setProduct(product);
+            toInventory.setLocationType(to);
+            toInventory.setLocationId(1L);
+            toInventory.setTenant(product.getTenant());
+            toInventory.setQtyOnHand(0);
+        }
+        toInventory.addStock(qty);
+        inventoryRepository.save(toInventory);
+    }
+
+    @Override
     public Inventory updateQtyOnHand(Long productId, Integer qtyOnHand) {
         Product product = productRepository.findById(productId).orElseThrow(() -> new IllegalArgumentException("Product not found"));
 
@@ -70,9 +124,17 @@ public class InventoryServiceImpl implements InventoryService {
     }
 
     @Override
-    public Inventory findInventoryByProduct(Long productId){
-        Product product = productRepository.findById(productId).orElseThrow(() -> new IllegalArgumentException("Product not found"));
-        return inventoryRepository.findByProduct(product);
+    public Inventory findInventoryByProductAndUser(Long productId, Long userId){
+
+        Product product = productRepository.findById(productId).orElseThrow(()->new IllegalArgumentException("Product not found"));
+
+        User user = userRepository.findById(userId).orElseThrow(()->new IllegalArgumentException("User not found"));
+        if (user.getRole()== Role.RETAILER){
+            return inventoryRepository.findByProductAndLocationType(product, LocationType.DISTRIBUTOR);
+        }
+        else {
+            return inventoryRepository.findByProductAndLocationType(product, LocationType.WAREHOUSE);
+        }
     }
 
     @Override

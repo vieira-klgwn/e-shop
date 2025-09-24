@@ -10,6 +10,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 //import vector.StockManagement.config.TenantContext;
+import vector.StockManagement.config.TenantContext;
 import vector.StockManagement.model.*;
 import vector.StockManagement.model.dto.OrderDTO;
 import vector.StockManagement.model.dto.OrderDisplayDTO;
@@ -22,6 +23,7 @@ import vector.StockManagement.services.NotificationSerivice;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -42,13 +44,34 @@ public class OrderServiceImpl implements OrderService {
     private final InventoryService inventoryService;
     private final NotificationSerivice notificationService;
     private final InventoryRepository inventoryRepository;
+    private final PriceListItemRepository priceListItemRepository;
+    private final PriceListRepository priceListRepository;
 
     @Override
     public List<OrderDisplayDTO> findAll() {
 
-        List<OrderDisplayDTO> displayDTOs = orderRepository.findAll().stream().map(this::getOrderDisplayDTO).collect(Collectors.toList());
+        List<OrderDisplayDTO> displayDTOs = orderRepository.findAll().stream().map(this::getOrderDisplayDTO).toList();
 
-        return displayDTOs;
+        List<OrderDisplayDTO> displays = new ArrayList<>();
+        for (OrderDisplayDTO displayDTO : displayDTOs) {
+            if (orderRepository.findById(displayDTO.getOrderId()).get().getLevel() == OrderLevel.L1) {
+                displays.add(displayDTO);
+            }
+        }
+        return displays;
+    }
+
+    @Override
+    public List<OrderDisplayDTO> getOrderDisplayDTOforStore() {
+        List<OrderDisplayDTO> displayDTOs = orderRepository.findAll().stream().map(this::getOrderDisplayDTO).toList();
+        List<OrderDisplayDTO> displays = new ArrayList<>();
+        for (OrderDisplayDTO displayDTO : displayDTOs) {
+            if (orderRepository.findById(displayDTO.getOrderId()).get().getLevel() == OrderLevel.L2) {
+                displays.add(displayDTO);
+            }
+        }
+        return displays;
+
     }
 
     private OrderDisplayDTO getOrderDisplayDTO(Order order) {
@@ -88,7 +111,6 @@ public class OrderServiceImpl implements OrderService {
 
     @Transactional
     @Override
-    @PreAuthorize("hasAnyRole('DISTRIBUTOR', 'STORE_MANAGER', 'ADMIN')")
     public Order save(Long userId, OrderDTO orderDto) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -102,16 +124,26 @@ public class OrderServiceImpl implements OrderService {
         Order order = new Order();
         order.setTenant(tenant);
         order.setCreatedBy(user);
-        order.setLevel(OrderLevel.L1);
         order.setNumber("ORD-" + System.currentTimeMillis());
         order.setDeliveryAddress(orderDto.getDeliveryAddress());
         order.setDeliveryDate(LocalDateTime.now().plusDays(1));
         order.setStatus(OrderStatus.DRAFT);
         order.setCurrency("USD");
 
+        OrderLevel level = user.getRole().equals(Role.RETAILER) ? OrderLevel.L2 : OrderLevel.L1;
+        System.out.println(level.toString());
+        order.setLevel(level);
+
+
+
 
 ///  here you can only register an order if you have an orderline and an order line should also have a product,
         Order savedOrder = orderRepository.saveAndFlush(order);
+
+
+        LocationType sourceLocation = (level == OrderLevel.L1) ? LocationType.WAREHOUSE : LocationType.DISTRIBUTOR;
+        PriceListLevel priceLevel = (level == OrderLevel.L1) ? PriceListLevel.FACTORY : PriceListLevel.DISTRIBUTOR;
+
         
         // Create order lines and calculate totals
         Long totalAmount = 0L;
@@ -119,18 +151,31 @@ public class OrderServiceImpl implements OrderService {
             for (OrderDTO.OrderLineDTO lineDto: orderDto.getOrderLines()) {
                 Product product = productRepository.findById(lineDto.getProductId()).orElseThrow(() -> new RuntimeException("Product not found"));
 
+                Inventory inventory = inventoryRepository.findByProductAndLocationType(product, sourceLocation);
+                if (!inventoryService.hasSufficientStock(product, lineDto.getQty(), sourceLocation)) {
+                    throw new RuntimeException("Insufficient stock for product: " + product.getSku() + " at " + sourceLocation + " and its location is " + sourceLocation ) ;
+                }
+
+
+                // Get price based on level
+                Long price = getProductPrice(product, priceLevel);
+                if (price == -1L) {
+                    throw new RuntimeException("No price found for product: " + product.getSku() + " at level " + priceLevel);
+                }
+
                 OrderLine orderLine = new OrderLine();
+
+
                 orderLine.setOrder(savedOrder);
                 orderLine.setProduct(product);
                 orderLine.setQty(lineDto.getQty());
-                orderLine.setUnitPrice(product.getPrice());
-                orderLine.setLineTotal(product.getPrice() * lineDto.getQty());
+                orderLine.setUnitPrice(price);
+                orderLine.setLineTotal(price * lineDto.getQty());
                 orderLine.setTenant(tenant);
                 orderLineRepository.save(orderLine);
                 totalAmount += orderLine.getLineTotal();
                 savedOrder.getOrderLines().add(orderLine);
-                Inventory inventory = inventoryRepository.findByProduct(product);
-                inventory.reserveStock(lineDto.getQty());
+                inventoryService.reserveStock(product,lineDto.getQty(),sourceLocation);
 
             }
 
@@ -141,6 +186,20 @@ public class OrderServiceImpl implements OrderService {
         savedOrder.setStatus(OrderStatus.DRAFT);
         orderRepository.save(savedOrder);
         return savedOrder;
+    }
+
+    private Long getProductPrice(Product product, PriceListLevel priceLevel) {
+        Long tenantId = TenantContext.getTenantId();
+        List<PriceList> priceLists = priceListRepository.findByLevelAndIsActive(priceLevel, true);
+//        List<PriceList> priceLists1 = priceListRepository.findByLevelAndIsActiveAndTenantId(priceLevel,true,tenantId);
+        for (PriceList priceList : priceLists) {
+            for (PriceListItem item : priceList.getItems()) {
+                if (item.getProduct().getId().equals(product.getId())) {
+                    return item.getBasePrice();
+                }
+            }
+        }
+        return -1L; // No price found
     }
 
     @Override
@@ -162,25 +221,22 @@ public class OrderServiceImpl implements OrderService {
         if (order.getStatus() != OrderStatus.APPROVED) {
             throw new RuntimeException("Can only fulfill approved orders");
         }
-        
+
+        LocationType sourceLocation = (order.getLevel() == OrderLevel.L1) ? LocationType.WAREHOUSE : LocationType.DISTRIBUTOR;
+        LocationType targetLocation = (order.getLevel() == OrderLevel.L1) ? LocationType.DISTRIBUTOR : LocationType.RETAILER;
         // Process inventory movement
         for (OrderLine orderLine : order.getOrderLines()) {
-            Inventory inventory = inventoryRepository.findByProduct(orderLine.getProduct());
-
-            if (inventory != null) {
-                // Release reserved stock and remove from inventory
-                inventory.releaseReservedStock(orderLine.getQty());
-                inventory.removeStock(orderLine.getQty());
-                inventoryRepository.save(inventory);
-                
-                // Create stock transaction record
-                // This would be implemented in StockTransactionService
-            }
+            inventoryService.transferStock(orderLine.getProduct(), orderLine.getQty(), sourceLocation, targetLocation);
         }
         
+
+        for (OrderLine orderLine: order.getOrderLines()){
+            inventoryService.releaseReservedStock(orderLine.getProduct(), orderLine.getQty(), sourceLocation);
+            inventoryService.transferStock(orderLine.getProduct(), orderLine.getQty(), sourceLocation, targetLocation);
+        }
         order.setStatus(OrderStatus.FULFILLED);
         createOrderNotifications(order, "Order Fulfilled");
-        
+
         return orderRepository.save(order);
     }
     
@@ -280,8 +336,10 @@ public class OrderServiceImpl implements OrderService {
 //        amounts.put("paid", BigDecimal.ZERO);
 //        amounts.put("balance", totalAmount);
 //        invoice.setAmounts(amounts);
+
         
-        return invoice;
+        return invoice; // Get price based on level
+
     }
     
     private void createOrderNotifications(Order order, String eventType) {
@@ -302,8 +360,9 @@ public class OrderServiceImpl implements OrderService {
             //Notification to distributor
             if (order.getCreatedBy() != null) {
                 Notification distributorNotification = getNotification(eventType, " Distributor ", order, "Please distribute order " + order.getNumber());
-                order.getCreatedBy().getNotifications().add(distributorNotification);
                 notificationService.save(distributorNotification);
+                order.getCreatedBy().getNotifications().add(distributorNotification);
+
             }
 
         } catch (Exception e) {

@@ -70,7 +70,7 @@ public class TransferServiceImpl implements TransferService {
             destInventory = new Inventory(transfer.getToLocationType(), transfer.getToLocationId(), 
                     transfer.getProduct(), transfer.getTenant());
         }
-        destInventory.addStock(transfer.getQty(), sourceInventory != null ? sourceInventory.getAvgUnitCost() : null);
+        destInventory.addStock(transfer.getQty()); //removed sourceInventory != null ? sourceInventory.getAvgUnitCost() : null
         inventoryRepository.save(destInventory);
 
         // Log stock transactions

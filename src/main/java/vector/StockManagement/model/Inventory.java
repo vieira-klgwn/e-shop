@@ -103,16 +103,17 @@ public class Inventory extends BaseEntity {
         return getQtyAvailable() >= quantity;
     }
 
-    public void addStock(Integer quantity, BigDecimal unitCost) {
+    public void addStock(Integer quantity) {
         if (quantity > 0) {
-            // Update average unit cost using weighted average
-            BigDecimal totalCost = avgUnitCost.multiply(BigDecimal.valueOf(qtyOnHand))
-                    .add(unitCost.multiply(BigDecimal.valueOf(quantity)));
-            int totalQty = qtyOnHand + quantity;
-
-            this.avgUnitCost = totalQty > 0 ? totalCost.divide(BigDecimal.valueOf(totalQty), 2, java.math.RoundingMode.HALF_UP) : BigDecimal.ZERO;
-            this.qtyOnHand = totalQty;
+//            // Update average unit cost using weighted average
+//            BigDecimal totalCost = avgUnitCost.multiply(BigDecimal.valueOf(qtyOnHand))
+//                    .add(unitCost.multiply(BigDecimal.valueOf(quantity)));
+//            int totalQty = qtyOnHand + quantity;
+//
+//            this.avgUnitCost = totalQty > 0 ? totalCost.divide(BigDecimal.valueOf(totalQty), 2, java.math.RoundingMode.HALF_UP) : BigDecimal.ZERO;
+//            this.qtyOnHand = totalQty;
             this.lastStockIn = LocalDateTime.now();
+            qtyOnHand += quantity;
         }
     }
 

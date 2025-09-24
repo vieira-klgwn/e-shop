@@ -58,6 +58,8 @@ public class PriceListItemServiceImpl implements PriceListItemService {
         product.setPrice(priceListItem.getBasePrice());
         productRepository.saveAndFlush(product);
 
+        priceListRepository.saveAndFlush(priceList);
+        priceList.getItems().add(priceListItem);
         return priceListItemRepository.save(priceListItem);
     }
 
