@@ -35,7 +35,6 @@ public class InvoiceController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'ACCOUNTANT', 'SALES_MANAGER')")
     public ResponseEntity<Invoice> getById(@PathVariable Long id) {
         Invoice invoice = invoiceService.findById(id);
         if (invoice != null && tenantValidator.validateTenantAccess(invoice)) {

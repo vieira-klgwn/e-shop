@@ -291,10 +291,18 @@ public class OrderServiceImpl implements OrderService {
         
         // Approve the order
         order.approve(approver);
+        LocationType type = LocationType.WAREHOUSE;
+
+        if (order.getLevel()==OrderLevel.L1) {
+            type = LocationType.WAREHOUSE;
+        }
+        else {
+            type = LocationType.DISTRIBUTOR;
+        }
         
         // Reserve inventory for order lines
         for (OrderLine orderLine : order.getOrderLines()) {
-            Inventory inventory = inventoryRepository.findByProduct(orderLine.getProduct());
+            Inventory inventory = inventoryRepository.findByProductAndLocationType(orderLine.getProduct(), type);
             
             if (inventory == null) {
                 throw new RuntimeException("No inventory found for product: " + orderLine.getProduct().getSku());

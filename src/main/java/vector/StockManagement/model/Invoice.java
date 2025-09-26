@@ -1,6 +1,7 @@
 package vector.StockManagement.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import org.hibernate.annotations.Filter;
 import vector.StockManagement.model.enums.InvoiceStatus;
 import jakarta.persistence.*;
@@ -28,6 +29,7 @@ import java.util.Map;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Invoice extends BaseEntity implements TenantScoped {
 
     @NotBlank
@@ -35,7 +37,7 @@ public class Invoice extends BaseEntity implements TenantScoped {
     @Column(name = "number", nullable = false, unique = true)
     private String number;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "order_id", nullable = false)
     @JsonIgnore
     private Order order;
@@ -47,7 +49,7 @@ public class Invoice extends BaseEntity implements TenantScoped {
 //    @JoinColumn(name = "distributor_id")
 //    private Distributor distributor;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "store_id")
     @JsonIgnore
     private Store store;
@@ -67,11 +69,11 @@ public class Invoice extends BaseEntity implements TenantScoped {
     @Column(name = "due_date")
     private LocalDate dueDate;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "issued_by")
     private User issuedBy;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "tenant_id", nullable = false)
     @JsonIgnore
     private Tenant tenant;
