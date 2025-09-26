@@ -320,12 +320,12 @@ public class OrderServiceImpl implements OrderService {
         Invoice invoice = new Invoice();
         invoice.setNumber("INV-" + System.currentTimeMillis());
         invoice.setOrder(order);
-        invoice.setStore(order.getStore());
         invoice.setTenant(order.getTenant());
         invoice.setStatus(InvoiceStatus.DRAFT);
         invoice.setIssuedBy(issuedBy);
         invoice.setCurrency(order.getCurrency());
         invoice.setDueDate(LocalDate.now().plusDays(30));
+        invoice.setInvoiceAmount(order.getOrderAmount());
         
         // Set amounts
 //        Map<String, BigDecimal> amounts = new HashMap<>();

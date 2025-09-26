@@ -40,6 +40,9 @@ public class Invoice extends BaseEntity implements TenantScoped {
     @JsonIgnore
     private Order order;
 
+    @Column(name = "invoice_amount", nullable = false)
+    private Long invoiceAmount = 0L;
+
 //    @ManyToOne(fetch = FetchType.LAZY)
 //    @JoinColumn(name = "distributor_id")
 //    private Distributor distributor;
