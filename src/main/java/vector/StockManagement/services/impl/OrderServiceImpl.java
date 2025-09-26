@@ -2,12 +2,7 @@ package vector.StockManagement.services.impl;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.hibernate.Hibernate;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.crossstore.ChangeSetPersister;
-import org.springframework.data.domain.jaxb.SpringDataJaxb;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 //import vector.StockManagement.config.TenantContext;
 import vector.StockManagement.config.TenantContext;
@@ -20,14 +15,10 @@ import vector.StockManagement.services.OrderService;
 import vector.StockManagement.services.InventoryService;
 import vector.StockManagement.services.NotificationSerivice;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -59,6 +50,18 @@ public class OrderServiceImpl implements OrderService {
             }
         }
         return displays;
+    }
+
+    @Override
+    public List<Order> getOrdersFromRetailer() {
+        List<Order> orders = orderRepository.findAll();
+        List<Order> ordersFromRetailer = new ArrayList<>();
+        for (Order order : orders) {
+            if( order.getLevel() == OrderLevel.L2 ) {
+                ordersFromRetailer.add(order);
+            }
+        }
+        return ordersFromRetailer;
     }
 
     @Override

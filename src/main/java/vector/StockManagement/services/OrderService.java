@@ -10,6 +10,9 @@ import java.util.List;
 public interface OrderService {
     List<OrderDisplayDTO> findAll();
     OrderDisplayDTO findByIdDisplayed(Long id);
+
+    List<Order> getOrdersFromRetailer();
+
     List<OrderDisplayDTO> getOrderDisplayDTOforStore();
     Order findById(Long id);
     Order save(Long userId,OrderDTO orderDto);

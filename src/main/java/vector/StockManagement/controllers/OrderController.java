@@ -42,6 +42,19 @@ public class OrderController {
         return new PageImpl<>(orders.subList(start, end), pageable, orders.size());
     }
 
+    @GetMapping("/store_ordersToApprove")
+    @PreAuthorize("hasAnyRole('ACCOUNTANT')")
+    public Page<Order> getStoreOrdersToApprove(@RequestParam(defaultValue = "0") int page,
+                                                   @RequestParam(defaultValue = "0") int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        List<Order> orders = orderService.getOrdersFromRetailer();
+        int start = Math.min((int) pageable.getOffset(), orders.size());
+        int end = Math.min(start + pageable.getPageSize(), orders.size());
+        return new PageImpl<>(orders.subList(start, end), pageable, orders.size());
+
+    }
+
+
     @GetMapping("/store_orders")
     @PreAuthorize("hasAnyRole('DISTRIBUTOR','STORE_MANAGER','RETAILER')")
     public Page<OrderDisplayDTO> getAllStoreOrders(@RequestParam(defaultValue = "0") int page,

@@ -58,6 +58,14 @@ public class AuthenticationController {
         return ResponseEntity.ok(authenticationService.register(registerRequest));
     }
 
+    @PostMapping("/register/accountantAtStore")
+    @PreAuthorize("hasRole('DISTRIBUTOR')")
+    public ResponseEntity<AuthenticationResponse> registerAccountantAtStore(@Valid @RequestBody RegisterRequest registerRequest) {
+        registerRequest.setRole(Role.ACCOUNTANT);
+        return ResponseEntity.ok(authenticationService.register(registerRequest));
+    }
+
+
     @PostMapping("register/store_manager")
     @PreAuthorize("hasAnyRole('DISTRIBUTOR')")
     public ResponseEntity<AuthenticationResponse> registerStoreManager(@Valid @RequestBody RegisterRequest registerRequest) {
