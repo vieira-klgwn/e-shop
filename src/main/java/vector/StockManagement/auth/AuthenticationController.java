@@ -44,6 +44,10 @@ public class AuthenticationController {
 
     // model business /
     // users should hold
+
+
+
+
     @PostMapping("/register")
     @PreAuthorize("hasAnyRole('SUPER_ADMIN','ADMIN','MANAGING_DIRECTOR')")
     public ResponseEntity<AuthenticationResponse> register(@Valid @RequestBody RegisterRequest registerRequest) {

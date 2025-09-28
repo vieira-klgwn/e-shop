@@ -16,6 +16,8 @@ import vector.StockManagement.model.ChangePasswordRequest;
 import vector.StockManagement.model.Product;
 import vector.StockManagement.model.User;
 import vector.StockManagement.model.dto.UserDTO;
+import vector.StockManagement.model.enums.Role;
+import vector.StockManagement.repositories.UserRepository;
 import vector.StockManagement.services.UserService;
 
 import java.io.IOException;
@@ -23,6 +25,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.Principal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -30,6 +33,7 @@ import java.util.UUID;
 @RequestMapping("/api/users")
 @RequiredArgsConstructor
 public class UserController {
+    private final UserRepository userRepository;
     @Value("${app.upload.dir:uploads}")
     private String uploadDir;
 
@@ -63,6 +67,35 @@ public class UserController {
                     logger.warn("User ID {} not found", id);
                     return new ResponseEntity<>(HttpStatus.NOT_FOUND);
                 });
+    }
+
+
+    //sorry for not handling business logic in controller
+    @GetMapping("/retailer")
+    @PreAuthorize("hasAnyRole('DISTRIBUTOR')")
+    public ResponseEntity<List<User>> getAllRetailers(){
+        logger.debug("Fetching all retailers");
+        List<User> users = userRepository.findAll();
+        List<User> retailers = new ArrayList<>();
+        for (User user : users) {
+            if (user.getRole() == Role.RETAILER){
+                retailers.add(user);
+            }
+        }
+        return new ResponseEntity<>(retailers, HttpStatus.OK);
+    }
+
+    @GetMapping("/distributors")
+    @PreAuthorize("hasAnyRole('ADMIN')")
+    public ResponseEntity<List<User>> getAllDistributors(){
+        List<User> users = userRepository.findAll();
+        List<User> distributors = new ArrayList<>();
+        for (User user : users) {
+            if (user.getRole() == Role.DISTRIBUTOR){
+                distributors.add(user);
+            }
+        }
+        return new ResponseEntity<>(distributors, HttpStatus.OK);
     }
 
     @PutMapping("/{id}")
