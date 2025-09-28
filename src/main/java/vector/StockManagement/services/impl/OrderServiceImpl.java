@@ -14,6 +14,7 @@ import vector.StockManagement.repositories.*;
 import vector.StockManagement.services.OrderService;
 import vector.StockManagement.services.InventoryService;
 import vector.StockManagement.services.NotificationSerivice;
+import vector.StockManagement.services.ProductService;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -37,6 +38,8 @@ public class OrderServiceImpl implements OrderService {
     private final InventoryRepository inventoryRepository;
     private final PriceListItemRepository priceListItemRepository;
     private final PriceListRepository priceListRepository;
+    private final ProductServiceImpl productServiceImpl;
+    private final ProductService productService;
 
     @Override
     public List<OrderDisplayDTO> findAll() {
@@ -92,6 +95,28 @@ public class OrderServiceImpl implements OrderService {
         orderDisplayDTO.setDeliveryDate(order.getDeliveryDate());
         orderDisplayDTO.setOrderAmount(order.getOrderAmount());
         orderDisplayDTO.setCreatedBy(order.getCreatedBy().getEmail());
+
+        List<OrderDisplayDTO.OrderLineDTO> lineDTOS = new ArrayList<>();
+
+        for(OrderLine line: order.getOrderLines()) {
+
+            Long productPrice = null;
+            if (order.getLevel() == OrderLevel.L1) {
+                productPrice = productServiceImpl.getProductPrice(line.getProduct(), PriceListLevel.FACTORY);
+            }
+            else {
+                productPrice = productServiceImpl.getProductPrice(line.getProduct(), PriceListLevel.DISTRIBUTOR);
+            }
+
+
+            OrderDisplayDTO.OrderLineDTO lineDTO = new OrderDisplayDTO.OrderLineDTO();
+            lineDTO.setProductName(line.getProduct().getName());
+            lineDTO.setPrice(productPrice);
+            lineDTO.setLineTotal(line.getQty()* productPrice);
+            lineDTO.setQuantity(line.getQty());
+            lineDTOS.add(lineDTO);
+        }
+        orderDisplayDTO.setOrderLines(lineDTOS);
         return orderDisplayDTO;
     }
 

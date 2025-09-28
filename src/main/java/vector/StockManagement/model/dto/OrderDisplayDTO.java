@@ -1,9 +1,12 @@
 package vector.StockManagement.model.dto;
 
 import lombok.Data;
+import vector.StockManagement.model.OrderLine;
+import vector.StockManagement.model.Product;
 import vector.StockManagement.model.User;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 public class OrderDisplayDTO {
@@ -18,4 +21,14 @@ public class OrderDisplayDTO {
     private String deliveryAddress;
     private LocalDateTime deliveryDate;
     private String createdBy;
+    private List<OrderLineDTO> orderLines;
+
+    @Data
+    public static class OrderLineDTO{
+        private String productName;
+        private Integer quantity;
+        private Long lineTotal;
+        private Long price;
+    }
+
 }

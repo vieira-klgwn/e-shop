@@ -57,7 +57,7 @@ public class Order extends BaseEntity {
 //    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 //    private Distributor distributor;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "store_id")
     @JsonIgnore
     private Store store;
@@ -81,13 +81,13 @@ public class Order extends BaseEntity {
 //    @Column(name = "totals", columnDefinition = "json")
 //    private Map<String, BigDecimal> totals = new HashMap<>();
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "created_by")//, nullable = false
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     @JsonIgnore
     private User createdBy;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "approved_by")
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     @JsonIgnore
@@ -114,14 +114,15 @@ public class Order extends BaseEntity {
     @Column(name = "cancellation_reason")
     private String cancellationReason;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "tenant_id")//removed, nullable = false
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     @JsonIgnore
     private Tenant tenant;
 
-    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.LAZY)//removed orphan removal
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.EAGER)//removed orphan removal
     @JsonIgnore
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private List<OrderLine> orderLines = new ArrayList<>();
 
     @Column(name = "delivery_date")

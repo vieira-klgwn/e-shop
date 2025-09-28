@@ -76,7 +76,7 @@ public class ProductServiceImpl implements ProductService {
 
     }
 
-    private Long getProductPrice(Product product, PriceListLevel level) {
+    public Long getProductPrice(Product product, PriceListLevel level) {
         Long price = 0L;
         Long distributorPrice = null;
         Long factoryPrice = null;
