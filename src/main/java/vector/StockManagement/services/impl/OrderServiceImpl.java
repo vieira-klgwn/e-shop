@@ -157,7 +157,7 @@ public class OrderServiceImpl implements OrderService {
         order.setDeliveryAddress(orderDto.getDeliveryAddress());
         order.setDeliveryDate(LocalDateTime.now().plusDays(1));
         order.setStatus(OrderStatus.DRAFT);
-        order.setCurrency("USD");
+        order.setCurrency("FRW");
 
         OrderLevel level = user.getRole().equals(Role.RETAILER) ? OrderLevel.L2 : OrderLevel.L1;
         System.out.println(level.toString());
