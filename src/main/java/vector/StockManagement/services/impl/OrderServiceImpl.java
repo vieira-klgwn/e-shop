@@ -124,6 +124,7 @@ public class OrderServiceImpl implements OrderService {
         }
 
 
+
         Order order = new Order();
         order.setTenant(tenant);
         order.setCreatedBy(user);
@@ -168,6 +169,9 @@ public class OrderServiceImpl implements OrderService {
 
                 OrderLine orderLine = new OrderLine();
 
+                if (lineDto.getQty() <= 0){
+                    throw new RuntimeException("Order quantity should be a positive number and not zero");
+                }
 
                 orderLine.setOrder(savedOrder);
                 orderLine.setProduct(product);
