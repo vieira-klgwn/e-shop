@@ -23,6 +23,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -51,6 +53,16 @@ public class AuthenticationController {
     @PostMapping("/register")
     @PreAuthorize("hasAnyRole('SUPER_ADMIN','ADMIN','MANAGING_DIRECTOR')")
     public ResponseEntity<AuthenticationResponse> register(@Valid @RequestBody RegisterRequest registerRequest) {
+
+        String regex = "^\\\\+2507[8293]\\\\d{8}$";
+        Pattern pattern = Pattern.compile(regex);
+        Matcher matcher = pattern.matcher(registerRequest.getPhone());
+        if (!matcher.matches()) {
+            logger.warn("Phone number is invalid");
+            return ResponseEntity.badRequest().build();
+        }
+
+
         logger.debug("Register request for email: {}", registerRequest.getEmail());
         return ResponseEntity.ok(authenticationService.register(registerRequest));
     }

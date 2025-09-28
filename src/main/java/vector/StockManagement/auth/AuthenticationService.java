@@ -58,6 +58,11 @@ public class AuthenticationService {
         if (request.getGender() == null || request.getGender().isEmpty()) {
             throw new IllegalStateException("Gender is required");
         }
+
+
+
+
+
         Gender gender;
         try {
             gender = Gender.valueOf(request.getGender().toUpperCase());

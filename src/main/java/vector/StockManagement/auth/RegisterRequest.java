@@ -7,6 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.format.annotation.NumberFormat;
 import vector.StockManagement.model.Tenant;
 import vector.StockManagement.model.enums.Role;
 
@@ -36,6 +37,7 @@ public class RegisterRequest {
     private Long tenantId;
     private Tenant tenant;
     private LocalDate birthDate;
+
     private String phone;
     private String nationality;
 }
