@@ -69,7 +69,11 @@ public enum Role {
 
     MANAGING_DIRECTOR(Set.of(REPORT_READ)),
 
-    RETAILER(Set.of(RETAILER_ORDER));
+    RETAILER(Set.of(RETAILER_ORDER)),
+
+    ACCOUNTANT_AT_STORE(Set.of(STORE_ACCOUNTANT));
+
+
 
     @Getter
     private final Set<Permission> permissions;

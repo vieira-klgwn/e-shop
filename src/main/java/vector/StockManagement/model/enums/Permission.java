@@ -53,7 +53,9 @@ public enum Permission {
     TENANT_UPDATE("tenant:update"),
     TENANT_DELETE("tenant:delete"),
 
-    RETAILER_ORDER("retailer:order");
+    RETAILER_ORDER("retailer:order"),
+
+    STORE_ACCOUNTANT("store:accountant");
 
 
     @Getter

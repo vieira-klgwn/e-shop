@@ -19,7 +19,7 @@ public interface ProductService {
     ProductDisplayDTO findById1(Long id, PriceListLevel level);
     Product save(Product product);
 
-    List<Product> getAllStoreProducts();
+    List<ProductDisplayDTO> getAllStoreProducts();
 
     void delete(Long id);
     Product update(Long id, Product product);

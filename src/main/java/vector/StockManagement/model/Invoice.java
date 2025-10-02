@@ -24,7 +24,6 @@ import java.util.Map;
 @EqualsAndHashCode(callSuper = true)
 @Entity
 @Filter(name = "tenantFilter", condition = "tenant_id = :tenantId")
-@org.hibernate.annotations.Filter(name = "tenantFilter", condition = "tenant_id = :tenantId")
 @Table(name = "invoices")
 @Data
 @AllArgsConstructor
@@ -71,11 +70,19 @@ public class Invoice extends BaseEntity implements TenantScoped {
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "issued_by")
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private User issuedBy;
+
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    @JsonIgnore
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+    private User issuedTo;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "tenant_id", nullable = false)
     @JsonIgnore
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private Tenant tenant;
 
     @Size(max = 500)
@@ -117,37 +124,37 @@ public class Invoice extends BaseEntity implements TenantScoped {
 //        amounts.put("balance", order.getGrandTotal());
 //    }
 
-    public BigDecimal getNetAmount() { return amounts.getOrDefault("net", BigDecimal.ZERO); }
-    public BigDecimal getTaxAmount() { return amounts.getOrDefault("tax", BigDecimal.ZERO); }
-    public BigDecimal getTotalAmount() { return amounts.getOrDefault("total", BigDecimal.ZERO); }
-    public BigDecimal getPaidAmount() { return amounts.getOrDefault("paid", BigDecimal.ZERO); }
-    public BigDecimal getBalanceAmount() { return amounts.getOrDefault("balance", BigDecimal.ZERO); }
+//    public BigDecimal getNetAmount() { return amounts.getOrDefault("net", BigDecimal.ZERO); }
+//    public BigDecimal getTaxAmount() { return amounts.getOrDefault("tax", BigDecimal.ZERO); }
+//    public BigDecimal getTotalAmount() { return amounts.getOrDefault("total", BigDecimal.ZERO); }
+//    public BigDecimal getPaidAmount() { return amounts.getOrDefault("paid", BigDecimal.ZERO); }
+//    public BigDecimal getBalanceAmount() { return amounts.getOrDefault("balance", BigDecimal.ZERO); }
+//
+//    public void addPayment(Long amount) {
+//        BigDecimal newPaid = getPaidAmount().add(amount);
+//        BigDecimal newBalance = getTotalAmount().subtract(newPaid);
+//
+//        amounts.put("paid", newPaid);
+//        amounts.put("balance", newBalance);
+//        updateStatus();
+//    }
 
-    public void addPayment(BigDecimal amount) {
-        BigDecimal newPaid = getPaidAmount().add(amount);
-        BigDecimal newBalance = getTotalAmount().subtract(newPaid);
-
-        amounts.put("paid", newPaid);
-        amounts.put("balance", newBalance);
-        updateStatus();
-    }
-
-    private void updateStatus() {
-        BigDecimal balance = getBalanceAmount();
-        BigDecimal total = getTotalAmount();
-
-        if (balance.compareTo(BigDecimal.ZERO) == 0) {
-            this.status = InvoiceStatus.PAID;
-        } else if (balance.compareTo(total) < 0) {
-            this.status = InvoiceStatus.PARTIAL;
-        }
-    }
-
-    public void issue(User issuer) {
-        this.status = InvoiceStatus.ISSUED;
-        this.issuedBy = issuer;
-        this.issuedAt = LocalDateTime.now();
-    }
+//    private void updateStatus() {
+//        BigDecimal balance = getBalanceAmount();
+//        BigDecimal total = getTotalAmount();
+//
+//        if (balance.compareTo(BigDecimal.ZERO) == 0) {
+//            this.status = InvoiceStatus.PAID;
+//        } else if (balance.compareTo(total) < 0) {
+//            this.status = InvoiceStatus.PARTIAL;
+//        }
+//    }
+//
+//    public void issue(User issuer) {
+//        this.status = InvoiceStatus.ISSUED;
+//        this.issuedBy = issuer;
+//        this.issuedAt = LocalDateTime.now();
+//    }
 
     public void voidInvoice() {
         this.status = InvoiceStatus.VOID;
@@ -162,8 +169,6 @@ public class Invoice extends BaseEntity implements TenantScoped {
         return "Invoice{" +
                 ", number='" + number + '\'' +
                 ", status=" + status +
-                ", totalAmount=" + getTotalAmount() +
-                ", balanceAmount=" + getBalanceAmount() +
                 '}';
     }
 }

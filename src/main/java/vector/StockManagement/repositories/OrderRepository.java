@@ -1,5 +1,6 @@
 package vector.StockManagement.repositories;
 
+import jakarta.validation.constraints.NotNull;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -7,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import vector.StockManagement.model.Order;
+import vector.StockManagement.model.User;
 import vector.StockManagement.model.enums.OrderStatus;
 
 import java.time.LocalDateTime;
@@ -30,4 +32,8 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
 
     @Query("SELECT o FROM Order o JOIN FETCH o.orderLines ol JOIN FETCH ol.tenant WHERE o.tenant.id = :tenantId")
     Page<Order> findAllByTenantId(@Param("tenantId") Long tenantId, Pageable pageable);
+
+    List<Order> findAllByCreatedBy(User createdBy);
+
+    List<Order> findAllByStatus(@NotNull OrderStatus status);
 }

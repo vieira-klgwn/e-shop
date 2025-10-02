@@ -14,6 +14,7 @@ public class ProductDisplayDTO {
     private String category;
     private String size;
     private String code;
+    private Integer qty;
 
 
 }

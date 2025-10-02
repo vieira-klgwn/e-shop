@@ -31,6 +31,8 @@ public class RegisterRequest {
     private String confirmPassword;
     private Role role;
 
+    private Long distributor_id;
+
     @NotBlank
     private String gender;
     @NotNull

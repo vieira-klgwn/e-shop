@@ -14,6 +14,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import vector.StockManagement.config.JwtService;
+import vector.StockManagement.model.Distributor;
 import vector.StockManagement.model.Tenant;
 import vector.StockManagement.model.Token;
 import vector.StockManagement.model.enums.Role;
@@ -59,6 +60,16 @@ public class AuthenticationService {
             throw new IllegalStateException("Gender is required");
         }
 
+        User distributor = null;
+
+        if (request.getRole() == Role.RETAILER || request.getRole() == Role.STORE_MANAGER || request.getRole() == Role.ACCOUNTANT_AT_STORE) {
+            distributor = userRepository.findById(request.getDistributor_id()).orElseThrow(()-> new IllegalStateException("Distributor not found"));
+        }
+
+        if(request.getPassword().length() < 8) {
+            throw new IllegalStateException("Password must be 8 characters long");
+        }
+
 
 
 
@@ -82,6 +93,7 @@ public class AuthenticationService {
                 .tenant(tenant)
                 .birthDate(request.getBirthDate())
                 .phone(request.getPhone())
+                .distributor(distributor)
                 .nationality(request.getNationality())
                 .build();
         user.setCreatedAt(LocalDateTime.now());
@@ -100,6 +112,10 @@ public class AuthenticationService {
                 .refreshToken(refreshToken)
                 .build();
     }
+
+
+
+
 
     public AuthenticationResponse registerAdmin(RegisterRequest request) {
         logger.info("Registering tenant admin email=" + request.getEmail() + ", tenantId=" + (request.getTenant()!=null?request.getTenant().getId():null));

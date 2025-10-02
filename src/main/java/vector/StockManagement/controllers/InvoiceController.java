@@ -11,6 +11,10 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import vector.StockManagement.config.TenantAwareValidator;
 import vector.StockManagement.model.Invoice;
+import vector.StockManagement.model.TenantScoped;
+import vector.StockManagement.model.User;
+import vector.StockManagement.model.dto.InvoiceDisplayDTO;
+import vector.StockManagement.repositories.UserRepository;
 import vector.StockManagement.services.InvoiceService;
 
 import java.util.List;
@@ -22,22 +26,25 @@ public class InvoiceController {
 
     private final InvoiceService invoiceService;
     private final TenantAwareValidator tenantValidator;
+    private final UserRepository userRepository;
 
-    @GetMapping
+    @GetMapping("/allInvoices/{id}")
 //    @PreAuthorize("hasAnyRole('ADMIN', 'ACCOUNTANT', 'SALES_MANAGER','WAREHOUSE_MANAGER','STORE_MANAGER')")
-    public Page<Invoice> getAll(@RequestParam(defaultValue = "0") int page,
-                               @RequestParam(defaultValue = "20") int size) {
+    public Page<InvoiceDisplayDTO> getAll(@RequestParam(defaultValue = "0") int page,
+                                          @RequestParam(defaultValue = "20") int size,
+                                          @PathVariable Long id) {
         Pageable pageable = PageRequest.of(page, size);
-        List<Invoice> invoices = invoiceService.findAll();
+        User user = userRepository.findById(id).orElseThrow(() -> new  IllegalStateException("User not found"));
+        List<InvoiceDisplayDTO> invoices = invoiceService.findAll(user);
         int start = Math.min((int) pageable.getOffset(), invoices.size());
         int end = Math.min(start + pageable.getPageSize(), invoices.size());
         return new PageImpl<>(invoices.subList(start, end), pageable, invoices.size());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Invoice> getById(@PathVariable Long id) {
-        Invoice invoice = invoiceService.findById(id);
-        if (invoice != null && tenantValidator.validateTenantAccess(invoice)) {
+    public ResponseEntity<InvoiceDisplayDTO> getById(@PathVariable Long id) {
+        InvoiceDisplayDTO invoice = invoiceService.findById(id);
+        if (invoice != null ) {
             return ResponseEntity.ok(invoice);
         }
         return ResponseEntity.notFound().build();
@@ -52,7 +59,7 @@ public class InvoiceController {
     @PutMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'ACCOUNTANT')")
     public ResponseEntity<Invoice> update(@PathVariable Long id, @RequestBody Invoice invoice) {
-        Invoice existing = invoiceService.findById(id);
+        Invoice existing = invoiceService.update(id);
         if (existing == null || !tenantValidator.validateTenantAccess(existing)) {
             return ResponseEntity.notFound().build();
         }
@@ -63,7 +70,7 @@ public class InvoiceController {
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
-        Invoice existing = invoiceService.findById(id);
+        Invoice existing = invoiceService.getInvoice(id);
         if (existing != null && tenantValidator.validateTenantAccess(existing)) {
             invoiceService.delete(id);
             return ResponseEntity.noContent().build();

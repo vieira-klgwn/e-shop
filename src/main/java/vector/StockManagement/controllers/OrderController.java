@@ -14,6 +14,8 @@ import vector.StockManagement.model.Order;
 import vector.StockManagement.model.User;
 import vector.StockManagement.model.dto.OrderDTO;
 import vector.StockManagement.model.dto.OrderDisplayDTO;
+import vector.StockManagement.model.enums.OrderLevel;
+import vector.StockManagement.model.enums.OrderStatus;
 import vector.StockManagement.repositories.OrderRepository;
 import vector.StockManagement.repositories.UserRepository;
 import vector.StockManagement.services.OrderService;
@@ -42,12 +44,35 @@ public class OrderController {
         return new PageImpl<>(orders.subList(start, end), pageable, orders.size());
     }
 
-    @GetMapping("/store_ordersToApprove")
-    @PreAuthorize("hasAnyRole('ACCOUNTANT')")
-    public Page<Order> getStoreOrdersToApprove(@RequestParam(defaultValue = "0") int page,
-                                                   @RequestParam(defaultValue = "0") int size) {
+    @GetMapping("/distributor")
+    @PreAuthorize("hasAnyRole('DISTRIBUTOR','ACCOUNTANT','WAREHOUSE_MANAGER','ADMIN','SALES_MANAGER','STORE_MANAGER')")
+    public Page<OrderDisplayDTO> getAllByDistributor(@RequestParam(defaultValue = "0") int page,
+                                        @RequestParam(defaultValue = "20") int size, @AuthenticationPrincipal User currentUser) {
         Pageable pageable = PageRequest.of(page, size);
-        List<Order> orders = orderService.getOrdersFromRetailer();
+        List<OrderDisplayDTO> orders = orderService.findAllByDistributor(currentUser.getId());
+        int start = Math.min((int) pageable.getOffset(), orders.size());
+        int end = Math.min(start + pageable.getPageSize(), orders.size());
+        return new PageImpl<>(orders.subList(start, end), pageable, orders.size());
+    }
+
+    @GetMapping("/store_ordersToApprove") // accountant uses this api to get all orders from the retailer
+    @PreAuthorize("hasAnyRole('ACCOUNTANT_AT_STORE')")
+    public Page<OrderDisplayDTO> getStoreOrdersToApprove(@RequestParam(defaultValue = "0") int page,
+                                                   @RequestParam(defaultValue = "0") int size, @AuthenticationPrincipal User currentUser) {
+        Pageable pageable = PageRequest.of(page, size);
+        List<OrderDisplayDTO> orders = orderService.getOrdersFromRetailer(currentUser.getId()).stream().filter(order-> OrderStatus.valueOf(order.getOrderStatus())==OrderStatus.SUBMITTED).toList();
+        int start = Math.min((int) pageable.getOffset(), orders.size());
+        int end = Math.min(start + pageable.getPageSize(), orders.size());
+        return new PageImpl<>(orders.subList(start, end), pageable, orders.size());
+
+    }
+
+    @GetMapping("/store_ordersToFulfill")
+    @PreAuthorize("hasAnyRole('STORE_MANAGER')")
+    public Page<OrderDisplayDTO> getStoreOrdersToFulfill(@RequestParam(defaultValue = "0") int page,
+                                               @RequestParam(defaultValue = "0") int size, @AuthenticationPrincipal User currentUser) {
+        Pageable pageable = PageRequest.of(page, size);
+        List<OrderDisplayDTO> orders = orderService.getOrdersFromRetailer(currentUser.getId()).stream().filter(order-> OrderStatus.valueOf(order.getOrderStatus())== OrderStatus.APPROVED).toList();
         int start = Math.min((int) pageable.getOffset(), orders.size());
         int end = Math.min(start + pageable.getPageSize(), orders.size());
         return new PageImpl<>(orders.subList(start, end), pageable, orders.size());
@@ -55,12 +80,26 @@ public class OrderController {
     }
 
 
-    @GetMapping("/store_orders")
+
+
+    @GetMapping("/retailer/store_orders")  //use this api to see all orders from the store--retailer uses it to see all orders he/she made---distributor is also using it to see all retailer orders
     @PreAuthorize("hasAnyRole('DISTRIBUTOR','STORE_MANAGER','RETAILER')")
     public Page<OrderDisplayDTO> getAllStoreOrders(@RequestParam(defaultValue = "0") int page,
-                                                   @RequestParam(defaultValue = "0") int size) {
+                                                   @RequestParam(defaultValue = "0") int size, @AuthenticationPrincipal User currentUser) {
         Pageable pageable = PageRequest.of(page, size);
-        List<OrderDisplayDTO> orders = orderService.getOrderDisplayDTOforStore();
+        List<OrderDisplayDTO> orders = orderService.getOrderDisplayDTOforStore(currentUser.getDistributor().getId());
+        int start = Math.min((int) pageable.getOffset(), orders.size());
+        int end = Math.min(start + pageable.getPageSize(), orders.size());
+        return new PageImpl<>(orders.subList(start, end), pageable, orders.size());
+
+    }
+
+    @GetMapping("/store_orders")  //use this api to see all orders from the store--retailer uses it to see all orders he/she made---distributor is also using it to see all retailer orders
+    @PreAuthorize("hasAnyRole('DISTRIBUTOR','STORE_MANAGER','RETAILER')")
+    public Page<OrderDisplayDTO> getAllStoreOrdersForDistributor(@RequestParam(defaultValue = "0") int page,
+                                                   @RequestParam(defaultValue = "0") int size, @AuthenticationPrincipal User currentUser) {
+        Pageable pageable = PageRequest.of(page, size);
+        List<OrderDisplayDTO> orders = orderService.getOrderDisplayDTOforStoreForDistributor();
         int start = Math.min((int) pageable.getOffset(), orders.size());
         int end = Math.min(start + pageable.getPageSize(), orders.size());
         return new PageImpl<>(orders.subList(start, end), pageable, orders.size());
@@ -87,7 +126,7 @@ public class OrderController {
     }
 
     @PutMapping("/approve/{id}")
-    @PreAuthorize("hasRole('ACCOUNTANT')")
+    @PreAuthorize("hasAnyRole('ACCOUNTANT', 'ACCOUNTANT_AT_STORE')")
     public ResponseEntity<Order> approve(@AuthenticationPrincipal User user, @PathVariable Long id) {
         Order order = orderRepository.getOrderById(id);
         if (order == null) {
@@ -116,6 +155,14 @@ public class OrderController {
     public ResponseEntity<Order> fulfill(@AuthenticationPrincipal User user, @PathVariable Long id) {
         return ResponseEntity.ok(((vector.StockManagement.services.impl.OrderServiceImpl) orderService).fulfillOrder(id, user.getId()));
     }
+
+    @PutMapping("/store/fulfill/{id}")
+    @PreAuthorize("hasAnyRole('STORE_MANAGER')")
+    public ResponseEntity<Order> fulfillRetailOrders(@AuthenticationPrincipal User user, @PathVariable Long id) {
+        return ResponseEntity.ok(((vector.StockManagement.services.impl.OrderServiceImpl) orderService).fulfillOrder(id, user.getId()));
+    }
+
+
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {

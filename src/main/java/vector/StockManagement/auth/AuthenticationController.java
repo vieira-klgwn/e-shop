@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import jakarta.validation.Valid;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import vector.StockManagement.model.Token;
@@ -40,21 +41,13 @@ public class AuthenticationController {
     @Value("${app.upload.dir:uploads}")
     private String uploadDir;
 
-    // implment admin api(registrtion role- admi
-    // crudo users  preaouthrising on admin
-
-
-    // model business /
-    // users should hold
-
-
-
 
     @PostMapping("/register")
     @PreAuthorize("hasAnyRole('SUPER_ADMIN','ADMIN','MANAGING_DIRECTOR')")
     public ResponseEntity<AuthenticationResponse> register(@Valid @RequestBody RegisterRequest registerRequest) {
 
-        String regex = "^\\\\+2507[8293]\\\\d{8}$";
+
+        String regex = "^\\+2507[8293]\\d{7}$";
         Pattern pattern = Pattern.compile(regex);
         Matcher matcher = pattern.matcher(registerRequest.getPhone());
         if (!matcher.matches()) {
@@ -69,23 +62,26 @@ public class AuthenticationController {
 
     @PostMapping("/register/retailer")
     @PreAuthorize("hasAnyRole('DISTRIBUTOR')")
-    public ResponseEntity<AuthenticationResponse> registerRetailer(@Valid @RequestBody RegisterRequest registerRequest) {
+    public ResponseEntity<AuthenticationResponse> registerRetailer(@Valid @RequestBody RegisterRequest registerRequest, @AuthenticationPrincipal User currentDistributor) {
         registerRequest.setRole(Role.RETAILER);
+        registerRequest.setDistributor_id(currentDistributor.getId());
         return ResponseEntity.ok(authenticationService.register(registerRequest));
     }
 
     @PostMapping("/register/accountantAtStore")
     @PreAuthorize("hasRole('DISTRIBUTOR')")
-    public ResponseEntity<AuthenticationResponse> registerAccountantAtStore(@Valid @RequestBody RegisterRequest registerRequest) {
-        registerRequest.setRole(Role.ACCOUNTANT);
+    public ResponseEntity<AuthenticationResponse> registerAccountantAtStore(@Valid @RequestBody RegisterRequest registerRequest, @AuthenticationPrincipal User currentDistributor) {
+        registerRequest.setRole(Role.ACCOUNTANT_AT_STORE);
+        registerRequest.setDistributor_id(currentDistributor.getId());
         return ResponseEntity.ok(authenticationService.register(registerRequest));
     }
 
 
     @PostMapping("register/store_manager")
     @PreAuthorize("hasAnyRole('DISTRIBUTOR')")
-    public ResponseEntity<AuthenticationResponse> registerStoreManager(@Valid @RequestBody RegisterRequest registerRequest) {
+    public ResponseEntity<AuthenticationResponse> registerStoreManager(@Valid @RequestBody RegisterRequest registerRequest, @AuthenticationPrincipal User currentDistributor) {
         registerRequest.setRole(Role.STORE_MANAGER);
+        registerRequest.setDistributor_id(currentDistributor.getId());
         return ResponseEntity.ok(authenticationService.register(registerRequest));
     }
 

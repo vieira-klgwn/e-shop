@@ -49,18 +49,18 @@ public class Payment extends BaseEntity {
     @NotNull
     @DecimalMin("0.01")
     @Column(name = "amount", nullable = false, precision = 15, scale = 2)
-    private BigDecimal amount;
+    private Long amount;
 
     @NotBlank
     @Size(max = 3)
-    @Column(name = "currency", nullable = false)
+    @Column(name = "currency")
     private String currency;
 
-    @Column(name = "paid_at", nullable = false)
+    @Column(name = "paid_at")
     private LocalDateTime paidAt;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "posted_by", nullable = false)
+    @JoinColumn(name = "posted_by")
     private User postedBy;
 
     @Size(max = 500)
@@ -72,12 +72,12 @@ public class Payment extends BaseEntity {
     private PaymentStatus paymentStatus;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "tenant_id", nullable = false)
+    @JoinColumn(name = "tenant_id")
     @JsonIgnore
     private Tenant tenant;
 
 
-    public Payment(Invoice invoice, PaymentMethod method, BigDecimal amount, String currency, User postedBy) {
+    public Payment(Invoice invoice, PaymentMethod method, Long amount, String currency, User postedBy) {
         this();
         this.invoice = invoice;
         this.method = method;

@@ -56,19 +56,62 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public List<Order> getOrdersFromRetailer() {
-        List<Order> orders = orderRepository.findAll();
-        List<Order> ordersFromRetailer = new ArrayList<>();
-        for (Order order : orders) {
-            if( order.getLevel() == OrderLevel.L2 ) {
-                ordersFromRetailer.add(order);
+    public List<OrderDisplayDTO> findAllByDistributor(Long distributorId) {
+        User user = userRepository.findById(distributorId).orElseThrow(() -> new RuntimeException("User not found"));
+
+        List<OrderDisplayDTO> displayDTOs = orderRepository.findAllByCreatedBy(user).stream().map(this::getOrderDisplayDTO).toList();
+
+        List<OrderDisplayDTO> displays = new ArrayList<>();
+        for (OrderDisplayDTO displayDTO : displayDTOs) {
+            if (orderRepository.findById(displayDTO.getOrderId()).get().getLevel() == OrderLevel.L1) {
+                displays.add(displayDTO);
             }
         }
-        return ordersFromRetailer;
+        return displays;
     }
 
     @Override
-    public List<OrderDisplayDTO> getOrderDisplayDTOforStore() {
+    public List<OrderDisplayDTO> getOrdersFromRetailer(Long accountantId) {
+        User accountant = userRepository.findById(accountantId).orElseThrow(() -> new RuntimeException("Accountant not found"));
+        User distributor = accountant.getDistributor();
+        List<OrderDisplayDTO> ordersToDisplay = new ArrayList<>();
+        List<Order> orders = orderRepository.findAll();
+        List<Order> ordersFromRetailer = new ArrayList<>();
+
+        for (Order order : orders) {
+            if(order.getLevel() == OrderLevel.L2) {
+                ordersFromRetailer.add(order);
+            }
+        }
+        for (Order order : ordersFromRetailer) {
+            if (order.getCreatedBy().getDistributor()==distributor){
+                ordersToDisplay.add(getOrderDisplayDTO(order));
+
+
+            }
+        }
+
+
+        return ordersToDisplay;
+    }
+
+    @Override
+    public List<OrderDisplayDTO> getOrderDisplayDTOforStore(Long distributtorId) {
+        User user = userRepository.findById(distributtorId).orElseThrow(() -> new RuntimeException("Distributor not found"));
+        List<OrderDisplayDTO> displayDTOs = orderRepository.findAllByCreatedBy(user).stream().map(this::getOrderDisplayDTO).toList();
+        List<OrderDisplayDTO> displays = new ArrayList<>();
+        for (OrderDisplayDTO displayDTO : displayDTOs) {
+            if (orderRepository.findById(displayDTO.getOrderId()).get().getLevel() == OrderLevel.L2) {
+                displays.add(displayDTO);
+            }
+        }
+        return displays;
+
+    }
+
+    @Override
+    public List<OrderDisplayDTO> getOrderDisplayDTOforStoreForDistributor() {
+
         List<OrderDisplayDTO> displayDTOs = orderRepository.findAll().stream().map(this::getOrderDisplayDTO).toList();
         List<OrderDisplayDTO> displays = new ArrayList<>();
         for (OrderDisplayDTO displayDTO : displayDTOs) {
@@ -80,7 +123,9 @@ public class OrderServiceImpl implements OrderService {
 
     }
 
-    private OrderDisplayDTO getOrderDisplayDTO(Order order) {
+
+
+    public OrderDisplayDTO getOrderDisplayDTO(Order order) {
 
         OrderDisplayDTO orderDisplayDTO = new OrderDisplayDTO();
         orderDisplayDTO.setOrderId(order.getId());
@@ -95,6 +140,8 @@ public class OrderServiceImpl implements OrderService {
         orderDisplayDTO.setDeliveryDate(order.getDeliveryDate());
         orderDisplayDTO.setOrderAmount(order.getOrderAmount());
         orderDisplayDTO.setCreatedBy(order.getCreatedBy().getEmail());
+
+
 
         List<OrderDisplayDTO.OrderLineDTO> lineDTOS = new ArrayList<>();
 
@@ -160,6 +207,7 @@ public class OrderServiceImpl implements OrderService {
         order.setCurrency("FRW");
 
         OrderLevel level = user.getRole().equals(Role.RETAILER) ? OrderLevel.L2 : OrderLevel.L1;
+
         System.out.println(level.toString());
         order.setLevel(level);
 
@@ -384,6 +432,7 @@ public class OrderServiceImpl implements OrderService {
     
     private void createOrderNotifications(Order order, String eventType) {
         try {
+
             // Notification to store
             if (order.getStore() != null) {
                 Notification storeNotification = getNotification(eventType, ": Order ", order, "Order " + order.getNumber() + " has been " + eventType.toLowerCase() +

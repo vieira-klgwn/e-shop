@@ -2,11 +2,15 @@ package vector.StockManagement.services.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.crossstore.ChangeSetPersister;
 import org.springframework.stereotype.Service;
 import vector.StockManagement.model.Invoice;
+import vector.StockManagement.model.User;
+import vector.StockManagement.model.dto.InvoiceDisplayDTO;
 import vector.StockManagement.repositories.InvoiceRepository;
 import vector.StockManagement.services.InvoiceService;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -14,19 +18,60 @@ import java.util.List;
 public class InvoiceServiceImpl implements InvoiceService {
 
     private final InvoiceRepository invoiceRepository;
+    private final OrderServiceImpl orderServiceImpl;
 
     @Override
-    public List<Invoice> findAll() {
-        return invoiceRepository.findAll();
+    public List<InvoiceDisplayDTO> findAll(User userCreateBy) {
+
+        List<Invoice> invoices = invoiceRepository.findAllByOrder_CreatedBy(userCreateBy);
+        List<InvoiceDisplayDTO> dtos = new ArrayList<>();
+        for (Invoice invoice : invoices) {
+            InvoiceDisplayDTO dto = getInvoiceDisplayDTO(invoice);
+            dtos.add(dto);
+        }
+        return dtos;
+    }
+
+    private InvoiceDisplayDTO getInvoiceDisplayDTO(Invoice invoice) {
+        InvoiceDisplayDTO invoiceDisplayDTO = new InvoiceDisplayDTO();
+        invoiceDisplayDTO.setInvoiceId(invoice.getId());
+        invoiceDisplayDTO.setInvoiceAmount(invoice.getInvoiceAmount());
+        invoiceDisplayDTO.setInvoiceNumber(invoice.getNumber());
+        invoiceDisplayDTO.setCurrency(invoice.getCurrency());
+        invoiceDisplayDTO.setStatus(invoice.getStatus().toString());
+        invoiceDisplayDTO.setDueDate(invoice.getDueDate());
+        invoiceDisplayDTO.setIssuedBy(invoice.getIssuedBy());
+        invoiceDisplayDTO.setOrder(orderServiceImpl.getOrderDisplayDTO(invoice.getOrder()));
+        invoiceDisplayDTO.setOrderBy(invoice.getOrder().getCreatedBy());
+        return invoiceDisplayDTO;
     }
 
     @Override
-    public Invoice findById(Long id) {
-        return invoiceRepository.findById(id).orElse(null);
+    public InvoiceDisplayDTO findById(Long id) {
+
+        Invoice invoice = invoiceRepository.findById(id).orElse(null);
+        assert invoice != null;
+        return getInvoiceDisplayDTO(invoice);
+    }
+
+    @Override
+    public Invoice getInvoice(Long id) {
+        return invoiceRepository.findById(id).orElseThrow(() -> new IllegalStateException("Invoice not found"));
     }
 
     @Override
     public Invoice save(Invoice invoice) {
+        return invoiceRepository.save(invoice);
+    }
+
+    @Override
+    public Invoice update(Long invoiceId) {
+
+        Invoice invoice= invoiceRepository.findById(invoiceId).orElse(null);
+        assert invoice!= null;
+        invoice.setInvoiceAmount(invoice.getInvoiceAmount());
+        //put other updates
+
         return invoiceRepository.save(invoice);
     }
 

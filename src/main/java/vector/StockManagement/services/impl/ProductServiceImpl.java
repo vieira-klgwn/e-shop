@@ -16,6 +16,7 @@ import vector.StockManagement.model.*;
 import vector.StockManagement.model.dto.PriceDisplayDTO;
 import vector.StockManagement.model.dto.ProductDisplayDTO;
 import vector.StockManagement.model.enums.LocationType;
+import vector.StockManagement.model.enums.OrderStatus;
 import vector.StockManagement.model.enums.PriceListLevel;
 import vector.StockManagement.repositories.*;
 import vector.StockManagement.services.ProductService;
@@ -45,17 +46,22 @@ public class ProductServiceImpl implements ProductService {
 
         if (level == PriceListLevel.DISTRIBUTOR){
             Long productId = null;
-            List<Order> orders = orderRepository.findAll();
-            for(Order order: orders) {
-                for(OrderLine orderLine: order.getOrderLines()) {
-                    productId = orderLine.getProduct().getId();
-                }
+//            List<Order> orders = orderRepository.findAllByStatus(OrderStatus.FULFILLED);
+//            for(Order order: orders) {
+//                for(OrderLine orderLine: order.getOrderLines()) {
+//                    productId = orderLine.getProduct().getId();
+//                }
+//            }
+            List<Inventory> storeInventory = inventoryRepository.findAllByLocationType(LocationType.DISTRIBUTOR);
+            for (Inventory inventory: storeInventory){
+                productId = inventory.getProduct().getId();
             }
 
             for (Product  product: productRepository.findAll()) {
                 if (Objects.equals(product.getId(), productId)) {
                     ProductDisplayDTO productDisplayDTO = getProductDisplayDTO(product);
                     productDisplayDTO.setPrice(getProductPrice(product, level));
+                    productDisplayDTO.setQty(inventoryRepository.findByProductAndLocationType(product, LocationType.DISTRIBUTOR).getQtyOnHand());
                     productDisplayDTOs.add(productDisplayDTO);
 
                 }
@@ -65,9 +71,13 @@ public class ProductServiceImpl implements ProductService {
         }
         else {
             for (Product product: productRepository.findAll()) {
+                if (inventoryRepository.findByProductAndLocationType(product, LocationType.WAREHOUSE )== null) {
+                    continue;
+                }
 
                 ProductDisplayDTO dto = getProductDisplayDTO(product);
                 dto.setPrice(getProductPrice(product, level));
+                dto.setQty(inventoryRepository.findByProductAndLocationType(product, LocationType.WAREHOUSE).getQtyOnHand());
                 productDisplayDTOs.add(dto);
             }
             return productDisplayDTOs;
@@ -83,7 +93,7 @@ public class ProductServiceImpl implements ProductService {
         for(PriceList priceList: priceListRepository.findAll()) {
 
             if(priceList.getIsActive() == Boolean.TRUE) {
-                for(PriceListItem item: priceList.getItems()) {
+                for(PriceListItem item: priceList.getItems().stream().filter(p -> p.getProduct().getId().equals(product.getId())).toList()) {
 
                     if (item.getPriceList().getLevel() == PriceListLevel.DISTRIBUTOR) {
                         distributorPrice = item.getBasePrice();
@@ -155,16 +165,27 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public List<Product> getAllStoreProducts(){
+    public List<ProductDisplayDTO> getAllStoreProducts(){
         List<Product> products = productRepository.findAll();
         List<Product> storeProducts = new ArrayList<>();
+        List<ProductDisplayDTO> productDisplayDTOs = new ArrayList<>();
         for (Product product : products) {
-            if(inventoryRepository.findByProduct(product).getLocationType() == LocationType.DISTRIBUTOR){
+            if (inventoryRepository.findByProductAndLocationType(product, LocationType.DISTRIBUTOR )== null) {
+                continue;
+            }
+            if (product == inventoryRepository.findByProductAndLocationType(product, LocationType.DISTRIBUTOR).getProduct()) {
                 storeProducts.add(product);
             }
         }
 
-        return storeProducts;
+        for(Product product: storeProducts){
+            ProductDisplayDTO dto = getProductDisplayDTO(product);
+            dto.setPrice(getProductPrice(product, PriceListLevel.DISTRIBUTOR));
+            dto.setQty(inventoryRepository.findByProductAndLocationType(product, LocationType.DISTRIBUTOR).getQtyOnHand());
+            productDisplayDTOs.add(dto);
+
+        }
+        return productDisplayDTOs;
     }
 
 

@@ -62,6 +62,17 @@ public class User implements UserDetails {
     private UserStatus userStatus;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "distributor_id")
+    @JsonIgnore
+    private User distributor;
+
+    @OneToMany(mappedBy = "issuedTo")
+    @JsonIgnore
+    @ToString.Exclude
+    private List<Invoice> invoices;
+
+
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "tenant_id")
     @JsonIgnore
     private Tenant tenant;

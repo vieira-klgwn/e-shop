@@ -12,5 +12,5 @@ public interface PaymentService {
     Payment findById(Long id);
     Payment save(Payment payment);
     void delete(Long id);
-    Payment processPayment(Long invoiceId, BigDecimal amount, PaymentMethod method, String txnRef);
+    Payment processPayment(Long invoiceId, Long amount, PaymentMethod method, String txnRef, Long userId);
 }

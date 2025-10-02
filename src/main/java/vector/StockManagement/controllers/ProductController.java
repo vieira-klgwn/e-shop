@@ -44,7 +44,7 @@ public class ProductController {
     @GetMapping("/store")
     public List<ProductDisplayDTO> getAllStoreProducts() {
         PriceListLevel level = PriceListLevel.DISTRIBUTOR;
-        return productService.findAll(level);
+        return productService.getAllStoreProducts();
     }
 
     @GetMapping("/{id}/factory")
