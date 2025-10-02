@@ -58,7 +58,7 @@ public class UserService {
     }
 
     public List<User> getAllUsers() {
-        return userRepository.findAll().stream().filter(user1 -> user1.getId() == 2L).toList();
+        return userRepository.findAll().stream().toList();
     }
 
     public Optional<User> getUserById(Long id) {
