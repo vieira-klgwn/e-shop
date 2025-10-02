@@ -81,13 +81,14 @@ public class UserService {
             try {
                 if (tenantId != null) {
                     String jpql = "SELECT u FROM User u"; // No tenant condition
-                    return entityManager.createQuery(jpql, User.class).getResultList(); // Note: For full Page, you'd need to count separately or use Spring Data's PageImpl
+                    return entityManager.createQuery(jpql, User.class).getResultList().stream().filter(user -> user.getRole() != Role.SUPER_ADMIN).toList(); // Note: For full Page, you'd need to count separately or use Spring Data's PageImpl
                     // Simpler: If you add @Query("SELECT u FROM User u") to a repo method, use that.
                 }
                 else {
                     return userRepository.findAll();
                 }
             } finally {
+                // bring back the filter
                 session.enableFilter("tenantFilter").setParameter("tenantId", tenantId);
             }
 
