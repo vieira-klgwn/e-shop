@@ -31,8 +31,8 @@ public class PaymentController {
 
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'ACCOUNTANT','ACCOUNTANT_AT_STORE')")
-    public List<Payment> getAll() {
-        return paymentService.findAll();
+    public List<Payment> getAll(@AuthenticationPrincipal User user) {
+        return paymentService.findAll(user.getId());
     }
 
     @GetMapping("/{id}")

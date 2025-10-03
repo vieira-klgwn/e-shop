@@ -3,8 +3,10 @@ package vector.StockManagement.controllers;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import vector.StockManagement.model.Notification;
+import vector.StockManagement.model.User;
 import vector.StockManagement.services.NotificationSerivice;
 
 import java.util.List;
@@ -17,8 +19,8 @@ public class NotificationController {
     private NotificationSerivice notificationSerivice;
 
     @GetMapping
-    public List<Notification> getAll() {
-        return notificationSerivice.findAll();
+    public List<Notification> getAll(@AuthenticationPrincipal User user) {
+        return notificationSerivice.findAll(user.getId());
     }
 
     @GetMapping("/{id}")

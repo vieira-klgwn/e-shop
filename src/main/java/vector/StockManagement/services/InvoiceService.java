@@ -8,6 +8,9 @@ import java.util.List;
 
 public interface InvoiceService {
     List<InvoiceDisplayDTO> findAll(User user);
+
+    List<InvoiceDisplayDTO> getAll();
+
     InvoiceDisplayDTO findById(Long id);
     Invoice getInvoice(Long id);
     Invoice save(Invoice invoice);

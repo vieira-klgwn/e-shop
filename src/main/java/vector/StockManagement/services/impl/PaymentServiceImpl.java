@@ -1,24 +1,19 @@
 package vector.StockManagement.services.impl;
 
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-import vector.StockManagement.config.TenantContext;
 import vector.StockManagement.model.Invoice;
-import vector.StockManagement.model.Order;
 import vector.StockManagement.model.Payment;
 import vector.StockManagement.model.User;
-import vector.StockManagement.model.enums.OrderStatus;
 import vector.StockManagement.model.enums.PaymentMethod;
 import vector.StockManagement.model.enums.PaymentStatus;
 import vector.StockManagement.repositories.*;
 import vector.StockManagement.services.PaymentService;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -33,8 +28,10 @@ public class PaymentServiceImpl implements PaymentService {
     private static final Logger log = LoggerFactory.getLogger(PaymentServiceImpl.class);
 
     @Override
-    public List<Payment> findAll() {
-        return paymentRepository.findAll();
+    public List<Payment> findAll(Long userId) {
+
+        User user = userRepository.findById(userId).orElseThrow(()->new EntityNotFoundException("User not found"));
+        return paymentRepository.findAllByPostedBy(user);
     }
 
     @Override

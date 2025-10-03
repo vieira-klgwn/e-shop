@@ -12,6 +12,7 @@ import vector.StockManagement.model.enums.NotificationStatus;
 import vector.StockManagement.model.enums.NotificationType;
 import vector.StockManagement.repositories.InventoryRepository;
 import vector.StockManagement.repositories.NotificationRepository;
+import vector.StockManagement.repositories.UserRepository;
 import vector.StockManagement.services.NotificationSerivice;
 
 import java.time.LocalDateTime;
@@ -24,10 +25,11 @@ public class NotificationServiceImpl implements NotificationSerivice {
 
     private final NotificationRepository notificationRepository;
     private final InventoryRepository inventoryRepository;
+    private final UserRepository userRepository;
 
     @Override
-    public List<Notification> findAll() {
-        return notificationRepository.findAll();
+    public List<Notification> findAll(Long userId) {
+        return userRepository.findById(userId).get().getNotifications();
     }
 
     @Override

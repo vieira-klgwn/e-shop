@@ -107,6 +107,7 @@ public class OrderController {
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'DISTRIBUTOR', 'STORE_MANAGER', 'SALES_MANAGER', 'ACCOUNTANT','WAREHOUSE_MANAGER','ACCOUNTANT_AT_STORE')")
     public ResponseEntity<OrderDisplayDTO> getById(@PathVariable Long id) {
         return  ResponseEntity.ok(orderService.findByIdDisplayed(id));
     }
@@ -136,7 +137,7 @@ public class OrderController {
     }
 
     @PutMapping("/reject/{id}")
-    @PreAuthorize("hasRole('ACCOUNTANT')")
+    @PreAuthorize("hasAnyRole('ACCOUNTANT','ACCOUNTANT_AT_STORE')")
     public ResponseEntity<Order> reject(@PathVariable Long id) {
         Order order = orderService.findById(id);
         if (order == null) return ResponseEntity.notFound().build();

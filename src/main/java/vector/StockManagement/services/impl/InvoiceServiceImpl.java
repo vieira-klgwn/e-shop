@@ -2,7 +2,6 @@ package vector.StockManagement.services.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.crossstore.ChangeSetPersister;
 import org.springframework.stereotype.Service;
 import vector.StockManagement.model.Invoice;
 import vector.StockManagement.model.User;
@@ -31,6 +30,21 @@ public class InvoiceServiceImpl implements InvoiceService {
         }
         return dtos;
     }
+
+
+    @Override
+    public List<InvoiceDisplayDTO> getAll() {
+
+        List<Invoice> invoices = invoiceRepository.findAll();
+        List<InvoiceDisplayDTO> dtos = new ArrayList<>();
+        for (Invoice invoice : invoices) {
+            InvoiceDisplayDTO dto = getInvoiceDisplayDTO(invoice);
+            dtos.add(dto);
+        }
+        return dtos;
+    }
+
+
 
     private InvoiceDisplayDTO getInvoiceDisplayDTO(Invoice invoice) {
         InvoiceDisplayDTO invoiceDisplayDTO = new InvoiceDisplayDTO();

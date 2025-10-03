@@ -8,7 +8,10 @@ import java.math.BigDecimal;
 import java.util.List;
 
 public interface PaymentService {
-    List<Payment> findAll();
+
+
+    List<Payment> findAll(Long userId);
+
     Payment findById(Long id);
     Payment save(Payment payment);
     void delete(Long id);

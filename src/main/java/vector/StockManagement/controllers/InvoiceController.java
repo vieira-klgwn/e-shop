@@ -41,6 +41,19 @@ public class InvoiceController {
         return new PageImpl<>(invoices.subList(start, end), pageable, invoices.size());
     }
 
+
+    @GetMapping
+//    @PreAuthorize("hasAnyRole('ADMIN', 'ACCOUNTANT', 'SALES_MANAGER','WAREHOUSE_MANAGER','STORE_MANAGER')")
+    public Page<InvoiceDisplayDTO> getAllInvoices(@RequestParam(defaultValue = "0") int page,
+                                          @RequestParam(defaultValue = "20") int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        List<InvoiceDisplayDTO> invoices = invoiceService.getAll();
+        int start = Math.min((int) pageable.getOffset(), invoices.size());
+        int end = Math.min(start + pageable.getPageSize(), invoices.size());
+        return new PageImpl<>(invoices.subList(start, end), pageable, invoices.size());
+    }
+
+
     @GetMapping("/{id}")
     public ResponseEntity<InvoiceDisplayDTO> getById(@PathVariable Long id) {
         InvoiceDisplayDTO invoice = invoiceService.findById(id);

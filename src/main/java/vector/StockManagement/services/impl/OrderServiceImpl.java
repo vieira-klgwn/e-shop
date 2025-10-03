@@ -168,7 +168,6 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'DISTRIBUTOR', 'STORE_MANAGER', 'SALES_MANAGER', 'ACCOUNTANT','WAREHOUSE_MANAGER')")
     public OrderDisplayDTO findByIdDisplayed(Long id) {
 
         Order order = orderRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Order not found"));
@@ -448,7 +447,7 @@ public class OrderServiceImpl implements OrderService {
             }
             //Notification to distributor
             if (order.getCreatedBy() != null) {
-                Notification distributorNotification = getNotification(eventType, " Distributor ", order, "Please distribute order " + order.getNumber());
+                Notification distributorNotification = getNotification(eventType, " Distributor ", order, "Please wait for the order  " + order.getNumber() + "to be approved");
                 notificationService.save(distributorNotification);
                 order.getCreatedBy().getNotifications().add(distributorNotification);
 
