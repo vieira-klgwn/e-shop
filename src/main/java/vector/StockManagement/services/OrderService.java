@@ -1,6 +1,7 @@
 package vector.StockManagement.services;
 
 import vector.StockManagement.model.Order;
+import vector.StockManagement.model.User;
 import vector.StockManagement.model.dto.OrderDTO;
 import vector.StockManagement.model.dto.OrderDisplayDTO;
 
@@ -24,6 +25,8 @@ public interface OrderService {
     Order update(Long id, OrderDTO orderDto);
     Order approve(Long userId,Order order);
     Order reject(Order order);
+
+    String sendReminder(User sender, User receiver, Order order);
 
 
 //    void submitOrder(Long orderId, User submitter);

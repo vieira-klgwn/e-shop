@@ -1,6 +1,8 @@
 package vector.StockManagement.auth;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
@@ -8,7 +10,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.MailException;
 import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -24,10 +25,14 @@ import vector.StockManagement.model.enums.Gender;
 import vector.StockManagement.repositories.TenantRepository;
 import vector.StockManagement.repositories.TokenRepository;
 import vector.StockManagement.repositories.UserRepository;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
  
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.logging.Logger;
 
@@ -258,6 +263,7 @@ public class AuthenticationService {
         // Generate and save tokens
         var token = jwtService.generateToken(user);
         var refreshToken = jwtService.generateRefreshToken(user); // Functionality to add tenant to tenant Context not implemented
+
         logger.info("Generated tokens for Super Admin=" + savedUser.getEmail());
         saveUserToken(savedUser, token);
         saveUserToken(savedUser, refreshToken);
@@ -350,7 +356,14 @@ public class AuthenticationService {
     public String requestPasswordReset(String email) {
         var user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalStateException("User not found: " + email));
-        String resetToken = UUID.randomUUID().toString();
+
+        for (Token token : tokenRepository.findAllValidTokenByUser(user.getId())) {
+            token.setExpired(true);
+            token.setRevoked(true);
+        }
+
+        String resetToken =UUID.randomUUID().toString();
+
         var token = Token.builder()
                 .token(resetToken)
                 .user(user)
@@ -358,27 +371,95 @@ public class AuthenticationService {
                 .expired(false)
                 .revoked(false)
                 .createdDate(LocalDateTime.now())
+                .expiresAt(LocalDateTime.now().plusHours(1))
                 .build();
         tokenRepository.save(token);
 
         // Send email with reset link via JavaMailSender
-        String resetUrl = "http://localhost:8081/reset-password?token=" + resetToken;
+        String resetUrl = "http://localhost:8080/api/auth/reset-password?te=" + token.getToken();
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(email);
         message.setSubject("Password Reset Request");
-        message.setText("Hello,\n\nTo reset your password, click the following link:\n" + resetUrl +
+        message.setText("Hello,\n\nTo reset your password, click the following link:\n" + token.getToken() +
                 "\n\nThis link will expire in 1 hour.\n\nIf you did not request a password reset, please ignore this email.\n\nBest regards,\nTaskSync Team");
         message.setFrom(fromEmail);
 
+
+//
+//
+
+
+
+
         try {
-            mailSender.send(message);
-            logger.info("Password reset email sent to: " + email + ", Token: " + resetToken);
+
+
+
+            String timestamp = LocalDateTime.now().toString();
+
+            // HTML email content
+            String htmlBody = """
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <style>
+                    body { font-family: Arial, sans-serif; color: #333; background-color: #f4f4f4; padding: 20px; }
+                    .container { max-width: 600px; margin: 0 auto; background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+                    .header { text-align: center; background-color: #007bff; color: #fff; padding: 10px; border-radius: 8px 8px 0 0; }
+                    .header h1 { margin: 0; font-size: 24px; }
+                    .content { padding: 20px; }
+                    .quote { font-style: italic; font-size: 18px; color: #007bff; border-left: 4px solid #007bff; padding-left: 15px; margin: 20px 0; }
+                    .greeting { font-size: 16px; line-height: 1.6; }
+                    .signature { font-size: 14px; color: #555; margin-top: 20px; }
+                    .footer { text-align: center; font-size: 12px; color: #777; margin-top: 20px; border-top: 1px solid #eee; padding-top: 10px; }
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <div class="header">
+                        <h1>GGM-FMS</h1>
+                    </div>
+                    <div class="content">
+                        <p class="greeting">Dear Customer,</p>
+                        <p class="greeting">Welcome to GGM.</p>
+                        <p class="quote">You can reset your password via this link: </p>
+                        <button><a href="%s">Reset Password</a></button>
+                        <p class="signature">Warm regards,<br>The GGM Team</p>
+                    </div>
+                    <div class="footer">
+                        <p>Sent at: %s | <a href="#">Unsubscribe</a></p>
+                        <p>Contact us at: <a href="mailto:support@ggm.com">support@ggm.com</a></p>
+                    </div>
+                </div>
+            </body>
+            </html>
+            """.formatted(resetUrl,timestamp);
+
+            sendEmail("Password reset for GGM", htmlBody, email);
+            logger.info("Password reset email sent to: " + email + ", Token: " + token.getToken());
         } catch (MailException e) {
             logger.severe("Failed to send password reset email to: " + email + ", Error: " + e.getMessage());
             throw new IllegalStateException("Failed to send password reset email: " + e.getMessage());
         }
 
-        return resetToken;
+        return token.getToken();
+    }
+
+
+    private void validateResetToken(Token token) {
+        if (token.isExpired() || token.isRevoked() || token.getTokenType() != TokenType.PASSWORD_RESET) {
+            throw new IllegalStateException("Invalid reset token");
+        }
+        if (token.getExpiresAt().isBefore(LocalDateTime.now())) {  // Use explicit expiry
+            throw new IllegalStateException("Expired reset token");
+        }
+    }
+
+    public void verifyResetToken(String resetToken) {
+        var token = tokenRepository.findByToken(resetToken)
+                .orElseThrow(() -> new IllegalStateException("Invalid reset token"));
+        validateResetToken(token);
+        logger.info("Token verified: " + token);
     }
 
     public void resetPassword(String resetToken, String newPassword) {
@@ -388,11 +469,33 @@ public class AuthenticationService {
             throw new IllegalStateException("Invalid or expired reset token");
         }
         var user = token.getUser();
-        user.setPassword(passwordEncoder.encode(newPassword));
+        if (!Objects.equals(newPassword, user.getPassword())) {
+            user.setPassword(passwordEncoder.encode(newPassword));
+        }
+        else {
+            throw new IllegalStateException("Password the same as the old one");
+        }
         userRepository.save(user);
         token.setExpired(true);
         token.setRevoked(true);
         tokenRepository.save(token);
         logger.info("Password reset successfully for user: " + user.getEmail());
+    }
+
+    private void sendEmail(String subject, String htmlBody, String toEmail) {
+        try {
+
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            helper.setTo(toEmail);
+            helper.setSubject(subject);
+            helper.setFrom(fromEmail);
+            helper.setText(htmlBody, true); // true indicates HTML content
+            mailSender.send(message);
+            System.out.println("Email sent for subject: " + subject);
+        } catch (MessagingException e) {
+            System.err.println("Failed to send email for " + subject + ": " + e.getMessage());
+
+        }
     }
 }

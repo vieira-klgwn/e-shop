@@ -24,3 +24,10 @@ i saw the approach of making Request models that handle creation of multiple obj
   Then there is a good progress and I wish by Friday we have a system with Admin, Sales Manager(register product , set  and update prices).
   Store Manager(Record quantity of a product).
   Distributor and Accountant implemented and integrated and Distributor can place an order. Can we commit that at least
+
+
+
+
+                                                        WHAT I THINK WE SHOULD DO TO AVOID VULNERABILITIES IN PRODUCTION
+  Removing all Logs, Make sure all Response Entity messages that provide error details do not expose some details like e.getMessage() in AuthControllers.
+  Encrypting all ids, e.g product ids , order ids etc.

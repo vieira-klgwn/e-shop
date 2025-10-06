@@ -8,6 +8,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import vector.StockManagement.config.TenantAwareValidator;
 import vector.StockManagement.model.Invoice;
@@ -45,9 +46,9 @@ public class InvoiceController {
     @GetMapping
 //    @PreAuthorize("hasAnyRole('ADMIN', 'ACCOUNTANT', 'SALES_MANAGER','WAREHOUSE_MANAGER','STORE_MANAGER')")
     public Page<InvoiceDisplayDTO> getAllInvoices(@RequestParam(defaultValue = "0") int page,
-                                          @RequestParam(defaultValue = "20") int size) {
+                                                  @RequestParam(defaultValue = "20") int size, @AuthenticationPrincipal User user) {
         Pageable pageable = PageRequest.of(page, size);
-        List<InvoiceDisplayDTO> invoices = invoiceService.getAll();
+        List<InvoiceDisplayDTO> invoices = invoiceService.getAll(user);
         int start = Math.min((int) pageable.getOffset(), invoices.size());
         int end = Math.min(start + pageable.getPageSize(), invoices.size());
         return new PageImpl<>(invoices.subList(start, end), pageable, invoices.size());

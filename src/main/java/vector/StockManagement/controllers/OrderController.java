@@ -112,6 +112,14 @@ public class OrderController {
         return  ResponseEntity.ok(orderService.findByIdDisplayed(id));
     }
 
+    @PostMapping("/send-reminder/{orderId}")
+    public ResponseEntity<String> sendReminder(@AuthenticationPrincipal User currentUser, @PathVariable Long orderId) {
+
+        Order order = orderRepository.findById(orderId).orElseThrow(() -> new IllegalStateException("Order with id: "+ orderId+ " is not found"));
+        return ResponseEntity.ok(orderService.sendReminder(currentUser, order.getCreatedBy(),order));
+    }
+
+
 
 
 

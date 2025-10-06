@@ -1,7 +1,11 @@
 package vector.StockManagement.services.impl;
 
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 //import vector.StockManagement.config.TenantContext;
@@ -40,6 +44,7 @@ public class OrderServiceImpl implements OrderService {
     private final PriceListRepository priceListRepository;
     private final ProductServiceImpl productServiceImpl;
     private final ProductService productService;
+    private final JavaMailSender mailSender;
 
     @Override
     public List<OrderDisplayDTO> findAll() {
@@ -485,6 +490,69 @@ public class OrderServiceImpl implements OrderService {
         createOrderNotifications(order, "Order Rejected");
         
         return orderRepository.save(order);
+    }
+
+    @Override
+    public String sendReminder(User sender, User receiver, Order order) {
+
+
+
+        String timestamp = LocalDateTime.now().toString();
+        String orderNumber = order.getNumber();
+
+        // HTML email content
+        String htmlBody = """
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <style>
+                    body { font-family: Arial, sans-serif; color: #333; background-color: #f4f4f4; padding: 20px; }
+                    .container { max-width: 600px; margin: 0 auto; background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+                    .header { text-align: center; background-color: #007bff; color: #fff; padding: 10px; border-radius: 8px 8px 0 0; }
+                    .header h1 { margin: 0; font-size: 24px; }
+                    .content { padding: 20px; }
+                    .quote { font-style: italic; font-size: 18px; color: #007bff; border-left: 4px solid #007bff; padding-left: 15px; margin: 20px 0; }
+                    .greeting { font-size: 16px; line-height: 1.6; }
+                    .signature { font-size: 14px; color: #555; margin-top: 20px; }
+                    .footer { text-align: center; font-size: 12px; color: #777; margin-top: 20px; border-top: 1px solid #eee; padding-top: 10px; }
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <div class="header">
+                        <h1>GGM-FMS</h1>
+                    </div>
+                    <div class="content">
+                        <p class="greeting">Dear Customer,</p>
+                        <p class="greeting">Welcome to GGM.</p>
+                        <p class="quote">Your order with number: "%s" have reached overdue</p>
+                        <p class="quote">Pay ASAP to avoid additional costs</p>
+                
+                        <p class="signature">Warm regards,<br>The GGM Team</p>
+                    </div>
+                    <div class="footer">
+                        <p>Sent at: %s | <a href="#">Unsubscribe</a></p>
+                        <p>Contact us at: <a href="mailto:support@ggm.com">support@ggm.com</a></p>
+                    </div>
+                </div>
+            </body>
+            </html>
+            """.formatted(orderNumber,timestamp);
+        try {
+
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            helper.setTo("ntwaliisimbivieira@gmail.com"); //receiver.getEmail()
+            helper.setSubject("Order due-date updates");
+            helper.setFrom("klgwnboy@gmail.com"); // sender.getEmail()
+            helper.setText(htmlBody, true); // true indicates HTML content
+            mailSender.send(message);
+            System.out.println("Email sent");
+        } catch (MessagingException e) {
+            System.err.println("Failed to send email: " + e.getMessage());
+
+        }
+        return "Email service is working";
     }
 
 //    @Override

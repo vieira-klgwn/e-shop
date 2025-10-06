@@ -175,6 +175,20 @@ public class AuthenticationController {
         }
     }
 
+    @GetMapping("/reset-password")  // New: Verify token on link click (for frontend to check before showing form)
+    public ResponseEntity<String> verifyResetToken(@RequestParam("te") String token) {
+        logger.debug("Token verification request for: {}", token);
+        try {
+            authenticationService.verifyResetToken(token);
+            return ResponseEntity.ok("Token is valid. Proceed with password reset.");
+        } catch (Exception e) {
+            logger.error("Token verification failed: {}", e.getMessage());
+            return ResponseEntity.badRequest().body("Invalid or expired reset token");
+        }
+    }
+
+
+
     @PostMapping("/reset-password")
     public ResponseEntity<String> resetPassword(@RequestBody ResetPasswordRequest request) {
         logger.debug("Password reset attempt with token: {}", request.getResetToken());
@@ -183,7 +197,7 @@ public class AuthenticationController {
             return ResponseEntity.ok("Password reset successfully");
         } catch (Exception e) {
             logger.error("Failed to reset password: {}", e.getMessage());
-            return ResponseEntity.badRequest().body("Failed to reset password: " + e.getMessage());
+            return ResponseEntity.badRequest().body("Failed to reset password: " + e.getMessage()); //make sure in production,you'll remove this e.getMessage()
         }
     }
 }

@@ -72,7 +72,7 @@ public class UserController {
 
     //sorry for not handling business logic in controller
     @GetMapping("/retailer")
-    @PreAuthorize("hasAnyRole('DISTRIBUTOR')")
+    @PreAuthorize("hasAnyRole('DISTRIBUTOR', 'ACCOUNTANT', 'STORE_MANAGER', 'ACCOUNTANT_AT_STORE')")
     public ResponseEntity<List<User>> getAllRetailers(){
         logger.debug("Fetching all retailers");
         List<User> users = userRepository.findAll();

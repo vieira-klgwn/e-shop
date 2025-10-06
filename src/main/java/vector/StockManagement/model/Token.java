@@ -33,6 +33,8 @@ public class Token {
 
     private boolean expired;
 
+    private LocalDateTime expiresAt;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     @ToString.Exclude
