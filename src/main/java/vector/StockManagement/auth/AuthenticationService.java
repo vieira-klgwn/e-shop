@@ -376,7 +376,7 @@ public class AuthenticationService {
         tokenRepository.save(token);
 
         // Send email with reset link via JavaMailSender
-        String resetUrl = "http://localhost:8080/api/auth/reset-password?te=" + token.getToken();
+        String resetUrl = "https://stockscout-yqt4.onrender.com/api/auth/reset-password?te=" + token.getToken();
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(email);
         message.setSubject("Password Reset Request");
