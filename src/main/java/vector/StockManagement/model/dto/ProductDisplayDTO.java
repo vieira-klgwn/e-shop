@@ -15,6 +15,7 @@ public class ProductDisplayDTO {
     private String size;
     private String code;
     private Integer qty;
+    private String tenantName;
 
 
 }

@@ -136,7 +136,15 @@ public class ProductServiceImpl implements ProductService {
     public ProductDisplayDTO findById1(Long id, PriceListLevel level) {
         Product product = productRepository.findById(id).orElse(null);
         ProductDisplayDTO dto = getProductDisplayDTO(product);
+        if (level == PriceListLevel.DISTRIBUTOR){
+            dto.setQty(inventoryRepository.findByProductAndLocationType(product, LocationType.DISTRIBUTOR).getQtyOnHand());
+        }
+        else {
+            dto.setQty(inventoryRepository.findByProductAndLocationType(product, LocationType.WAREHOUSE).getQtyOnHand());
+        }
         dto.setPrice(getProductPrice(product, level));
+        Tenant tenant = tenantRepository.findById(TenantContext.getTenantId()).orElseThrow(() -> new RuntimeException("Tenant not found for this product"));
+        dto.setTenantName(tenant.getName());
         return dto;
     }
 
