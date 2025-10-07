@@ -22,6 +22,7 @@ public class TenantFilter implements Filter {
     // Whitelisted endpoints that don't require tenant context
     private static final List<String> WHITELIST = Arrays.asList(
             "/api/auth/login",
+            "api/auth/register/super" +
             "/api/auth/refresh-token",
             "/api/auth/forgot-password",
             "/api/auth/request-password-reset",

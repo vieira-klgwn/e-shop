@@ -31,3 +31,5 @@ i saw the approach of making Request models that handle creation of multiple obj
                                                         WHAT I THINK WE SHOULD DO TO AVOID VULNERABILITIES IN PRODUCTION
   Removing all Logs, Make sure all Response Entity messages that provide error details do not expose some details like e.getMessage() in AuthControllers.
   Encrypting all ids, e.g product ids , order ids etc.
+
+  i am using postgresql, and i want to trunctate all tables in my database. But I want two things to remain which is a user with role Role.SUPER_ADMIN and also  a tenant with id 2. Super admin is a user with id 2

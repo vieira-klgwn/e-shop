@@ -37,6 +37,9 @@ public class PriceListServiceImpl implements PriceListService {
 
     @Override
     public PriceList save(PriceList priceList) {
+
+
+
         priceList.getItems().forEach(item -> {
             item.getProduct().setPrice(item.getBasePrice());
         });
@@ -44,11 +47,7 @@ public class PriceListServiceImpl implements PriceListService {
         priceList.setTenant(tenantRepository.findById(TenantContext.getTenantId()).orElse(null));
         priceList.setIsActive(true);
 
-//        if (priceListRepository.count() != 0) {
-//           for (PriceList price : priceListRepository.findAll()) {
-//               price.setIsActive(false);
-//           }
-//       }
+
 
 
 

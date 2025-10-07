@@ -39,7 +39,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         MDC.put("http.path", requestURI);
 
         // Skip filter for OPTIONS requests and explicit public endpoints only
-        if (method.equals("OPTIONS") || requestURI.equals("/api/auth/login") || requestURI.equals("/api/auth/refresh-token") || requestURI.equals("/api/auth/forgot-password") || requestURI.equals("/api/auth/request-password-reset") || requestURI.equals("/api/auth/reset-password") || requestURI.equals("/error") || requestURI.equals("/api/tenants/admin")) {
+        if (method.equals("OPTIONS") ||requestURI.equals("/api/auth/register/super") || requestURI.equals("/api/auth/login") || requestURI.equals("/api/auth/refresh-token") || requestURI.equals("/api/auth/forgot-password") || requestURI.equals("/api/auth/request-password-reset") || requestURI.equals("/api/auth/reset-password") || requestURI.equals("/error") || requestURI.equals("/api/tenants/admin")) {
             logger.debug("Skipping JWT filter for request: {} {}", method, requestURI);
             filterChain.doFilter(request, response);
             return;

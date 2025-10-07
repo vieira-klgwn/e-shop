@@ -84,6 +84,7 @@ public class SecurityConfig {
                                 .requestMatchers(HttpMethod.POST, "/api/management/**").hasAnyRole("ADMIN_CREATE", "MANAGER_CREATE")
                                 .requestMatchers(HttpMethod.PUT, "/api/management/**").hasAnyRole("ADMIN_UPDATE", "MANAGER_UPDATE")
                                 .requestMatchers(HttpMethod.DELETE, "/api/management/**").hasAnyRole("ADMIN_DELETE", "MANAGER_DELETE")
+                                .requestMatchers(HttpMethod.POST, "/api/register/super").permitAll()
                                 .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
