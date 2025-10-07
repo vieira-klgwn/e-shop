@@ -3,9 +3,11 @@ package vector.StockManagement.controllers;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import vector.StockManagement.model.Transfer;
+import vector.StockManagement.model.dto.TransferDTO;
 import vector.StockManagement.services.TransferService;
 
 import java.util.List;
@@ -26,6 +28,11 @@ public class TransferController {
     public ResponseEntity<Transfer> getById(@PathVariable Long id) {
         Transfer transfer = transferService.findById(id);
         return transfer != null ? ResponseEntity.ok(transfer) : ResponseEntity.notFound().build();
+    }
+
+    @PostMapping("/process")
+    public ResponseEntity<TransferDTO> process(@RequestBody TransferDTO transferDTO) {
+        return new ResponseEntity<>(transferService.process(transferDTO), HttpStatus.CREATED);
     }
 
     @PostMapping

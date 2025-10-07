@@ -101,8 +101,8 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public List<OrderDisplayDTO> getOrderDisplayDTOforStore(Long distributtorId) {
-        User user = userRepository.findById(distributtorId).orElseThrow(() -> new RuntimeException("Distributor not found"));
+    public List<OrderDisplayDTO> getOrderDisplayDTOforStore(Long distributorId) {
+        User user = userRepository.findById(distributorId).orElseThrow(() -> new RuntimeException("Distributor not found"));
         List<OrderDisplayDTO> displayDTOs = orderRepository.findAllByCreatedBy(user).stream().map(this::getOrderDisplayDTO).toList();
         List<OrderDisplayDTO> displays = new ArrayList<>();
         for (OrderDisplayDTO displayDTO : displayDTOs) {

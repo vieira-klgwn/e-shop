@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import vector.StockManagement.model.*;
+import vector.StockManagement.model.dto.TransferDTO;
 import vector.StockManagement.model.enums.LocationType;
 import vector.StockManagement.model.enums.StockTransactionType;
 import vector.StockManagement.model.enums.TransferStatus;
@@ -101,5 +102,11 @@ public class TransferServiceImpl implements TransferService {
     @Override
     public void delete(Long id) {
         transferRepository.deleteById(id);
+    }
+
+    @Override
+    public TransferDTO process(TransferDTO transferDTO) {
+        TransferDTO toTransferDTO = new TransferDTO();
+        return toTransferDTO;
     }
 }

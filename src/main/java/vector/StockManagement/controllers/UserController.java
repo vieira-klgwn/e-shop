@@ -29,6 +29,7 @@ import java.security.Principal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/users")
@@ -52,14 +53,16 @@ public class UserController {
 
     @GetMapping("/accountant_at_store")
     public ResponseEntity<User> distributorLevelAccountant(@AuthenticationPrincipal User user) {
-        List<User> accountants = userRepository.findByDistributor_IdAndRole_AccountantAtStore((user.getId()));
-        return new ResponseEntity<>(accountants.getFirst(), HttpStatus.OK);
+        List<User> accountants = userRepository.findByDistributor_Id((user.getId())).stream().filter(user1 -> user1.getRole().equals(Role.ACCOUNTANT_AT_STORE)).toList();
+        return ResponseEntity.ok(accountants.getFirst());
+
+
     }
 
 
     @GetMapping("/store_manager")
     public ResponseEntity<User> storeManager(@AuthenticationPrincipal User user) {
-        List<User> store_managers = userRepository.findByDistributor_IdAndRole_StoreManage(((user.getId())));
+        List<User> store_managers = userRepository.findByDistributor_Id(user.getId()).stream().filter(user1 -> user1.getRole().equals(Role.STORE_MANAGER)).toList();
         return new ResponseEntity<>(store_managers.getFirst(), HttpStatus.OK);
     }
 
