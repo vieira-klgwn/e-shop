@@ -239,9 +239,9 @@ public class AuthenticationService {
             throw new IllegalStateException("Invalid gender value: " + request.getGender());
         }
         Tenant tenant = new Tenant();
-        tenant.setName("Super Admin1");
+        tenant.setName("Super Admin2");
         tenant.setDescription("Super Admin Description");
-        tenant.setCode("0001");
+        tenant.setCode("0002");
         tenantRepository.saveAndFlush(tenant);
         logger.info("Created tenant for super admin id=" + tenant.getId());
 

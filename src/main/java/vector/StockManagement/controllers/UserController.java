@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -46,6 +47,20 @@ public class UserController {
 
         User createdUser = userService.createUser(user);
         return new ResponseEntity<>(createdUser, HttpStatus.CREATED);
+    }
+
+
+    @GetMapping("/accountant_at_store")
+    public ResponseEntity<User> distributorLevelAccountant(@AuthenticationPrincipal User user) {
+        List<User> accountants = userRepository.findByDistributor_IdAndRole_AccountantAtStore((user.getId()));
+        return new ResponseEntity<>(accountants.getFirst(), HttpStatus.OK);
+    }
+
+
+    @GetMapping("/store_manager")
+    public ResponseEntity<User> storeManager(@AuthenticationPrincipal User user) {
+        List<User> store_managers = userRepository.findByDistributor_IdAndRole_StoreManage(((user.getId())));
+        return new ResponseEntity<>(store_managers.getFirst(), HttpStatus.OK);
     }
 
 
