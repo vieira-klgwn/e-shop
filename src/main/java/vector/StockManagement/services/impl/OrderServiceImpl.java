@@ -408,7 +408,7 @@ public class OrderServiceImpl implements OrderService {
         return orderRepository.save(order);
     }
     
-    private Invoice createInvoiceFromOrder(Order order, User issuedBy) {
+    public Invoice createInvoiceFromOrder(Order order, User issuedBy) {
         Invoice invoice = new Invoice();
         invoice.setNumber("INV-" + System.currentTimeMillis());
         invoice.setOrder(order);
@@ -434,7 +434,7 @@ public class OrderServiceImpl implements OrderService {
 
     }
     
-    private void createOrderNotifications(Order order, String eventType) {
+    public void createOrderNotifications(Order order, String eventType) {
         try {
 
             // Notification to store

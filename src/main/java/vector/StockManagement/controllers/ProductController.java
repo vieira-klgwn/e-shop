@@ -60,7 +60,7 @@ public class ProductController {
 //    }
 
     @GetMapping("/{id}/prices")
-    @PreAuthorize("hasAnyRole('SALES_MANAGER', 'ADMIN','DISTRIBUTOR','WAREHOUSE_MANAGER','RETAILER')")
+    @PreAuthorize("hasAnyRole('SALES_MANAGER', 'ADMIN','DISTRIBUTOR','WAREHOUSE_MANAGER','RETAILER','MANAGIND_DIRECTOR')")
     public ResponseEntity<PriceDisplayDTO> getProductPrices(@PathVariable Long id) {
         Long tenantId = TenantContext.getTenantId();
         return ResponseEntity.ok(productService.getProductPrices(id, tenantId));

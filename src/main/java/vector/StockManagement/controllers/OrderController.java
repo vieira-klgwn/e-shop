@@ -34,7 +34,7 @@ public class OrderController {
     private final OrderRepository orderRepository;
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('DISTRIBUTOR','ACCOUNTANT','WAREHOUSE_MANAGER','ADMIN','SALES_MANAGER','STORE_MANAGER')")
+    @PreAuthorize("hasAnyRole('DISTRIBUTOR','ACCOUNTANT','WAREHOUSE_MANAGER','ADMIN','SALES_MANAGER','STORE_MANAGER','MANAGING_DIRECTOR')")
     public Page<OrderDisplayDTO> getAll(@RequestParam(defaultValue = "0") int page,
                               @RequestParam(defaultValue = "20") int size) {
         Pageable pageable = PageRequest.of(page, size);
@@ -45,7 +45,7 @@ public class OrderController {
     }
 
     @GetMapping("/distributor")
-    @PreAuthorize("hasAnyRole('DISTRIBUTOR','ACCOUNTANT','WAREHOUSE_MANAGER','ADMIN','SALES_MANAGER','STORE_MANAGER')")
+    @PreAuthorize("hasAnyRole('DISTRIBUTOR','ACCOUNTANT','WAREHOUSE_MANAGER','ADMIN','SALES_MANAGER','STORE_MANAGER','MANAGING_DIRECTOR')")
     public Page<OrderDisplayDTO> getAllByDistributor(@RequestParam(defaultValue = "0") int page,
                                         @RequestParam(defaultValue = "20") int size, @AuthenticationPrincipal User currentUser) {
         Pageable pageable = PageRequest.of(page, size);
@@ -56,7 +56,7 @@ public class OrderController {
     }
 
     @GetMapping("/store_ordersToApprove") // accountant uses this api to get all orders from the retailer
-    @PreAuthorize("hasAnyRole('ACCOUNTANT_AT_STORE')")
+    @PreAuthorize("hasAnyRole('ACCOUNTANT_AT_STORE','MANAGING_DIRECTOR')")
     public Page<OrderDisplayDTO> getStoreOrdersToApprove(@RequestParam(defaultValue = "0") int page,
                                                    @RequestParam(defaultValue = "0") int size, @AuthenticationPrincipal User currentUser) {
         Pageable pageable = PageRequest.of(page, size);
@@ -83,7 +83,7 @@ public class OrderController {
 
 
     @GetMapping("/retailer/store_orders")  //use this api to see all orders from the store--retailer uses it to see all orders he/she made---distributor is also using it to see all retailer orders
-    @PreAuthorize("hasAnyRole('DISTRIBUTOR','STORE_MANAGER','RETAILER')")
+    @PreAuthorize("hasAnyRole('DISTRIBUTOR','STORE_MANAGER','RETAILER','MANAGING_DIRECTOR')")
     public Page<OrderDisplayDTO> getAllStoreOrders(@RequestParam(defaultValue = "0") int page,
                                                    @RequestParam(defaultValue = "0") int size, @AuthenticationPrincipal User currentUser) {
         Pageable pageable = PageRequest.of(page, size);
@@ -95,7 +95,7 @@ public class OrderController {
     }
 
     @GetMapping("/store_orders")  //use this api to see all orders from the store--retailer uses it to see all orders he/she made---distributor is also using it to see all retailer orders
-    @PreAuthorize("hasAnyRole('DISTRIBUTOR','STORE_MANAGER','RETAILER')")
+    @PreAuthorize("hasAnyRole('DISTRIBUTOR','STORE_MANAGER','RETAILER','MANAGING_DIRECTOR')")
     public Page<OrderDisplayDTO> getAllStoreOrdersForDistributor(@RequestParam(defaultValue = "0") int page,
                                                    @RequestParam(defaultValue = "0") int size, @AuthenticationPrincipal User currentUser) {
         Pageable pageable = PageRequest.of(page, size);
@@ -107,7 +107,7 @@ public class OrderController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'DISTRIBUTOR', 'STORE_MANAGER', 'SALES_MANAGER', 'ACCOUNTANT','WAREHOUSE_MANAGER','ACCOUNTANT_AT_STORE')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'DISTRIBUTOR', 'STORE_MANAGER', 'SALES_MANAGER', 'ACCOUNTANT','WAREHOUSE_MANAGER','ACCOUNTANT_AT_STORE', 'RETAILER','MANAGING_DIRECTOR')")
     public ResponseEntity<OrderDisplayDTO> getById(@PathVariable Long id) {
         return  ResponseEntity.ok(orderService.findByIdDisplayed(id));
     }

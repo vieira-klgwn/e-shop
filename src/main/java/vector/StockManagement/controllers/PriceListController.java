@@ -25,7 +25,7 @@ public class PriceListController {
 
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('SALES_MANAGER')")
+    @PreAuthorize("hasAnyRole('SALES_MANAGER','MANAGING_DIRECTOR')")
     public ResponseEntity<PriceList> getById(@PathVariable Long id) {
         PriceList priceList = priceListService.findById(id);
         return priceList != null ? ResponseEntity.ok(priceList) : ResponseEntity.notFound().build();

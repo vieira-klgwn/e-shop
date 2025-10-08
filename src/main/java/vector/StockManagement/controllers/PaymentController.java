@@ -30,13 +30,13 @@ public class PaymentController {
     private final InvoiceRepository invoiceRepository;
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'ACCOUNTANT','ACCOUNTANT_AT_STORE')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'ACCOUNTANT','ACCOUNTANT_AT_STORE','MANAGING_DIRECTOR')")
     public List<Payment> getAll(@AuthenticationPrincipal User user) {
         return paymentService.findAll(user.getId());
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'ACCOUNTANT','ACCOUNTANT_AT_STORE')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'ACCOUNTANT','ACCOUNTANT_AT_STORE', 'MANAGIN_DIRECTOR')")
     public ResponseEntity<Payment> getById(@PathVariable Long id) {
         Payment payment = paymentService.findById(id);
         return payment != null ? ResponseEntity.ok(payment) : ResponseEntity.notFound().build();

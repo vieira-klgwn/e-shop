@@ -9,9 +9,12 @@ import org.springframework.stereotype.Service;
 import vector.StockManagement.model.*;
 import vector.StockManagement.model.dto.TransferDTO;
 import vector.StockManagement.model.enums.LocationType;
+import vector.StockManagement.model.enums.OrderLevel;
 import vector.StockManagement.model.enums.StockTransactionType;
 import vector.StockManagement.model.enums.TransferStatus;
 import vector.StockManagement.repositories.InventoryRepository;
+import vector.StockManagement.repositories.InvoiceRepository;
+import vector.StockManagement.repositories.OrderRepository;
 import vector.StockManagement.repositories.TransferRepository;
 import vector.StockManagement.services.StockTransactionService;
 import vector.StockManagement.services.TransferService;
@@ -26,6 +29,9 @@ public class TransferServiceImpl implements TransferService {
     private final TransferRepository transferRepository;
     private final InventoryRepository inventoryRepository;
     private final StockTransactionService stockTransactionService;
+    private final OrderRepository orderRepository;
+    private final OrderServiceImpl orderServiceImpl;
+    private final InvoiceRepository invoiceRepository;
 
     @Override
     public List<Transfer> findAll() {
@@ -105,8 +111,52 @@ public class TransferServiceImpl implements TransferService {
     }
 
     @Override
-    public TransferDTO process(TransferDTO transferDTO) {
-        TransferDTO toTransferDTO = new TransferDTO();
-        return toTransferDTO;
+    @Transactional
+    public Transfer process(TransferDTO transferDTO) {
+        Order order = orderRepository.getOrderById(transferDTO.getOderId());
+        Transfer transfer = new Transfer();
+        transfer.setQty(transferDTO.getQuantityToTransfer());
+        transfer.setTenant(order.getTenant());
+        transfer.setNotes(transferDTO.getReason());
+        if (order.getLevel() == OrderLevel.L1){
+            transfer.setFromLevel(LocationType.DISTRIBUTOR);
+            transfer.setToLevel(LocationType.WAREHOUSE);
+        }
+        else {
+            transfer.setFromLevel(LocationType.RETAILER);
+            transfer.setToLevel(LocationType.DISTRIBUTOR);
+        }
+
+        for (OrderLine orderLine : order.getOrderLines()) {
+            if (order.getLevel() == OrderLevel.L1) {
+                Inventory toInventory = inventoryRepository.findByProductAndLocationType(orderLine.getProduct(), LocationType.WAREHOUSE);
+                Inventory fromInventory = inventoryRepository.findByProductAndLocationType(orderLine.getProduct(), LocationType.DISTRIBUTOR);
+                fromInventory.removeStock(orderLine.getQty());
+                toInventory.addStock(orderLine.getQty());
+                inventoryRepository.saveAndFlush(toInventory);
+                inventoryRepository.saveAndFlush(fromInventory);
+                orderServiceImpl.createOrderNotifications(order,"Quantity: "+ transferDTO.getQuantityToTransfer() +" of product "+ orderLine.getProduct().getName() +" has been transferred from " + LocationType.DISTRIBUTOR + " to " + LocationType.WAREHOUSE);
+
+            }
+            else {
+                Inventory toInventory = inventoryRepository.findByProductAndLocationType(orderLine.getProduct(), LocationType.DISTRIBUTOR);
+                Inventory fromInventory = inventoryRepository.findByProductAndLocationType(orderLine.getProduct(), LocationType.RETAILER);
+                fromInventory.removeStock(orderLine.getQty());
+                toInventory.addStock(orderLine.getQty());
+                inventoryRepository.saveAndFlush(toInventory);
+                inventoryRepository.saveAndFlush(fromInventory);
+            }
+        }
+
+        for (Invoice invoice: order.getCreatedBy().getInvoices()){
+            if (invoice.getOrder()==order){
+                invoice.setInvoiceAmount(invoice.getInvoiceAmount()-(order.getOrderAmount() * transferDTO.getQuantityToTransfer()));
+                invoiceRepository.saveAndFlush(invoice);
+            }
+        }
+//        order.setOrderAmount(order.getOrderAmount()-);
+        transfer.setStatus(TransferStatus.PENDING);
+        transfer.setCompletedAt(LocalDateTime.now());
+        return transferRepository.saveAndFlush(transfer);
     }
 }

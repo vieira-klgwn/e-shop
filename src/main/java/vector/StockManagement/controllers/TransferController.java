@@ -31,7 +31,7 @@ public class TransferController {
     }
 
     @PostMapping("/process")
-    public ResponseEntity<TransferDTO> process(@RequestBody TransferDTO transferDTO) {
+    public ResponseEntity<Transfer> process(@RequestBody TransferDTO transferDTO) {
         return new ResponseEntity<>(transferService.process(transferDTO), HttpStatus.CREATED);
     }
 

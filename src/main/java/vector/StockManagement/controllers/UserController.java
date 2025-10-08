@@ -69,7 +69,7 @@ public class UserController {
 
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('SUPER_ADMIN','ADMIN', 'DISTRIBUTOR', 'ACCOUNTANT', 'SALES_MANAGER','STORE_MANAGER','WAREHOUSE_MANAGER')")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN','ADMIN', 'DISTRIBUTOR', 'ACCOUNTANT', 'SALES_MANAGER','STORE_MANAGER','WAREHOUSE_MANAGER','MANAGING_DIRECTOR')")
     public ResponseEntity<List<User>> getAllUsers() {
         logger.debug("Fetching all users");
         List<User> users = userService.getAllUsers();

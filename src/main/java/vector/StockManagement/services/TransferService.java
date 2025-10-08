@@ -12,5 +12,5 @@ public interface TransferService {
     Transfer save(Transfer transfer);
     void delete(Long id);
 
-    TransferDTO process(TransferDTO transferDTO);
+    Transfer process(TransferDTO transferDTO);
 }
