@@ -48,7 +48,7 @@ public class InvoiceController {
     public Page<InvoiceDisplayDTO> getAllInvoices(@RequestParam(defaultValue = "0") int page,
                                                   @RequestParam(defaultValue = "20") int size, @AuthenticationPrincipal User user) {
         Pageable pageable = PageRequest.of(page, size);
-        List<InvoiceDisplayDTO> invoices = invoiceService.getAll(user);
+        List<InvoiceDisplayDTO> invoices = invoiceService.findAll();
         int start = Math.min((int) pageable.getOffset(), invoices.size());
         int end = Math.min(start + pageable.getPageSize(), invoices.size());
         return new PageImpl<>(invoices.subList(start, end), pageable, invoices.size());

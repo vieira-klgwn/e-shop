@@ -8,6 +8,7 @@ import java.util.List;
 
 public interface InvoiceService {
     List<InvoiceDisplayDTO> findAll(User user);
+    List<InvoiceDisplayDTO> findAll();
 
 
     List<InvoiceDisplayDTO> getAll(User userCreateBy);
