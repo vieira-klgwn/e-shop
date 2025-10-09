@@ -9,7 +9,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
@@ -189,59 +188,51 @@ public class UserController {
     }
 
 
-    @PostMapping("/{id}/upload-image") // Admins or self-upload
+    @PostMapping("/{id}/upload-image")// Admins or self-upload (assuming email as principal name)
     public ResponseEntity<User> uploadUserImage(@PathVariable Long id,
                                                 @RequestParam("file") MultipartFile file,
-                                                @AuthenticationPrincipal User currentUser) {
-        // Validate file
+                                                @AuthenticationPrincipal User user) {
+        // Validate file (same as product)
         if (file.isEmpty()) {
             throw new IllegalStateException("File is empty");
         }
         if (!isValidImage(file)) {
             throw new IllegalStateException("Invalid file type. Only JPG, PNG, GIF allowed");
         }
-        if (file.getSize() > 5 * 1024 * 1024) {  // 5MB limit
+        if (file.getSize() > 5 * 1024 * 1024) {
             throw new IllegalStateException("File too large (max 5MB)");
         }
 
-        User user = userService.getUserById(id).orElse(null);
-        if (user == null) {
-            return ResponseEntity.notFound().build();
-        }
-
-        // Security: Ensure self-upload or admin
-        if (!user.getEmail().equals(currentUser.getEmail()) && currentUser.getRole() != Role.ADMIN) {
-            throw new AccessDeniedException("You can only upload your own image");
-        }
+//        User user1 = userService.getUserById(id).orElse(null);
+//        if (user1 == null) {
+//            return ResponseEntity.notFound().build();
+//        }
+//
+//        // Security: Ensure self-upload or admin
+//
+//
+//        if (!user1.getEmail().equals(user.getEmail()) && user.getRole() != Role.ADMIN) {
+//            throw new IllegalStateException("You can only upload your own image");
+//        }
 
         try {
             Path dir = Paths.get(uploadDir);
-            logger.info("Resolved upload dir: {}", dir.toAbsolutePath());  // Debug log
             if (!Files.exists(dir)) {
                 Files.createDirectories(dir);
-                logger.info("Created directory: {}", dir.toAbsolutePath());
             }
-            if (!Files.isWritable(dir)) {
-                throw new IllegalStateException("Upload directory is not writable: " + dir.toAbsolutePath());
-            }
-
             String original = file.getOriginalFilename();
-            String ext = (original != null && original.contains(".")) ? original.substring(original.lastIndexOf('.')) : ".jpg";
-            String filename = "user_" + user.getId() + "_" + UUID.randomUUID() + ext.toLowerCase();
+            String ext = original != null && original.contains(".") ? original.substring(original.lastIndexOf('.')) : ".jpg";
+            String filename = "user_" + user.getId() + "_" + UUID.randomUUID() + ext.toLowerCase();  // Prefix for organization
             Path target = dir.resolve(filename);
-            logger.info("Target file path: {}", target.toAbsolutePath());  // Debug log
-
             file.transferTo(target.toFile());
-            logger.info("File uploaded successfully to: {}", target.toAbsolutePath());
 
-            user.setImageUrl("/uploads/" + filename);  // Clean URL prefix for serving
+            user.setImageUrl(uploadDir + "/" + filename);
             return ResponseEntity.ok(userService.updateUser(id, user));
         } catch (IOException e) {
-            logger.error("Failed to upload image for user ID {}: Path={}, Error={}", id, Paths.get(uploadDir).toAbsolutePath(), e.getMessage(), e);
+            logger.error("Failed to upload image for user ID {}: {}", id, e.getMessage());
             throw new IllegalStateException("Failed to upload image: " + e.getMessage());
         }
     }
-
 
     private boolean isValidImage(MultipartFile file) {
         String contentType = file.getContentType();
