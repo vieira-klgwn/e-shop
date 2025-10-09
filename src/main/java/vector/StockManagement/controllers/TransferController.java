@@ -15,7 +15,7 @@ import vector.StockManagement.services.TransferService;
 import java.util.List;
 
 @RestController
-@RequestMapping("/transfers")
+@RequestMapping("api/transfers")
 @RequiredArgsConstructor(onConstructor_ = {@Autowired})
 public class TransferController {
 
