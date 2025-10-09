@@ -25,6 +25,15 @@ public class Tenant extends BaseEntity {
     @Column(name = "name", nullable = false, unique = true)
     private String name;
 
+    @Column(name = "phone")
+    private String phone;
+
+    @Column(name = "email")
+    private String email;
+
+    @Column(name = "address")
+    private String address;
+
     @Size(max = 50)
     @Column(name = "code", unique = true)
     private String code;

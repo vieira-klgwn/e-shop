@@ -23,4 +23,6 @@ public interface PriceListRepository extends JpaRepository<PriceList, Long> {
     List<PriceList> findByLevelAndIsActiveAndTenantId(PriceListLevel level, Boolean isActive, Long tenantId);
 
     List<PriceList> findByProductAndLevel(Product product, @NotNull PriceListLevel level);
+
+    List<PriceList> findAllByProduct(Product product);
 }

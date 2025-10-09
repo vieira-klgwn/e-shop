@@ -1,5 +1,6 @@
 package vector.StockManagement.config;
 
+import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
 import org.slf4j.Logger;
@@ -32,18 +33,18 @@ public class GlobalExceptionHandler {
         String requestUri = request != null ? request.getRequestURI() : "unknown";
         String method = request != null ? request.getMethod() : "unknown";
         Long tenantId = TenantContext.getTenantId();
-        
-        logger.error("ACCESS DENIED - URI: {} {} | Tenant ID: {} | User: {} | Error: {}", 
-                    method, requestUri, tenantId, getCurrentUser(), ex.getMessage());
-        
+
+        logger.error("ACCESS DENIED - URI: {} {} | Tenant ID: {} | User: {} | Error: {}",
+                method, requestUri, tenantId, getCurrentUser(), ex.getMessage());
+
         Map<String, Object> errorResponse = new HashMap<>();
         errorResponse.put("error", "Access Denied");
-        errorResponse.put("message", "You do not have permission to access this resource");
+        errorResponse.put("message", ex.getMessage());  // Exact message
         errorResponse.put("timestamp", LocalDateTime.now());
         errorResponse.put("path", requestUri);
         errorResponse.put("method", method);
         errorResponse.put("tenantId", tenantId);
-        
+
         return new ResponseEntity<>(errorResponse, HttpStatus.FORBIDDEN);
     }
 
@@ -53,18 +54,18 @@ public class GlobalExceptionHandler {
         String requestUri = request != null ? request.getRequestURI() : "unknown";
         String method = request != null ? request.getMethod() : "unknown";
         Long tenantId = TenantContext.getTenantId();
-        
-        logger.error("AUTHENTICATION FAILED - URI: {} {} | Tenant ID: {} | Error: {}", 
-                    method, requestUri, tenantId, ex.getMessage());
-        
+
+        logger.error("AUTHENTICATION FAILED - URI: {} {} | Tenant ID: {} | Error: {}",
+                method, requestUri, tenantId, ex.getMessage());
+
         Map<String, Object> errorResponse = new HashMap<>();
         errorResponse.put("error", "Authentication Failed");
-        errorResponse.put("message", ex.getMessage());
+        errorResponse.put("message", ex.getMessage());  // Exact message
         errorResponse.put("timestamp", LocalDateTime.now());
         errorResponse.put("path", requestUri);
         errorResponse.put("method", method);
         errorResponse.put("tenantId", tenantId);
-        
+
         return new ResponseEntity<>(errorResponse, HttpStatus.UNAUTHORIZED);
     }
 
@@ -73,17 +74,17 @@ public class GlobalExceptionHandler {
         HttpServletRequest request = getCurrentRequest();
         String requestUri = request != null ? request.getRequestURI() : "unknown";
         Long tenantId = TenantContext.getTenantId();
-        
-        logger.error("BAD CREDENTIALS - URI: {} | Tenant ID: {} | Error: {}", 
-                    requestUri, tenantId, ex.getMessage());
-        
+
+        logger.error("BAD CREDENTIALS - URI: {} | Tenant ID: {} | Error: {}",
+                requestUri, tenantId, ex.getMessage());
+
         Map<String, Object> errorResponse = new HashMap<>();
         errorResponse.put("error", "Bad Credentials");
-        errorResponse.put("message", "Invalid username or password");
+        errorResponse.put("message", ex.getMessage());  // Exact message
         errorResponse.put("timestamp", LocalDateTime.now());
         errorResponse.put("path", requestUri);
         errorResponse.put("tenantId", tenantId);
-        
+
         return new ResponseEntity<>(errorResponse, HttpStatus.UNAUTHORIZED);
     }
 
@@ -92,18 +93,28 @@ public class GlobalExceptionHandler {
         HttpServletRequest request = getCurrentRequest();
         String requestUri = request != null ? request.getRequestURI() : "unknown";
         Long tenantId = TenantContext.getTenantId();
-        
-        logger.error("ILLEGAL STATE - URI: {} | Tenant ID: {} | Error: {}", 
-                    requestUri, tenantId, ex.getMessage(), ex);
-        
+
+        logger.error("ILLEGAL STATE - URI: {} | Tenant ID: {} | Error: {}",
+                requestUri, tenantId, ex.getMessage(), ex);
+
         Map<String, Object> errorResponse = new HashMap<>();
         errorResponse.put("error", "Illegal State");
-        errorResponse.put("message", ex.getMessage());
+        errorResponse.put("message", ex.getMessage());  // Exact message from business logic
         errorResponse.put("timestamp", LocalDateTime.now());
         errorResponse.put("path", requestUri);
         errorResponse.put("tenantId", tenantId);
-        
-        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+
+        // Use BAD_REQUEST for validation/business errors, INTERNAL_SERVER_ERROR for unexpected
+        HttpStatus status = ex.getMessage().contains("already taken") ||
+                ex.getMessage().contains("do not match") ||
+                ex.getMessage().contains("required") ||
+                ex.getMessage().contains("Invalid") ||
+                ex.getMessage().contains("not found") ||
+                ex.getMessage().contains("expired") ||
+                ex.getMessage().contains("must be") ?
+                HttpStatus.BAD_REQUEST : HttpStatus.INTERNAL_SERVER_ERROR;
+
+        return new ResponseEntity<>(errorResponse, status);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -111,16 +122,19 @@ public class GlobalExceptionHandler {
         HttpServletRequest request = getCurrentRequest();
         String requestUri = request != null ? request.getRequestURI() : "unknown";
         Long tenantId = TenantContext.getTenantId();
-        
-        logger.error("VALIDATION ERROR - URI: {} | Tenant ID: {} | Errors: {}", 
-                    requestUri, tenantId, ex.getBindingResult().getFieldErrors());
-        
+
+        logger.error("VALIDATION ERROR - URI: {} | Tenant ID: {} | Errors: {}",
+                requestUri, tenantId, ex.getBindingResult().getFieldErrors());
+
         Map<String, Object> errors = new HashMap<>();
-        ex.getBindingResult().getFieldErrors().forEach(err -> errors.put(err.getField(), err.getDefaultMessage()));
+        ex.getBindingResult().getFieldErrors().forEach(err ->
+                errors.put(err.getField(), err.getDefaultMessage())  // Exact field validation messages
+        );
+        errors.put("error", "Validation Failed");
         errors.put("timestamp", LocalDateTime.now());
         errors.put("path", requestUri);
         errors.put("tenantId", tenantId);
-        
+
         return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
     }
 
@@ -129,16 +143,19 @@ public class GlobalExceptionHandler {
         HttpServletRequest request = getCurrentRequest();
         String requestUri = request != null ? request.getRequestURI() : "unknown";
         Long tenantId = TenantContext.getTenantId();
-        
-        logger.error("BIND ERROR - URI: {} | Tenant ID: {} | Errors: {}", 
-                    requestUri, tenantId, ex.getBindingResult().getFieldErrors());
-        
+
+        logger.error("BIND ERROR - URI: {} | Tenant ID: {} | Errors: {}",
+                requestUri, tenantId, ex.getBindingResult().getFieldErrors());
+
         Map<String, Object> errors = new HashMap<>();
-        ex.getBindingResult().getFieldErrors().forEach(err -> errors.put(err.getField(), err.getDefaultMessage()));
+        ex.getBindingResult().getFieldErrors().forEach(err ->
+                errors.put(err.getField(), err.getDefaultMessage())  // Exact field messages
+        );
+        errors.put("error", "Bind Failed");
         errors.put("timestamp", LocalDateTime.now());
         errors.put("path", requestUri);
         errors.put("tenantId", tenantId);
-        
+
         return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
     }
 
@@ -147,16 +164,19 @@ public class GlobalExceptionHandler {
         HttpServletRequest request = getCurrentRequest();
         String requestUri = request != null ? request.getRequestURI() : "unknown";
         Long tenantId = TenantContext.getTenantId();
-        
-        logger.error("CONSTRAINT VIOLATION - URI: {} | Tenant ID: {} | Violations: {}", 
-                    requestUri, tenantId, ex.getConstraintViolations());
-        
+
+        logger.error("CONSTRAINT VIOLATION - URI: {} | Tenant ID: {} | Violations: {}",
+                requestUri, tenantId, ex.getConstraintViolations());
+
         Map<String, Object> errors = new HashMap<>();
-        ex.getConstraintViolations().forEach(v -> errors.put(v.getPropertyPath().toString(), v.getMessage()));
+        ex.getConstraintViolations().forEach(v ->
+                errors.put(v.getPropertyPath().toString(), v.getMessage())  // Exact constraint messages
+        );
+        errors.put("error", "Constraint Violation");
         errors.put("timestamp", LocalDateTime.now());
         errors.put("path", requestUri);
         errors.put("tenantId", tenantId);
-        
+
         return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
     }
 
@@ -166,21 +186,59 @@ public class GlobalExceptionHandler {
         String requestUri = request != null ? request.getRequestURI() : "unknown";
         String method = request != null ? request.getMethod() : "unknown";
         Long tenantId = TenantContext.getTenantId();
-        
-        logger.error("TENANT EXCEPTION - URI: {} {} | Current Tenant ID: {} | Exception Tenant ID: {} | Operation: {} | User: {} | Error: {}", 
-                    method, requestUri, tenantId, ex.getTenantId(), ex.getOperation(), getCurrentUser(), ex.getMessage(), ex);
-        
+
+        logger.error("TENANT EXCEPTION - URI: {} {} | Current Tenant ID: {} | Exception Tenant ID: {} | Operation: {} | User: {} | Error: {}",
+                method, requestUri, tenantId, ex.getTenantId(), ex.getOperation(), getCurrentUser(), ex.getMessage(), ex);
+
         Map<String, Object> errorResponse = new HashMap<>();
         errorResponse.put("error", "Tenant Access Error");
-        errorResponse.put("message", ex.getMessage());
+        errorResponse.put("message", ex.getMessage());  // Exact tenant-specific message
         errorResponse.put("timestamp", LocalDateTime.now());
         errorResponse.put("path", requestUri);
         errorResponse.put("method", method);
         errorResponse.put("currentTenantId", tenantId);
         errorResponse.put("exceptionTenantId", ex.getTenantId());
         errorResponse.put("operation", ex.getOperation());
-        
+
         return new ResponseEntity<>(errorResponse, HttpStatus.FORBIDDEN);
+    }
+
+    @ExceptionHandler(MessagingException.class)
+    public ResponseEntity<Map<String, Object>> handleMessagingException(MessagingException ex) {
+        HttpServletRequest request = getCurrentRequest();
+        String requestUri = request != null ? request.getRequestURI() : "unknown";
+        Long tenantId = TenantContext.getTenantId();
+
+        logger.error("MESSAGING ERROR - URI: {} | Tenant ID: {} | Error: {}",
+                requestUri, tenantId, ex.getMessage(), ex);
+
+        Map<String, Object> errorResponse = new HashMap<>();
+        errorResponse.put("error", "Messaging Failed");
+        errorResponse.put("message", ex.getMessage());  // Exact email/messaging error
+        errorResponse.put("timestamp", LocalDateTime.now());
+        errorResponse.put("path", requestUri);
+        errorResponse.put("tenantId", tenantId);
+
+        return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<Map<String, Object>> handleRuntimeException(RuntimeException ex) {
+        HttpServletRequest request = getCurrentRequest();
+        String requestUri = request != null ? request.getRequestURI() : "unknown";
+        Long tenantId = TenantContext.getTenantId();
+
+        logger.error("RUNTIME ERROR - URI: {} | Tenant ID: {} | Error: {}",
+                requestUri, tenantId, ex.getMessage(), ex);
+
+        Map<String, Object> errorResponse = new HashMap<>();
+        errorResponse.put("error", "Runtime Error");
+        errorResponse.put("message", ex.getMessage());  // Exact runtime message
+        errorResponse.put("timestamp", LocalDateTime.now());
+        errorResponse.put("path", requestUri);
+        errorResponse.put("tenantId", tenantId);
+
+        return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @ExceptionHandler(Exception.class)
@@ -189,18 +247,18 @@ public class GlobalExceptionHandler {
         String requestUri = request != null ? request.getRequestURI() : "unknown";
         String method = request != null ? request.getMethod() : "unknown";
         Long tenantId = TenantContext.getTenantId();
-        
-        logger.error("UNEXPECTED ERROR - URI: {} {} | Tenant ID: {} | User: {} | Error: {}", 
-                    method, requestUri, tenantId, getCurrentUser(), ex.getMessage(), ex);
-        
+
+        logger.error("UNEXPECTED ERROR - URI: {} {} | Tenant ID: {} | User: {} | Error: {}",
+                method, requestUri, tenantId, getCurrentUser(), ex.getMessage(), ex);
+
         Map<String, Object> errorResponse = new HashMap<>();
         errorResponse.put("error", "Internal Server Error");
-        errorResponse.put("message", "An unexpected error occurred");
+        errorResponse.put("message", ex.getMessage());  // Expose exact message (use env var for prod hiding if needed)
         errorResponse.put("timestamp", LocalDateTime.now());
         errorResponse.put("path", requestUri);
         errorResponse.put("method", method);
         errorResponse.put("tenantId", tenantId);
-        
+
         return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 

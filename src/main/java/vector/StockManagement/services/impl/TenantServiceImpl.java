@@ -71,6 +71,9 @@ public class TenantServiceImpl implements TenantService {
         tenant.setName(dto.getCompanyName());
         tenant.setCode(dto.getCompanyCode());
         tenant.setDescription(dto.getCompanyDescription());
+        tenant.setPhone(dto.getPhone());
+        tenant.setEmail(dto.getEmail());
+        tenant.setAddress(dto.getAddress());
         tenantRepository.saveAndFlush(tenant);
 
 
@@ -81,6 +84,7 @@ public class TenantServiceImpl implements TenantService {
         request.setPassword(dto.getPassword());
         request.setConfirmPassword(dto.getConfirmPassword());
         request.setGender(dto.getGender());
+        request.setPhone(dto.getPhone());
         request.setRole(Role.ADMIN);
         request.setTenant(tenant);
 

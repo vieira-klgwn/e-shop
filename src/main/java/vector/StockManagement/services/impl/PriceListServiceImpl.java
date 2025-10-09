@@ -15,6 +15,8 @@ import vector.StockManagement.repositories.ProductRepository;
 import vector.StockManagement.repositories.TenantRepository;
 import vector.StockManagement.services.PriceListService;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -43,9 +45,18 @@ public class PriceListServiceImpl implements PriceListService {
         priceList.getItems().forEach(item -> {
             item.getProduct().setPrice(item.getBasePrice());
             priceList.setProduct(item.getProduct());
+            List<PriceList> priceLists = priceListRepository.findAllByProduct(item.getProduct());
+            for(PriceList price : priceLists) {
+                priceList.setValidTo(LocalDate.now());
+            }
         });
 
+
+
+
+
         priceList.setTenant(tenantRepository.findById(TenantContext.getTenantId()).orElse(null));
+        priceList.setValidFrom(LocalDate.now());
         priceList.setIsActive(true);
 
 

@@ -13,5 +13,9 @@ public class TenantDTO {
     private String password;
     private String confirmPassword;
     private String gender;
+    private String phone;
+    private String tenantPhone;
+    private String tenantEmail;
+    private String address;
 
 }
