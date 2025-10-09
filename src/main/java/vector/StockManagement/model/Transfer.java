@@ -22,25 +22,25 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class Transfer extends BaseEntity {
 
-    @NotNull
+
     @Enumerated(EnumType.STRING)
     @Column(name = "from_level")
     private LocationType fromLevel;
 
-    @NotNull
+
     @Column(name = "from_location_id")
     private Long fromLocationId;
 
-    @NotNull
+
     @Enumerated(EnumType.STRING)
     @Column(name = "to_level")
     private LocationType toLevel;
 
-    @NotNull
+
     @Column(name = "to_location_id")
     private Long toLocationId;
 
-    @NotNull
+
     @Enumerated(EnumType.STRING)
     @Column(name = "status")
     private TransferStatus status = TransferStatus.DRAFT;
@@ -74,7 +74,6 @@ public class Transfer extends BaseEntity {
     @JoinColumn(name = "product_id")
     private Product product;
 
-    @NotNull
     @Column(name = "qty")
     private Integer qty;
 
