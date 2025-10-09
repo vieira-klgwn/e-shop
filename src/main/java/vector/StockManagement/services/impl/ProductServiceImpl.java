@@ -86,6 +86,7 @@ public class ProductServiceImpl implements ProductService {
 
     }
 
+
     public Long getProductPrice(Product product, PriceListLevel level) {
         Long price = 0L;
         Long distributorPrice = null;
@@ -118,7 +119,6 @@ public class ProductServiceImpl implements ProductService {
         }
 
     }
-
 
 
     private static ProductDisplayDTO getProductDisplayDTO(Product product) {
@@ -210,45 +210,62 @@ public class ProductServiceImpl implements ProductService {
                 .orElseThrow(() -> new RuntimeException("Product not found: " + productId));
 
         PriceDisplayDTO dto = new PriceDisplayDTO();
+        List<PriceDisplayDTO.DistributorPriceDTO> distributorPriceDTOS = new ArrayList<>();
+        List<PriceDisplayDTO.FactoryPriceDTO> factoryPriceDtOS = new ArrayList<>();
         dto.setProductId(product.getId());
         dto.setProductName(product.getName());
         dto.setSku(product.getSku());
 
-        // Fetch FACTORY price
-        PriceListItem factoryItem = priceListItemRepository.findByProductIdAndTenantId(productId, tenantId)
-                .stream()
-                .filter(item -> item.getPriceList().getLevel() == PriceListLevel.FACTORY).findFirst().orElse(null);
-        //                        && item.getPriceList().isValidForDate(LocalDate.now()))
-////                .findFirst()
-//                .orElse(null);
-        if (factoryItem != null) {
-            PriceDisplayDTO.FactoryPriceDTO factoryPrice = getFactoryPriceDTO(factoryItem);
-            factoryPrice.setActive(factoryItem.getPriceList().getIsActive());
 
-            dto.setFactoryPrice(factoryPrice);
+        for (PriceList priceList: priceListRepository.findAll()) {
+            for(PriceListItem item : priceList.getItems()) {
+                if (item.getPriceList().getLevel() == PriceListLevel.FACTORY) {
+                    PriceDisplayDTO.FactoryPriceDTO factoryDTO = getFactoryDTO(item);
+                    factoryPriceDtOS.add(factoryDTO);
+                }
+                else {
+                    PriceDisplayDTO.DistributorPriceDTO distributorPriceDTO = getPriceDTO(item);
+                    distributorPriceDTOS.add(distributorPriceDTO);
+                }
+            }
         }
 
-        // Fetch DISTRIBUTOR price
-        PriceListItem distributorItem = priceListItemRepository.findByProductIdAndTenantId(productId, tenantId)
-                .stream()
-                .filter(item -> item.getPriceList().getLevel() == PriceListLevel.DISTRIBUTOR).findFirst().orElse(null);
-//                        && item.getPriceList().isValidForDate(LocalDate.now()))
-////                .findFirst()
-//                .orElse(null);
-        if (distributorItem != null) {
-            PriceDisplayDTO.DistributorPriceDTO distributorPrice = getDistributorPriceDTO(distributorItem);
-            dto.setDistributorPrice(distributorPrice);
-        }
+        dto.setFactoryPrices(factoryPriceDtOS);
+        dto.setDistributorPrices(distributorPriceDTOS);
 
         return dto;
+
+
+    }
+
+    private static PriceDisplayDTO.FactoryPriceDTO getFactoryDTO(PriceListItem item) {
+        PriceDisplayDTO.FactoryPriceDTO factoryDTO = new PriceDisplayDTO.FactoryPriceDTO();
+        factoryDTO.setBasePrice(item.getBasePrice());
+        factoryDTO.setPriceListId(item.getPriceList().getId());
+        factoryDTO.setValidFrom(item.getPriceList().getValidFrom());
+        factoryDTO.setPriceListName(item.getPriceList().getName());
+        factoryDTO.setActive(item.getPriceList().getIsActive());
+        factoryDTO.setPriceListName(item.getPriceList().getName());
+        return factoryDTO;
+    }
+
+    private static PriceDisplayDTO.DistributorPriceDTO getPriceDTO(PriceListItem item) {
+        PriceDisplayDTO.DistributorPriceDTO distributorPriceDTO = new PriceDisplayDTO.DistributorPriceDTO();
+        distributorPriceDTO.setBasePrice(item.getBasePrice());
+        distributorPriceDTO.setPriceListId(item.getPriceList().getId());
+        distributorPriceDTO.setValidFrom(item.getPriceList().getValidFrom());
+        distributorPriceDTO.setPriceListName(item.getPriceList().getName());
+        distributorPriceDTO.setActive(item.getPriceList().getIsActive());
+        distributorPriceDTO.setBasePrice(item.getBasePrice());
+        return distributorPriceDTO;
     }
 
     private static PriceDisplayDTO.DistributorPriceDTO getDistributorPriceDTO(PriceListItem distributorItem) {
         PriceDisplayDTO.DistributorPriceDTO distributorPrice = new PriceDisplayDTO.DistributorPriceDTO();
         distributorPrice.setPriceListId(distributorItem.getPriceList().getId());
         distributorPrice.setPriceListName(distributorItem.getPriceList().getName());
-        distributorPrice.setBasePrice(BigDecimal.valueOf(distributorItem.getBasePrice()));
-        distributorPrice.setMinPrice(BigDecimal.valueOf(distributorItem.getMinPrice()));
+        distributorPrice.setBasePrice(distributorItem.getBasePrice());
+        distributorPrice.setMinPrice(distributorItem.getMinPrice());
         distributorPrice.setValidFrom(distributorItem.getPriceList().getValidFrom());
         distributorPrice.setValidTo(distributorItem.getPriceList().getValidTo());
         distributorPrice.setActive(distributorItem.getPriceList().getIsActive());
@@ -259,8 +276,8 @@ public class ProductServiceImpl implements ProductService {
         PriceDisplayDTO.FactoryPriceDTO factoryPrice = new PriceDisplayDTO.FactoryPriceDTO();
         factoryPrice.setPriceListId(factoryItem.getPriceList().getId());
         factoryPrice.setPriceListName(factoryItem.getPriceList().getName());
-        factoryPrice.setBasePrice(BigDecimal.valueOf(factoryItem.getBasePrice()));
-        factoryPrice.setMinPrice(BigDecimal.valueOf(factoryItem.getMinPrice()));
+        factoryPrice.setBasePrice(factoryItem.getBasePrice());
+        factoryPrice.setMinPrice(factoryItem.getMinPrice());
         factoryPrice.setValidFrom(factoryItem.getPriceList().getValidFrom());
         factoryPrice.setValidTo(factoryItem.getPriceList().getValidTo());
         return factoryPrice;

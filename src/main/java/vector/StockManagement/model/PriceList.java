@@ -34,6 +34,11 @@ public class PriceList extends BaseEntity {
     @Column(name = "level", nullable = false)
     private PriceListLevel level;
 
+
+    @ManyToOne
+    @JoinColumn(name = "product_id")
+    private Product product;
+
     @NotBlank
     @Column(name = "currency", nullable = false)
     private String currency; // ISO 4217 currency code

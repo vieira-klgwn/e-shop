@@ -154,6 +154,7 @@ public class TransferServiceImpl implements TransferService {
                 invoiceRepository.saveAndFlush(invoice);
             }
         }
+        //update the order
 //        order.setOrderAmount(order.getOrderAmount()-);
         transfer.setStatus(TransferStatus.PENDING);
         transfer.setCompletedAt(LocalDateTime.now());

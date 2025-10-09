@@ -42,6 +42,7 @@ public class PriceListServiceImpl implements PriceListService {
 
         priceList.getItems().forEach(item -> {
             item.getProduct().setPrice(item.getBasePrice());
+            priceList.setProduct(item.getProduct());
         });
 
         priceList.setTenant(tenantRepository.findById(TenantContext.getTenantId()).orElse(null));

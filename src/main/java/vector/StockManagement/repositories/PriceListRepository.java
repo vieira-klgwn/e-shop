@@ -4,6 +4,7 @@ import jakarta.validation.constraints.NotNull;
 import org.springframework.stereotype.Repository;
 import vector.StockManagement.model.PriceList;
 import org.springframework.data.jpa.repository.JpaRepository;
+import vector.StockManagement.model.Product;
 import vector.StockManagement.model.enums.PriceListLevel;
 
 import java.util.List;
@@ -20,4 +21,6 @@ public interface PriceListRepository extends JpaRepository<PriceList, Long> {
     List<PriceList> findByLevelAndIsActive(@NotNull PriceListLevel level, Boolean isActive);
 
     List<PriceList> findByLevelAndIsActiveAndTenantId(PriceListLevel level, Boolean isActive, Long tenantId);
+
+    List<PriceList> findByProductAndLevel(Product product, @NotNull PriceListLevel level);
 }
