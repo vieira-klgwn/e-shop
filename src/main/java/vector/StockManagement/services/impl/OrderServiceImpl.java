@@ -171,6 +171,11 @@ public class OrderServiceImpl implements OrderService {
         }
 
 
+        if (productPrice == null) {
+            // Log for debugging: logger.warn("No price for product {} in order {}", line.getProduct().getId(), order.getId());
+            productPrice = 0L;  // Or throw new RuntimeException("Missing price for product: " + line.getProduct().getName());
+        }
+
         OrderDisplayDTO.OrderLineDTO lineDTO = new OrderDisplayDTO.OrderLineDTO();
         lineDTO.setProductName(line.getProduct().getName());
         lineDTO.setPrice(productPrice);

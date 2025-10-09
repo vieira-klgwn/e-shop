@@ -61,11 +61,11 @@ public class PriceListItemServiceImpl implements PriceListItemService {
         priceListItem.setTenant(tenantRepository.findById(priceListItemDTO.getTenantId()).orElseThrow(() -> new RuntimeException("Tenant not found")));
         priceListItemRepository.saveAndFlush(priceListItem);
 
-        if (priceList.getLevel()!= PriceListLevel.DISTRIBUTOR){
-            product.setDistributorPrice(priceListItem.getBasePrice());
+        if (priceList.getLevel()!= PriceListLevel.FACTORY){
+            product.setFactoryPrice(priceListItem.getBasePrice());
         }
         else {
-            product.setFactoryPrice(priceListItem.getBasePrice());
+            product.setDistributorPrice(priceListItem.getBasePrice());
         }
 
 
