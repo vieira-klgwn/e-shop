@@ -9,15 +9,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-import vector.StockManagement.model.Invoice;
 import vector.StockManagement.model.Payment;
 import vector.StockManagement.model.User;
 import vector.StockManagement.model.dto.PaymentDTO;
-import vector.StockManagement.model.enums.PaymentMethod;
 import vector.StockManagement.repositories.InvoiceRepository;
 import vector.StockManagement.services.PaymentService;
 
-import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
@@ -31,7 +28,7 @@ public class PaymentController {
 
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'ACCOUNTANT','ACCOUNTANT_AT_STORE','MANAGING_DIRECTOR')")
-    public List<Payment> getAll(@AuthenticationPrincipal User user) {
+    public List<PaymentDTO> getAll(@AuthenticationPrincipal User user) {
         return paymentService.findAll(user.getId());
     }
 
@@ -44,7 +41,7 @@ public class PaymentController {
 
     @PostMapping("/process")
     @PreAuthorize("hasAnyRole('ADMIN', 'ACCOUNTANT')")
-    public ResponseEntity<Payment> processPayment(@RequestBody PaymentDTO paymentDTO,@AuthenticationPrincipal User user) {
+    public ResponseEntity<Payment> processPayment(@RequestBody PaymentDTO paymentDTO, @AuthenticationPrincipal User user) {
 
         log.info("Received POST /api/payments/process - DTO: invoiceId={}, amount={}, method={}, txnRef={}",
                 paymentDTO.getInvoiceId(), paymentDTO.getAmount(), paymentDTO.getMethod(), paymentDTO.getTxnRef());

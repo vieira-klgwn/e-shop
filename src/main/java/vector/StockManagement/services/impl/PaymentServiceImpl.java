@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import vector.StockManagement.model.Invoice;
 import vector.StockManagement.model.Payment;
 import vector.StockManagement.model.User;
+import vector.StockManagement.model.dto.PaymentDTO;
 import vector.StockManagement.model.enums.InvoiceStatus;
 import vector.StockManagement.model.enums.PaymentMethod;
 import vector.StockManagement.model.enums.PaymentStatus;
@@ -16,6 +17,7 @@ import vector.StockManagement.repositories.*;
 import vector.StockManagement.services.PaymentService;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -29,10 +31,22 @@ public class PaymentServiceImpl implements PaymentService {
     private static final Logger log = LoggerFactory.getLogger(PaymentServiceImpl.class);
 
     @Override
-    public List<Payment> findAll(Long userId) {
+    public List<PaymentDTO> findAll(Long userId) {
 
         User user = userRepository.findById(userId).orElseThrow(()->new EntityNotFoundException("User not found"));
-        return paymentRepository.findAllByPostedBy(user);
+        List<PaymentDTO> paymentDTOs = new ArrayList<>();
+        for (Payment payment: paymentRepository.findAllByPostedBy(user)){
+            PaymentDTO paymentDTO = new PaymentDTO();
+            paymentDTO.setOrderBy(payment.getInvoice().getOrder().getCreatedBy());
+            paymentDTO.setCreatedBy(payment.getPostedBy());
+            paymentDTO.setTxnRef(payment.getTxnRef());
+            paymentDTO.setMethod(payment.getMethod());
+            paymentDTO.setAmount(payment.getAmount());
+            payment.setInvoice(payment.getInvoice());
+            paymentDTOs.add(paymentDTO);
+        }
+
+        return paymentDTOs;
     }
 
     @Override

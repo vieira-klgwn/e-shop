@@ -1,10 +1,8 @@
 package vector.StockManagement.model.dto;
 
 import lombok.Data;
-import org.springframework.web.bind.annotation.RequestParam;
+import vector.StockManagement.model.User;
 import vector.StockManagement.model.enums.PaymentMethod;
-
-import java.math.BigDecimal;
 
 @Data
 public class PaymentDTO {
@@ -15,4 +13,8 @@ public class PaymentDTO {
 
     private PaymentMethod method;
     private String txnRef;
+
+    private User createdBy;
+    private User orderBy;
+
 }
