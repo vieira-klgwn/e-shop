@@ -27,6 +27,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.Principal;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -184,5 +185,63 @@ public class UserController {
                     logger.warn("User not found for email: {}", email);
                     return new ResponseEntity<>(HttpStatus.NOT_FOUND);
                 });
+    }
+
+
+    @PostMapping("/{id}/upload-image")
+    @PreAuthorize("hasRole('ADMIN') or (#id == authentication.name ? true : false)")  // Admins or self-upload (assuming email as principal name)
+    public ResponseEntity<User> uploadUserImage(@PathVariable Long id,
+                                                @RequestParam("file") MultipartFile file,
+                                                @AuthenticationPrincipal User user) {
+        // Validate file (same as product)
+        if (file.isEmpty()) {
+            throw new IllegalStateException("File is empty");
+        }
+        if (!isValidImage(file)) {
+            throw new IllegalStateException("Invalid file type. Only JPG, PNG, GIF allowed");
+        }
+        if (file.getSize() > 5 * 1024 * 1024) {
+            throw new IllegalStateException("File too large (max 5MB)");
+        }
+
+        User user1 = userService.getUserById(id).orElse(null);
+        if (user == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        // Security: Ensure self-upload or admin
+
+        if (!user.getEmail().equals(user.getEmail()) | user.getRole() != Role.ADMIN) {
+            throw new IllegalStateException("You can only upload your own image");
+        }
+
+        try {
+            Path dir = Paths.get(uploadDir);
+            if (!Files.exists(dir)) {
+                Files.createDirectories(dir);
+            }
+            String original = file.getOriginalFilename();
+            String ext = original != null && original.contains(".") ? original.substring(original.lastIndexOf('.')) : ".jpg";
+            String filename = "user_" + user.getId() + "_" + UUID.randomUUID() + ext.toLowerCase();  // Prefix for organization
+            Path target = dir.resolve(filename);
+            file.transferTo(target.toFile());
+
+            user.setImageUrl("/" + uploadDir + "/" + filename);
+            return ResponseEntity.ok(userService.updateUser(id, user));
+        } catch (IOException e) {
+            logger.error("Failed to upload image for user ID {}: {}", id, e.getMessage());
+            throw new IllegalStateException("Failed to upload image: " + e.getMessage());
+        }
+    }
+
+    private boolean isValidImage(MultipartFile file) {
+        String contentType = file.getContentType();
+        return contentType != null && (contentType.equals("image/jpeg") ||
+                contentType.equals("image/png") ||
+                contentType.equals("image/gif"));
+    }
+
+    private boolean hasAdminRole(Collection<?> authorities) {
+        return authorities.stream().anyMatch(auth -> auth.toString().contains("ADMIN"));
     }
 }
