@@ -73,6 +73,12 @@ public class Product extends BaseEntity {
     @Column(name = "is_active", nullable = false)
     private Boolean isActive = true;
 
+    @Column(name = "factory_price")
+    private Long factoryPrice;
+
+    @Column(name = "distributor_price")
+    private Long distributorPrice;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "tenant_id") // removed , nullable = false
     @JsonIgnore

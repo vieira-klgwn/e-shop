@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import vector.StockManagement.model.Invoice;
 import vector.StockManagement.model.Payment;
 import vector.StockManagement.model.User;
+import vector.StockManagement.model.enums.InvoiceStatus;
 import vector.StockManagement.model.enums.PaymentMethod;
 import vector.StockManagement.model.enums.PaymentStatus;
 import vector.StockManagement.repositories.*;
@@ -76,6 +77,7 @@ public class PaymentServiceImpl implements PaymentService {
             payment.setPaidAt(LocalDateTime.now());
             payment.setPaymentStatus(PaymentStatus.COMPLETED);
             payment.setPostedBy(user);
+
             // Note: Adding explicit set for missing fields based on entity requirements
             payment.setCurrency(invoice.getCurrency() != null ? invoice.getCurrency() : "USD");  // Pull from invoice or default
             payment.setTenant(invoice.getTenant());
@@ -94,6 +96,7 @@ public class PaymentServiceImpl implements PaymentService {
 
             // Update invoice with payment and remove deduct it from the user's invoice
 //        invoice.addPayment(amount);
+        invoice.setStatus(InvoiceStatus.PAID);
 
             try {
                 User invoiceOwner = invoice.getIssuedTo();

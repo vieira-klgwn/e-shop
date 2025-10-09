@@ -16,6 +16,9 @@ public class ProductDisplayDTO {
     private String code;
     private Integer qty;
     private String tenantName;
+    private ProductCategory productCategory;
+    private Long distributorPrice;
+    private Long factoryPrice;
 
 
 }

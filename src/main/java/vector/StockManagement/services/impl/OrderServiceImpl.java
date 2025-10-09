@@ -152,24 +152,31 @@ public class OrderServiceImpl implements OrderService {
 
         for(OrderLine line: order.getOrderLines()) {
 
-            Long productPrice = null;
-            if (order.getLevel() == OrderLevel.L1) {
-                productPrice = productServiceImpl.getProductPrice(line.getProduct(), PriceListLevel.FACTORY);
-            }
-            else {
-                productPrice = productServiceImpl.getProductPrice(line.getProduct(), PriceListLevel.DISTRIBUTOR);
-            }
-
-
-            OrderDisplayDTO.OrderLineDTO lineDTO = new OrderDisplayDTO.OrderLineDTO();
-            lineDTO.setProductName(line.getProduct().getName());
-            lineDTO.setPrice(productPrice);
-            lineDTO.setLineTotal(line.getQty()* productPrice);
-            lineDTO.setQuantity(line.getQty());
+            OrderDisplayDTO.OrderLineDTO lineDTO = getOrderLineDTO(order, line);
             lineDTOS.add(lineDTO);
         }
         orderDisplayDTO.setOrderLines(lineDTOS);
         return orderDisplayDTO;
+    }
+
+    private static OrderDisplayDTO.OrderLineDTO getOrderLineDTO(Order order, OrderLine line) {
+        Long productPrice = null;
+        if (order.getLevel() == OrderLevel.L1) {
+//                productPrice = productServiceImpl.getProductPrice(line.getProduct(), PriceListLevel.FACTORY);
+            productPrice = line.getProduct().getFactoryPrice();
+        }
+        else {
+//                productPrice = productServiceImpl.getProductPrice(line.getProduct(), PriceListLevel.DISTRIBUTOR);
+            productPrice = line.getProduct().getDistributorPrice();
+        }
+
+
+        OrderDisplayDTO.OrderLineDTO lineDTO = new OrderDisplayDTO.OrderLineDTO();
+        lineDTO.setProductName(line.getProduct().getName());
+        lineDTO.setPrice(productPrice);
+        lineDTO.setLineTotal(line.getQty()* productPrice);
+        lineDTO.setQuantity(line.getQty());
+        return lineDTO;
     }
 
     @Override

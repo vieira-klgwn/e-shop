@@ -41,30 +41,9 @@ public class PriceListServiceImpl implements PriceListService {
     public PriceList save(PriceList priceList) {
 
 
-
-        priceList.getItems().forEach(item -> {
-            item.getProduct().setPrice(item.getBasePrice());
-            priceList.setProduct(item.getProduct());
-            List<PriceList> priceLists = priceListRepository.findAllByProduct(item.getProduct());
-            for(PriceList price : priceLists) {
-                price.setValidTo(LocalDate.now());
-                price.setIsActive(false);
-            }
-        });
-
-
-
-
-
         priceList.setTenant(tenantRepository.findById(TenantContext.getTenantId()).orElse(null));
         priceList.setValidFrom(LocalDate.now());
         priceList.setIsActive(true);
-
-
-
-
-
-
 
         return priceListRepository.saveAndFlush(priceList);
     }

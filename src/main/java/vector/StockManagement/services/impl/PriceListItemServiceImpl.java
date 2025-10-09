@@ -48,6 +48,11 @@ public class PriceListItemServiceImpl implements PriceListItemService {
 
         PriceList priceList = priceListRepository.findById(priceListItemDTO.getPriceListId()).orElseThrow(() -> new RuntimeException("Price list not found"));
 
+        for (PriceList list: priceListRepository.findAllByProduct(product)){
+            list.setIsActive(false);
+        }
+
+
         PriceListItem priceListItem = new PriceListItem();
         priceListItem.setProduct(product);
         priceListItem.setPriceList(priceList);
@@ -55,11 +60,24 @@ public class PriceListItemServiceImpl implements PriceListItemService {
         priceListItem.setMinPrice(priceListItemDTO.getMinPrice());
         priceListItem.setTenant(tenantRepository.findById(priceListItemDTO.getTenantId()).orElseThrow(() -> new RuntimeException("Tenant not found")));
         priceListItemRepository.saveAndFlush(priceListItem);
-        product.setPrice(priceListItem.getBasePrice());
+
+        if (priceList.getLevel()!= PriceListLevel.DISTRIBUTOR){
+            product.setDistributorPrice(priceListItem.getBasePrice());
+        }
+        else {
+            product.setFactoryPrice(priceListItem.getBasePrice());
+        }
+
+
         productRepository.saveAndFlush(product);
 
-        priceListRepository.saveAndFlush(priceList);
         priceList.getItems().add(priceListItem);
+
+
+
+        priceList.setProduct(product);
+        priceList.setIsActive(true);
+        priceListRepository.saveAndFlush(priceList);
         return priceListItemRepository.save(priceListItem);
     }
 
