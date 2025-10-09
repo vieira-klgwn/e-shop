@@ -217,7 +217,7 @@ public class ProductServiceImpl implements ProductService {
         dto.setSku(product.getSku());
 
 
-        for (PriceList priceList: priceListRepository.findAll()) {
+        for (PriceList priceList: priceListRepository.findAllByProduct(product)) {
             for(PriceListItem item : priceList.getItems()) {
                 if (item.getPriceList().getLevel() == PriceListLevel.FACTORY) {
                     PriceDisplayDTO.FactoryPriceDTO factoryDTO = getFactoryDTO(item);
