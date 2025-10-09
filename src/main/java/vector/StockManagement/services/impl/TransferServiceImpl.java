@@ -112,7 +112,7 @@ public class TransferServiceImpl implements TransferService {
 
     @Override
     @Transactional
-    public Transfer process(TransferDTO transferDTO) {
+    public Transfer process(TransferDTO transferDTO, User user) {
         Order order = orderRepository.getOrderById(transferDTO.getOderId());
         Transfer transfer = new Transfer();
         transfer.setQty(transferDTO.getQuantityToTransfer());
@@ -157,6 +157,7 @@ public class TransferServiceImpl implements TransferService {
         //update the order
 //        order.setOrderAmount(order.getOrderAmount()-);
         transfer.setStatus(TransferStatus.PENDING);
+        transfer.setCreatedBy(order.getCreatedBy());
         transfer.setCompletedAt(LocalDateTime.now());
         return transferRepository.saveAndFlush(transfer);
     }

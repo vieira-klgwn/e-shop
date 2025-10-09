@@ -5,8 +5,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import vector.StockManagement.model.Transfer;
+import vector.StockManagement.model.User;
 import vector.StockManagement.model.dto.TransferDTO;
 import vector.StockManagement.services.TransferService;
 
@@ -31,8 +33,8 @@ public class TransferController {
     }
 
     @PostMapping("/process")
-    public ResponseEntity<Transfer> process(@RequestBody TransferDTO transferDTO) {
-        return new ResponseEntity<>(transferService.process(transferDTO), HttpStatus.CREATED);
+    public ResponseEntity<Transfer> process(@RequestBody TransferDTO transferDTO, @AuthenticationPrincipal User user) {
+        return new ResponseEntity<>(transferService.process(transferDTO, user), HttpStatus.CREATED);
     }
 
     @PostMapping

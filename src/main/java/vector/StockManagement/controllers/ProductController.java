@@ -122,8 +122,9 @@ public class ProductController {
             Path target = dir.resolve(filename);
             file.transferTo(target.toFile());
 
-            product.setImageUrl(uploadDir + "/" + filename);  // Relative URL for frontend serving
-            product.setImageUrl("/uploads/" + filename);  // Becomes "/uploads/uuid.jpeg"
+            // Store relative URL for frontend serving
+            product.setImageUrl("/uploads/" + filename);
+            logger.info("Image uploaded for product {}: {}", id, filename);  // Add logging
             return ResponseEntity.ok(productService.update(id, product));
         } catch (IOException e) {
             logger.error("Failed to upload image for product ID {}: {}", id, e.getMessage());

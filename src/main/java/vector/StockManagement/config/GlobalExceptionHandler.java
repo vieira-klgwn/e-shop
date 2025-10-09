@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import vector.StockManagement.exceptions.TenantException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -115,6 +116,17 @@ public class GlobalExceptionHandler {
                 HttpStatus.BAD_REQUEST : HttpStatus.INTERNAL_SERVER_ERROR;
 
         return new ResponseEntity<>(errorResponse, status);
+    }
+
+
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<String> handleNoResource(NoResourceFoundException ex, HttpServletRequest request) {
+        // Only log if not static resource
+        if (!request.getRequestURI().startsWith("/uploads/")) {
+            logger.error("Unexpected NoResourceFound: {}", ex.getMessage());
+        }
+        // Return clean 404 for images (browsers handle it fine)
+        return ResponseEntity.notFound().build();
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

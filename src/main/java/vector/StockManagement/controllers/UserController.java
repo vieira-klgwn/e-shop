@@ -188,10 +188,10 @@ public class UserController {
     }
 
 
-    @PostMapping("/{id}/upload-image")// Admins or self-upload (assuming email as principal name)
+    @PostMapping("/{id}/upload-image")  // Admins or self-upload (assuming email as principal name)
     public ResponseEntity<User> uploadUserImage(@PathVariable Long id,
                                                 @RequestParam("file") MultipartFile file,
-                                                @AuthenticationPrincipal User user) {
+                                                @AuthenticationPrincipal User principal) {  // Renamed to avoid confusion
         // Validate file (same as product)
         if (file.isEmpty()) {
             throw new IllegalStateException("File is empty");
@@ -203,17 +203,15 @@ public class UserController {
             throw new IllegalStateException("File too large (max 5MB)");
         }
 
-//        User user1 = userService.getUserById(id).orElse(null);
-//        if (user1 == null) {
-//            return ResponseEntity.notFound().build();
-//        }
-//
-//        // Security: Ensure self-upload or admin
-//
-//
-//        if (!user1.getEmail().equals(user.getEmail()) && user.getRole() != Role.ADMIN) {
-//            throw new IllegalStateException("You can only upload your own image");
-//        }
+        User targetUser = userService.getUserById(id).orElse(null);  // Fetch target
+        if (targetUser == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        // Security: Ensure self-upload or admin
+        if (!targetUser.getEmail().equals(principal.getEmail()) && principal.getRole() != Role.ADMIN) {
+            throw new IllegalStateException("You can only upload your own image or be an admin");
+        }
 
         try {
             Path dir = Paths.get(uploadDir);
@@ -222,17 +220,21 @@ public class UserController {
             }
             String original = file.getOriginalFilename();
             String ext = original != null && original.contains(".") ? original.substring(original.lastIndexOf('.')) : ".jpg";
-            String filename = "user_" + user.getId() + "_" + UUID.randomUUID() + ext.toLowerCase();  // Prefix for organization
+            String filename = "user_" + id + "_" + UUID.randomUUID() + ext.toLowerCase();  // Use target id
             Path target = dir.resolve(filename);
             file.transferTo(target.toFile());
 
-            user.setImageUrl(uploadDir + "/" + filename);
-            return ResponseEntity.ok(userService.updateUser(id, user));
+            // Store relative URL for frontend serving
+            targetUser.setImageUrl("/uploads/" + filename);
+            logger.info("Image uploaded for user {}: {}", id, filename);  // Add logging
+            return ResponseEntity.ok(userService.updateUser(id, targetUser));
         } catch (IOException e) {
             logger.error("Failed to upload image for user ID {}: {}", id, e.getMessage());
             throw new IllegalStateException("Failed to upload image: " + e.getMessage());
         }
     }
+
+
 
     private boolean isValidImage(MultipartFile file) {
         String contentType = file.getContentType();
