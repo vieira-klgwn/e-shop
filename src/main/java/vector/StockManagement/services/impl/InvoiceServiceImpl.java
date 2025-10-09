@@ -31,6 +31,17 @@ public class InvoiceServiceImpl implements InvoiceService {
         return dtos;
     }
 
+    @Override
+    public List<InvoiceDisplayDTO> findAll() {
+        List <Invoice> invoices = invoiceRepository.findAll();
+        List<InvoiceDisplayDTO> dtos = new ArrayList<>();
+        for(Invoice invoice : invoices) {
+            InvoiceDisplayDTO dto = getInvoiceDisplayDTO(invoice);
+            dtos.add(dto);
+        }
+        return dtos;
+    }
+
 
     @Override
     public List<InvoiceDisplayDTO> getAll(User userCreateBy) {
