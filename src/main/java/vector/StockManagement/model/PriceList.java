@@ -49,8 +49,8 @@ public class PriceList extends BaseEntity {
     @Column(name = "valid_to")
     private LocalDate validTo;
 
-    @Column(name = "is_active", nullable = false)
-    private Boolean isActive = true;
+    @Column(name = "is_active")
+    private Boolean isActive;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "tenant_id")

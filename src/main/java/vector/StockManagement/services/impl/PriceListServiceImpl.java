@@ -47,7 +47,8 @@ public class PriceListServiceImpl implements PriceListService {
             priceList.setProduct(item.getProduct());
             List<PriceList> priceLists = priceListRepository.findAllByProduct(item.getProduct());
             for(PriceList price : priceLists) {
-                priceList.setValidTo(LocalDate.now());
+                price.setValidTo(LocalDate.now());
+                price.setIsActive(false);
             }
         });
 
