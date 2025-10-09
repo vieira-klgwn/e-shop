@@ -24,29 +24,29 @@ public class Transfer extends BaseEntity {
 
     @NotNull
     @Enumerated(EnumType.STRING)
-    @Column(name = "from_level", nullable = false)
+    @Column(name = "from_level")
     private LocationType fromLevel;
 
     @NotNull
-    @Column(name = "from_location_id", nullable = false)
+    @Column(name = "from_location_id")
     private Long fromLocationId;
 
     @NotNull
     @Enumerated(EnumType.STRING)
-    @Column(name = "to_level", nullable = false)
+    @Column(name = "to_level")
     private LocationType toLevel;
 
     @NotNull
-    @Column(name = "to_location_id", nullable = false)
+    @Column(name = "to_location_id")
     private Long toLocationId;
 
     @NotNull
     @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false)
+    @Column(name = "status")
     private TransferStatus status = TransferStatus.DRAFT;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "created_by", nullable = false)
+    @JoinColumn(name = "created_by")
     private User createdBy;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -67,15 +67,15 @@ public class Transfer extends BaseEntity {
     private String notes;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "tenant_id", nullable = false)
+    @JoinColumn(name = "tenant_id")
     private Tenant tenant;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "product_id", nullable = false)
+    @JoinColumn(name = "product_id")
     private Product product;
 
     @NotNull
-    @Column(name = "qty", nullable = false)
+    @Column(name = "qty")
     private Integer qty;
 
     @Column(name = "completed_at")
