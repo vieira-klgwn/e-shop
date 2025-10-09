@@ -94,7 +94,6 @@ public class ProductController {
 //    }
 
     @PostMapping("/{id}/upload-image")
-    @PreAuthorize("hasRole('SALES_MANAGER') or hasRole('ADMIN')")
     public ResponseEntity<Product> uploadImage(@PathVariable Long id, @RequestParam("file") MultipartFile file) {
         // Validate file
         if (file.isEmpty()) {
@@ -114,22 +113,33 @@ public class ProductController {
 
         try {
             Path dir = Paths.get(uploadDir);
+            logger.info("Resolved upload dir: {}", dir.toAbsolutePath());  // Debug log
             if (!Files.exists(dir)) {
                 Files.createDirectories(dir);
+                logger.info("Created directory: {}", dir.toAbsolutePath());
             }
+            if (!Files.isWritable(dir)) {
+                throw new IllegalStateException("Upload directory is not writable: " + dir.toAbsolutePath());
+            }
+
             String original = file.getOriginalFilename();
-            String ext = original != null && original.contains(".") ? original.substring(original.lastIndexOf('.')) : ".jpg";
+            String ext = (original != null && original.contains(".")) ? original.substring(original.lastIndexOf('.')) : ".jpg";
             String filename = UUID.randomUUID() + ext.toLowerCase();
             Path target = dir.resolve(filename);
-            file.transferTo(target.toFile());
+            logger.info("Target file path: {}", target.toAbsolutePath());  // Debug log
 
-            product.setImageUrl("/" + uploadDir + "/" + filename);  // Relative URL for frontend serving
+            file.transferTo(target.toFile());
+            logger.info("File uploaded successfully to: {}", target.toAbsolutePath());
+
+            product.setImageUrl("/uploads/" + filename);  // Clean URL prefix for serving
             return ResponseEntity.ok(productService.update(id, product));
         } catch (IOException e) {
-            logger.error("Failed to upload image for product ID {}: {}", id, e.getMessage());
+            logger.error("Failed to upload image for product ID {}: Path={}, Error={}", id, Paths.get(uploadDir).toAbsolutePath(), e.getMessage(), e);
             throw new IllegalStateException("Failed to upload image: " + e.getMessage());
         }
     }
+
+
 
     private boolean isValidImage(MultipartFile file) {
         String contentType = file.getContentType();
