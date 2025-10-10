@@ -92,13 +92,13 @@ public class UserController {
     //sorry for not handling business logic in controller
     @GetMapping("/retailer")
     @PreAuthorize("hasAnyRole('DISTRIBUTOR', 'ACCOUNTANT', 'STORE_MANAGER', 'ACCOUNTANT_AT_STORE')")
-    public ResponseEntity<List<User>> getAllRetailers(){
+    public ResponseEntity<List<User>> getAllRetailers(@AuthenticationPrincipal User user){
         logger.debug("Fetching all retailers");
         List<User> users = userRepository.findAll();
         List<User> retailers = new ArrayList<>();
-        for (User user : users) {
-            if (user.getRole() == Role.RETAILER){
-                retailers.add(user);
+        for (User user1 : users) {
+            if (user1.getRole() == Role.RETAILER && user.getId().equals(user1.getDistributor().getId())) {
+                retailers.add(user1);
             }
         }
         return new ResponseEntity<>(retailers, HttpStatus.OK);

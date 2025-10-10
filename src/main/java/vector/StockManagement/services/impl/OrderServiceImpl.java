@@ -144,7 +144,8 @@ public class OrderServiceImpl implements OrderService {
         orderDisplayDTO.setDeliveryAddress(order.getDeliveryAddress());
         orderDisplayDTO.setDeliveryDate(order.getDeliveryDate());
         orderDisplayDTO.setOrderAmount(order.getOrderAmount());
-        orderDisplayDTO.setCreatedBy(order.getCreatedBy().getEmail());
+        orderDisplayDTO.setCreatedBy(order.getCreatedBy());
+        orderDisplayDTO.setApprovedBy(order.getApprovedBy());
 
 
 
@@ -244,7 +245,7 @@ public class OrderServiceImpl implements OrderService {
             for (OrderDTO.OrderLineDTO lineDto: orderDto.getOrderLines()) {
                 Product product = productRepository.findById(lineDto.getProductId()).orElseThrow(() -> new RuntimeException("Product not found"));
 
-                Inventory inventory = inventoryRepository.findByProductAndLocationType(product, sourceLocation);
+//                Inventory inventory = inventoryRepository.findByProductAndLocationType(product, sourceLocation);
                 if (!inventoryService.hasSufficientStock(product, lineDto.getQty(), sourceLocation)) {
                     throw new RuntimeException("Insufficient stock for product: " + product.getSku() + " at " + sourceLocation + " and its location is " + sourceLocation ) ;
                 }
@@ -284,8 +285,7 @@ public class OrderServiceImpl implements OrderService {
                 orderLineRepository.save(orderLine);
                 totalAmount += orderLine.getLineTotal();
                 savedOrder.getOrderLines().add(orderLine);
-                inventoryService.reserveStock(product,lineDto.getQty(),sourceLocation);
-
+//                inventoryService.reserveStock(product,lineDto.getQty(),sourceLocation); this was causing errors
             }
 
         }
@@ -336,13 +336,10 @@ public class OrderServiceImpl implements OrderService {
         // Process inventory movement
         for (OrderLine orderLine : order.getOrderLines()) {
             inventoryService.transferStock(orderLine.getProduct(), orderLine.getQty(), sourceLocation, targetLocation);
+            inventoryService.releaseReservedStock(orderLine.getProduct(), orderLine.getQty(), sourceLocation);
         }
         
 
-        for (OrderLine orderLine: order.getOrderLines()){
-            inventoryService.releaseReservedStock(orderLine.getProduct(), orderLine.getQty(), sourceLocation);
-            inventoryService.transferStock(orderLine.getProduct(), orderLine.getQty(), sourceLocation, targetLocation);
-        }
         order.setStatus(OrderStatus.FULFILLED);
         createOrderNotifications(order, "Order Fulfilled");
 
@@ -418,8 +415,10 @@ public class OrderServiceImpl implements OrderService {
                 throw new RuntimeException("Insufficient inventory for product: " + orderLine.getProduct().getSku() + 
                         ". Available: " + inventory.getQtyAvailable() + ", Required: " + orderLine.getQty());
             }
-            
-            inventory.reserveStock(orderLine.getQty()); // you can also do this using the transferservice instead
+
+
+
+            inventoryService.reserveStock(orderLine.getProduct(),orderLine.getQty(),type);
             inventoryRepository.save(inventory);
         }
         

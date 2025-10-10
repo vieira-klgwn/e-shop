@@ -20,7 +20,8 @@ public class OrderDisplayDTO {
     private Long orderAmount;
     private String deliveryAddress;
     private LocalDateTime deliveryDate;
-    private String createdBy;
+    private User createdBy;
+    private User approvedBy;
     private List<OrderLineDTO> orderLines;
 
     @Data

@@ -61,7 +61,7 @@ public class ProductServiceImpl implements ProductService {
                 if (Objects.equals(product.getId(), productId)) {
                     ProductDisplayDTO productDisplayDTO = getProductDisplayDTO(product);
                     productDisplayDTO.setPrice(getProductPrice(product, level));
-                    productDisplayDTO.setQty(inventoryRepository.findByProductAndLocationType(product, LocationType.DISTRIBUTOR).getQtyOnHand());
+                    productDisplayDTO.setQty(inventoryRepository.findByProductAndLocationType(product, LocationType.DISTRIBUTOR).getQtyAvailable());
                     productDisplayDTOs.add(productDisplayDTO);
 
                 }
@@ -140,10 +140,10 @@ public class ProductServiceImpl implements ProductService {
         Product product = productRepository.findById(id).orElse(null);
         ProductDisplayDTO dto = getProductDisplayDTO(product);
         if (level == PriceListLevel.DISTRIBUTOR){
-            dto.setQty(inventoryRepository.findByProductAndLocationType(product, LocationType.DISTRIBUTOR).getQtyOnHand());
+            dto.setQty(inventoryRepository.findByProductAndLocationType(product, LocationType.DISTRIBUTOR).getQtyAvailable());
         }
         else {
-            dto.setQty(inventoryRepository.findByProductAndLocationType(product, LocationType.WAREHOUSE).getQtyOnHand());
+            dto.setQty(inventoryRepository.findByProductAndLocationType(product, LocationType.WAREHOUSE).getQtyAvailable());
         }
         dto.setPrice(getProductPrice(product, level));
         Tenant tenant = tenantRepository.findById(TenantContext.getTenantId()).orElseThrow(() -> new RuntimeException("Tenant not found for this product"));
@@ -192,7 +192,7 @@ public class ProductServiceImpl implements ProductService {
         for(Product product: storeProducts){
             ProductDisplayDTO dto = getProductDisplayDTO(product);
             dto.setPrice(getProductPrice(product, PriceListLevel.DISTRIBUTOR));
-            dto.setQty(inventoryRepository.findByProductAndLocationType(product, LocationType.DISTRIBUTOR).getQtyOnHand());
+            dto.setQty(inventoryRepository.findByProductAndLocationType(product, LocationType.DISTRIBUTOR).getQtyAvailable());
             productDisplayDTOs.add(dto);
 
         }

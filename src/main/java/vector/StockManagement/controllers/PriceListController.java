@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import vector.StockManagement.model.PriceList;
 import vector.StockManagement.services.PriceListService;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -38,6 +39,7 @@ public class PriceListController {
     @PostMapping
     @PreAuthorize("hasRole('SALES_MANAGER')")
     public PriceList create(@RequestBody PriceList priceList) {
+        priceList.setValidFrom(LocalDate.now());
         return priceListService.save(priceList);
     }
 

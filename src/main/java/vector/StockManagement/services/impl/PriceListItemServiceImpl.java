@@ -20,7 +20,10 @@ import vector.StockManagement.repositories.TenantRepository;
 import vector.StockManagement.services.PriceListItemService;
 
 import java.time.LocalDate;
+import java.time.temporal.TemporalUnit;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor(onConstructor_ = {@Autowired})
@@ -41,6 +44,11 @@ public class PriceListItemServiceImpl implements PriceListItemService {
         return priceListItemRepository.findById(id).orElse(null);
     }
 
+    private PriceList getLatestFactoryPriceList(){
+        List<PriceList> priceLists = priceListRepository.findAll();
+        return priceLists.stream().max(Comparator.comparing(PriceList::getCreatedAt)).orElse(null);
+    }
+
     @Transactional
     @Override
     public PriceListItem save(PriceListItemDTO priceListItemDTO) {
@@ -48,8 +56,13 @@ public class PriceListItemServiceImpl implements PriceListItemService {
 
         PriceList priceList = priceListRepository.findById(priceListItemDTO.getPriceListId()).orElseThrow(() -> new RuntimeException("Price list not found"));
 
+
         for (PriceList list: priceListRepository.findAllByProduct(product)){
-            list.setIsActive(false);
+
+            if (priceList.equals(getLatestFactoryPriceList())){
+                break;
+            }
+            priceList.setIsActive(false);
         }
 
 
@@ -61,7 +74,7 @@ public class PriceListItemServiceImpl implements PriceListItemService {
         priceListItem.setTenant(tenantRepository.findById(priceListItemDTO.getTenantId()).orElseThrow(() -> new RuntimeException("Tenant not found")));
         priceListItemRepository.saveAndFlush(priceListItem);
 
-        if (priceList.getLevel()!= PriceListLevel.FACTORY){
+        if (priceList.getLevel() == PriceListLevel.FACTORY){
             product.setFactoryPrice(priceListItem.getBasePrice());
         }
         else {
