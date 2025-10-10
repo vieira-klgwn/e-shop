@@ -104,6 +104,21 @@ public class UserController {
         return new ResponseEntity<>(retailers, HttpStatus.OK);
     }
 
+
+    @GetMapping("/accountant/retailer")
+    @PreAuthorize("hasAnyRole('DISTRIBUTOR', 'ACCOUNTANT', 'STORE_MANAGER', 'ACCOUNTANT_AT_STORE')")
+    public ResponseEntity<List<User>> getAllRetailersByAccountantAtStore(){
+        logger.debug("Fetching all retailers");
+        List<User> users = userRepository.findAll();
+        List<User> retailers = new ArrayList<>();
+        for (User user1 : users) {
+            if (user1.getRole() == Role.RETAILER ) {
+                retailers.add(user1);
+            }
+        }
+        return new ResponseEntity<>(retailers, HttpStatus.OK);
+    }
+
     @GetMapping("/distributors")
     @PreAuthorize("hasAnyRole('ADMIN')")
     public ResponseEntity<List<User>> getAllDistributors(){

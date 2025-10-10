@@ -27,8 +27,9 @@ public class PaymentController {
     private final InvoiceRepository invoiceRepository;
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'ACCOUNTANT','ACCOUNTANT_AT_STORE','MANAGING_DIRECTOR')")
+    @PreAuthorize("hasAnyRole('ACCOUNTANT','ACCOUNTANT_AT_STORE','MANAGING_DIRECTOR')")
     public List<PaymentDTO> getAll(@AuthenticationPrincipal User user) {
+
         return paymentService.findAll(user.getId());
     }
 
