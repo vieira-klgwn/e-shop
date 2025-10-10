@@ -251,7 +251,20 @@ public class OrderServiceImpl implements OrderService {
 
 
                 // Get price based on level
-                Long price = getProductPrice(product, priceLevel);
+
+//                Long price = getProductPrice(product, priceLevel);
+                Long price = null;
+                if (order.getLevel() == OrderLevel.L1) {
+                    price = product.getFactoryPrice();
+                }
+                else {
+                    price= product.getDistributorPrice();
+                }
+
+
+
+
+
                 if (price == -1L) {
                     throw new RuntimeException("No price found for product: " + product.getSku() + " at level " + priceLevel);
                 }
