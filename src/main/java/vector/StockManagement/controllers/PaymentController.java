@@ -41,7 +41,7 @@ public class PaymentController {
     }
 
     @PostMapping("/process")
-    @PreAuthorize("hasAnyRole('ADMIN', 'ACCOUNTANT')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'ACCOUNTANT', 'ACCOUNTANT_AT_STORE')")
     public ResponseEntity<Payment> processPayment(@RequestBody PaymentDTO paymentDTO, @AuthenticationPrincipal User user) {
 
         log.info("Received POST /api/payments/process - DTO: invoiceId={}, amount={}, method={}, txnRef={}",
