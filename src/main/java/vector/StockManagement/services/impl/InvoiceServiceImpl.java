@@ -22,6 +22,10 @@ public class InvoiceServiceImpl implements InvoiceService {
     @Override
     public List<InvoiceDisplayDTO> findAll(User userCreateBy) {
 
+        return getInvoiceDisplayDTOS(userCreateBy);
+    }
+
+    private List<InvoiceDisplayDTO> getInvoiceDisplayDTOS(User userCreateBy) {
         List<Invoice> invoices = invoiceRepository.findAllByOrder_CreatedBy(userCreateBy);
         List<InvoiceDisplayDTO> dtos = new ArrayList<>();
         for (Invoice invoice : invoices) {
@@ -46,13 +50,7 @@ public class InvoiceServiceImpl implements InvoiceService {
     @Override
     public List<InvoiceDisplayDTO> getAll(User userCreateBy) {
 
-        List<Invoice> invoices = invoiceRepository.findAllByOrder_CreatedBy(userCreateBy);
-        List<InvoiceDisplayDTO> dtos = new ArrayList<>();
-        for (Invoice invoice : invoices) {
-            InvoiceDisplayDTO dto = getInvoiceDisplayDTO(invoice);
-            dtos.add(dto);
-        }
-        return dtos;
+        return getInvoiceDisplayDTOS(userCreateBy);
     }
 
 

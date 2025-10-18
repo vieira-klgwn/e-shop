@@ -39,6 +39,10 @@ public class Product extends BaseEntity {
     @Column(name = "name", nullable = false)
     private String name;
 
+
+    @ManyToMany(mappedBy = "products")
+    private List<Sample> samples;
+
     @OneToMany(mappedBy = "product")
     @JsonIgnore
     private List<OrderLine> orderLines;
