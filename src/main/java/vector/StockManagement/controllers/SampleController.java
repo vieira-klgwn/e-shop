@@ -19,7 +19,7 @@ public class SampleController {
     private final SampleService sampleService;
 
     @PostMapping
-    public ResponseEntity<Sample> save(CreateSampleRequest request, @AuthenticationPrincipal User user) {
+    public ResponseEntity<Sample> save(@RequestBody CreateSampleRequest request, @AuthenticationPrincipal User user) {
         return ResponseEntity.ok(sampleService.create(request,user));
     }
 
