@@ -11,21 +11,24 @@ import org.w3c.dom.stylesheets.LinkStyle;
 import vector.StockManagement.model.enums.SampleStatus;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
-@EqualsAndHashCode(callSuper = true)
 @Entity
 @Filter(name = "tenantFilter", condition = "tenant_id = :tenantId")
-@org.hibernate.annotations.Filter(name = "tenantFilter", condition = "tenant_id = :tenantId")
-@Table(name = "orders")
+@Table(name = "sample")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class Sample extends BaseEntity {
+public class Sample {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
     @OneToMany(mappedBy = "sample", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<SampleItem> items; // Line items: product + quantity
+    private List<SampleItem> items = new ArrayList<>();// Line items: product + quantity
 
     @Column(name = "tenant_id") // For multi-tenancy
     private Long tenantId;

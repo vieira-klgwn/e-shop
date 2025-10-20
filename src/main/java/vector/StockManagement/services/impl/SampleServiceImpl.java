@@ -48,6 +48,7 @@ public class SampleServiceImpl implements SampleService {
             SampleResponse sampleResponse = new SampleResponse();
             sampleResponse.setCreatedAt(sample.getCreatedAt());
             sampleResponse.setTotalItems(sample.getItems().size());
+            sampleResponse.setId(sample.getId());
             sampleResponses.add(sampleResponse);
         }
         return sampleResponses;
@@ -84,7 +85,7 @@ public class SampleServiceImpl implements SampleService {
         for (SampleItemDto item: request.getItems()){
             Product product = productRepository.findById(item.getProductId()).get();
             if (locationType == LocationType.WAREHOUSE){
-                inventoryService.transferStock(product, item.getQuantity(), locationType, LocationType.DISTRIBUTOR);
+                inventoryService.transferStock(product, item.getQuantity(), LocationType.WAREHOUSE, LocationType.DISTRIBUTOR);
             }
             else {
                 inventoryService.transferStock(product, item.getQuantity(), LocationType.DISTRIBUTOR, LocationType.RETAILER);
