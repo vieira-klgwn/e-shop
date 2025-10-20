@@ -120,7 +120,7 @@ public class UserController {
     }
 
     @GetMapping("/distributors")
-    @PreAuthorize("hasAnyRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','SALES_MANAGER')")
     public ResponseEntity<List<User>> getAllDistributors(){
         List<User> users = userRepository.findAll();
         List<User> distributors = new ArrayList<>();
