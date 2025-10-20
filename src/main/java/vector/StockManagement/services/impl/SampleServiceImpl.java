@@ -1,5 +1,6 @@
 package vector.StockManagement.services.impl;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import vector.StockManagement.model.*;
@@ -67,6 +68,7 @@ public class SampleServiceImpl implements SampleService {
     }
 
     @Override
+    @Transactional
     public Sample create(CreateSampleRequest request, User user) {
 
         LocationType locationType = null;
