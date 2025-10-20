@@ -256,6 +256,7 @@ public class OrderServiceImpl implements OrderService {
 //                Long price = getProductPrice(product, priceLevel);
                 Long price = null;
                 if (order.getLevel() == OrderLevel.L1) {
+
                     price = product.getFactoryPrice();
                 }
                 else {

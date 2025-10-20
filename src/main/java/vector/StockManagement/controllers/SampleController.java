@@ -2,9 +2,12 @@ package vector.StockManagement.controllers;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.*;
 import vector.StockManagement.model.Sample;
+import vector.StockManagement.model.User;
+import vector.StockManagement.model.dto.CreateSampleRequest;
+import vector.StockManagement.model.dto.SampleResponse;
 import vector.StockManagement.services.SampleService;
 
 import java.util.List;
@@ -15,25 +18,30 @@ import java.util.List;
 public class SampleController {
     private final SampleService sampleService;
 
-    public ResponseEntity<Sample> save(Sample sample) {
-        return ResponseEntity.ok(sampleService.create(sample));
+    @PostMapping
+    public ResponseEntity<Sample> save(CreateSampleRequest request, @AuthenticationPrincipal User user) {
+        return ResponseEntity.ok(sampleService.create(request,user));
     }
 
 
+    @PutMapping("/{id}")
     public ResponseEntity<Sample> update(Long id, Sample sample) {
         return ResponseEntity.ok(sampleService.update(id,sample));
     }
 
 
-    public ResponseEntity<Sample> delete(Long id) {
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Sample> delete(@PathVariable Long id) {
         return ResponseEntity.ok(sampleService.delete(id));
     }
 
-    public ResponseEntity<List<Sample>> findAll() {
+    @GetMapping
+    public ResponseEntity<List<SampleResponse>> findAll() {
         return ResponseEntity.ok(sampleService.findAll());
     }
 
-    public ResponseEntity<Sample> findById(Long id) {
+    @GetMapping("/{id}")
+    public ResponseEntity<SampleResponse> findById(@PathVariable Long id) {
         return ResponseEntity.ok(sampleService.findById(id));
     }
 }

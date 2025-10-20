@@ -40,8 +40,7 @@ public class Product extends BaseEntity {
     private String name;
 
 
-    @ManyToMany(mappedBy = "products")
-    private List<Sample> samples;
+
 
     @OneToMany(mappedBy = "product")
     @JsonIgnore

@@ -8,7 +8,9 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Filter;
 import org.w3c.dom.stylesheets.LinkStyle;
+import vector.StockManagement.model.enums.SampleStatus;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
@@ -22,16 +24,24 @@ import java.util.List;
 @NoArgsConstructor
 public class Sample extends BaseEntity {
 
-    private Long quantity;
+    @OneToMany(mappedBy = "sample", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<SampleItem> items; // Line items: product + quantity
 
+    @Column(name = "tenant_id") // For multi-tenancy
+    private Long tenantId;
 
-    @ManyToMany
-    @JoinTable(
-            name = "sample_product",
-            joinColumns = @JoinColumn(name = "sample_id"),
-            inverseJoinColumns = @JoinColumn(name = "product_id")
-    )
-    private List<Product> products;
+    @Column(name = "created_at")
+    private LocalDateTime createdAt = LocalDateTime.now();
+
+    @Column(name = "notes") // Optional: reason for samples (e.g., "Product effectiveness test")
+    private String notes;
+
+    @Enumerated(EnumType.STRING)
+    private SampleStatus status;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "distributor_id")
+    private User distributor;
 
 
 

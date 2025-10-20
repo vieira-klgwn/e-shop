@@ -2,11 +2,20 @@ package vector.StockManagement.services.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import vector.StockManagement.model.Sample;
-import vector.StockManagement.model.StockTransaction;
-import vector.StockManagement.repositories.SampleRepository;
+import vector.StockManagement.model.*;
+import vector.StockManagement.model.dto.CreateSampleRequest;
+import vector.StockManagement.model.dto.SampleItemDto;
+import vector.StockManagement.model.dto.SampleResponse;
+import vector.StockManagement.model.enums.LocationType;
+import vector.StockManagement.model.enums.OrderLevel;
+import vector.StockManagement.model.enums.Role;
+import vector.StockManagement.model.enums.SampleStatus;
+import vector.StockManagement.repositories.*;
+import vector.StockManagement.services.InventoryService;
 import vector.StockManagement.services.SampleService;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -15,21 +24,38 @@ public class SampleServiceImpl implements SampleService {
 
 
     private final SampleRepository sampleRepository;
+    private final InventoryRepository inventoryRepository;
+    private final ProductRepository productRepository;
+    private final InventoryService inventoryService;
+    private final UserRepository userRepository;
+    private final SampleItemRepository sampleItemRepository;
 
     @Override
-    public Sample findById(Long id) {
-        return sampleRepository.findById(id).get();
+    public SampleResponse findById(Long id) {
+        Sample sample= sampleRepository.findById(id).get();
+        SampleResponse sampleResponse = new SampleResponse();
+        sampleResponse.setCreatedAt(sample.getCreatedAt());
+        sampleResponse.setTotalItems(sample.getItems().size());
+        return sampleResponse;
     }
 
     @Override
-    public List<Sample> findAll() {
-        return sampleRepository.findAll();
+    public List<SampleResponse> findAll() {
+        List<Sample> samples= sampleRepository.findAll();
+        List<SampleResponse> sampleResponses = new ArrayList<>();
+        for (Sample sample : samples) {
+            SampleResponse sampleResponse = new SampleResponse();
+            sampleResponse.setCreatedAt(sample.getCreatedAt());
+            sampleResponse.setTotalItems(sample.getItems().size());
+            sampleResponses.add(sampleResponse);
+        }
+        return sampleResponses;
     }
 
     @Override
     public Sample update(Long id, Sample sample) {
         Sample sample1 = sampleRepository.findById(id).get();
-        sample.setQuantity(sample.getQuantity() + 1);
+        sample.setItems(sample1.getItems());
         return sampleRepository.save(sample1);
     }
 
@@ -41,10 +67,44 @@ public class SampleServiceImpl implements SampleService {
     }
 
     @Override
-    public Sample create(Sample sample) {
+    public Sample create(CreateSampleRequest request, User user) {
+
+        LocationType locationType = null;
+        if (user.getRole()== Role.SALES_MANAGER){
+             locationType= LocationType.WAREHOUSE;
+        }
+        else {
+            locationType= LocationType.DISTRIBUTOR;
+        }
+        Sample sample = new Sample();
 
 
-        return sampleRepository.save(sample);
+        for (SampleItemDto item: request.getItems()){
+            Product product = productRepository.findById(item.getProductId()).get();
+            if (locationType == LocationType.WAREHOUSE){
+                inventoryService.transferStock(product, item.getQuantity(), locationType, LocationType.DISTRIBUTOR);
+            }
+            else {
+                inventoryService.transferStock(product, item.getQuantity(), LocationType.DISTRIBUTOR, LocationType.RETAILER);
+            }
+            SampleItem sampleItem = new SampleItem();
+            sampleItem.setQuantity(item.getQuantity());
+            sampleItem.setProduct(product);
+            sampleItemRepository.saveAndFlush(sampleItem);
+
+            sample.getItems().add(sampleItem);
+        }
+
+        User distributor = userRepository.findById(request.getDistributorId()).get();
+
+
+        sample.setCreatedAt(LocalDateTime.now());
+        sample.setDistributor(distributor);
+        sample.setTenantId(user.getTenant().getId());
+        sample.setStatus(SampleStatus.PENDING);
+        return sampleRepository.saveAndFlush(sample);
+
+
     }
 
 
