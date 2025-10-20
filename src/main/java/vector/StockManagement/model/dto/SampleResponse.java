@@ -9,4 +9,5 @@ public class SampleResponse {
     private Long id;
     private Integer totalItems;
     private LocalDateTime createdAt;
+    private String sampleStatus;
 }

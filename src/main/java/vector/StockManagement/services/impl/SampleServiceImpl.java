@@ -31,12 +31,15 @@ public class SampleServiceImpl implements SampleService {
     private final UserRepository userRepository;
     private final SampleItemRepository sampleItemRepository;
 
+    /// in the future, optimize this Sample to only consider that one product will be sent per sample.
     @Override
     public SampleResponse findById(Long id) {
         Sample sample= sampleRepository.findById(id).get();
         SampleResponse sampleResponse = new SampleResponse();
         sampleResponse.setCreatedAt(sample.getCreatedAt());
-        sampleResponse.setTotalItems(sample.getItems().size());
+        sampleResponse.setTotalItems(sample.getQuantity());
+        sampleResponse.setId(sample.getId());
+        sampleResponse.setSampleStatus(SampleStatus.PENDING.toString());
         return sampleResponse;
     }
 
@@ -47,9 +50,11 @@ public class SampleServiceImpl implements SampleService {
         for (Sample sample : samples) {
             SampleResponse sampleResponse = new SampleResponse();
             sampleResponse.setCreatedAt(sample.getCreatedAt());
-            sampleResponse.setTotalItems(sample.getItems().size());
+            sampleResponse.setTotalItems(sample.getQuantity());// this is not serious bro
             sampleResponse.setId(sample.getId());
+            sampleResponse.setSampleStatus(SampleStatus.PENDING.toString());
             sampleResponses.add(sampleResponse);
+
         }
         return sampleResponses;
     }
@@ -95,6 +100,7 @@ public class SampleServiceImpl implements SampleService {
             sampleItem.setProduct(product);
             sampleItemRepository.saveAndFlush(sampleItem);
 
+            sample.setQuantity(item.getQuantity());// this is not serious bro
             sample.getItems().add(sampleItem);
         }
 
@@ -102,6 +108,7 @@ public class SampleServiceImpl implements SampleService {
 
 
         sample.setCreatedAt(LocalDateTime.now());
+        sample.setNotes(request.getNotes());
         sample.setDistributor(distributor);
         sample.setTenantId(user.getTenant().getId());
         sample.setStatus(SampleStatus.PENDING);

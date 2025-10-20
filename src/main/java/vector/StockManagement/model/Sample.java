@@ -33,6 +33,9 @@ public class Sample {
     @Column(name = "tenant_id") // For multi-tenancy
     private Long tenantId;
 
+    @Column(name = "quantity")
+    private Integer quantity;
+
     @Column(name = "created_at")
     private LocalDateTime createdAt = LocalDateTime.now();
 
