@@ -57,7 +57,7 @@ public class SampleServiceImpl implements SampleService {
             sampleResponse.setId(sample.getId());
             sampleResponse.setDistributorFirstName(sample.getDistributor().getFirstName());
             sampleResponse.setDistributorLastName(sample.getDistributor().getLastName());
-            sampleResponse.setProductName(sample.getItems().get(0).getProduct().getName());
+            sampleResponse.setProductName(sample.getProductName());
             sampleResponse.setSampleStatus(SampleStatus.PENDING.toString());
             sampleResponses.add(sampleResponse);
 
@@ -107,6 +107,7 @@ public class SampleServiceImpl implements SampleService {
             sampleItemRepository.saveAndFlush(sampleItem);
 
             sample.setQuantity(item.getQuantity());// this is not serious bro
+            sample.setProductName(product.getName());
             sample.getItems().add(sampleItem);
         }
 
