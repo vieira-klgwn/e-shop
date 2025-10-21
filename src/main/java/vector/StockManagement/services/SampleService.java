@@ -17,4 +17,5 @@ public interface SampleService {
     Sample delete(Long id);
     Sample create(CreateSampleRequest sample, User user);
 
+    Sample fullfillSample(Sample sample);
 }

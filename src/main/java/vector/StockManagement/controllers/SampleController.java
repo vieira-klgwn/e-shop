@@ -8,6 +8,7 @@ import vector.StockManagement.model.Sample;
 import vector.StockManagement.model.User;
 import vector.StockManagement.model.dto.CreateSampleRequest;
 import vector.StockManagement.model.dto.SampleResponse;
+import vector.StockManagement.repositories.SampleRepository;
 import vector.StockManagement.services.SampleService;
 
 import java.util.List;
@@ -17,6 +18,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SampleController {
     private final SampleService sampleService;
+    private final SampleRepository sampleRepository;
 
     @PostMapping
     public ResponseEntity<Sample> save(@RequestBody CreateSampleRequest request, @AuthenticationPrincipal User user) {
@@ -29,6 +31,11 @@ public class SampleController {
         return ResponseEntity.ok(sampleService.update(id,sample));
     }
 
+    @PutMapping("/fulfill/{id}")
+    public ResponseEntity<Sample> fulfill(@PathVariable Long id) {
+        Sample sample = sampleRepository.findById(id).orElseThrow(()->new IllegalArgumentException("Sample not found"));
+        return ResponseEntity.ok(sampleService.fullfillSample(sample));
+    }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Sample> delete(@PathVariable Long id) {

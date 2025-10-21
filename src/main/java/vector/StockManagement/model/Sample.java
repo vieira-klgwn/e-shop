@@ -36,8 +36,8 @@ public class Sample {
     @Column(name = "quantity")
     private Integer quantity;
 
-    @Column(name = "product_name")
-    private String productName;
+    @Column(name = "product_id")
+    private Long productId;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt = LocalDateTime.now();
