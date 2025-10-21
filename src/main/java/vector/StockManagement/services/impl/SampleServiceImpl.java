@@ -149,8 +149,12 @@ public class SampleServiceImpl implements SampleService {
 //                inventoryService.transferStock(product, item.getQuantity(), LocationType.DISTRIBUTOR, LocationType.RETAILER);
 //            }
 //
-//        }
-        Product product = productRepository.findById(sample.getProductId()).get();
+        Product product = null;
+        if (sample.getProductId() != null) {
+            product = productRepository.findById(sample.getProductId()).orElseThrow(() -> new RuntimeException("Product not found"));
+
+        }
+
         inventoryService.transferStock(product, sample.getQuantity(), LocationType.WAREHOUSE, LocationType.DISTRIBUTOR);
         sample.setStatus(SampleStatus.DELIVERED);
         return sampleRepository.save(sample);
