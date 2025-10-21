@@ -37,6 +37,9 @@ public class SampleServiceImpl implements SampleService {
         Sample sample= sampleRepository.findById(id).get();
         SampleResponse sampleResponse = new SampleResponse();
         sampleResponse.setCreatedAt(sample.getCreatedAt());
+        sampleResponse.setProductName(sample.getItems().get(0).getProduct().getName());
+        sampleResponse.setDistributorFirstName(sample.getDistributor().getFirstName());
+        sampleResponse.setDistributorLastName(sample.getDistributor().getLastName());
         sampleResponse.setTotalItems(sample.getQuantity());
         sampleResponse.setId(sample.getId());
         sampleResponse.setSampleStatus(SampleStatus.PENDING.toString());
@@ -52,6 +55,9 @@ public class SampleServiceImpl implements SampleService {
             sampleResponse.setCreatedAt(sample.getCreatedAt());
             sampleResponse.setTotalItems(sample.getQuantity());// this is not serious bro
             sampleResponse.setId(sample.getId());
+            sampleResponse.setDistributorFirstName(sample.getDistributor().getFirstName());
+            sampleResponse.setDistributorLastName(sample.getDistributor().getLastName());
+            sampleResponse.setProductName(sample.getItems().get(0).getProduct().getName());
             sampleResponse.setSampleStatus(SampleStatus.PENDING.toString());
             sampleResponses.add(sampleResponse);
 

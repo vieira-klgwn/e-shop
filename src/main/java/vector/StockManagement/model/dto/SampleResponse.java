@@ -10,4 +10,7 @@ public class SampleResponse {
     private Integer totalItems;
     private LocalDateTime createdAt;
     private String sampleStatus;
+    private String productName;
+    private String distributorFirstName;
+    private String distributorLastName;
 }
