@@ -1,5 +1,6 @@
 package vector.StockManagement.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import org.hibernate.annotations.Filter;
 import vector.StockManagement.model.enums.LocationType;
 import vector.StockManagement.model.enums.TransferStatus;
@@ -19,6 +20,7 @@ import java.time.LocalDateTime;
 @Table(name = "transfers")
 @Data
 @NoArgsConstructor
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 @AllArgsConstructor
 public class Transfer extends BaseEntity {
 
@@ -40,16 +42,18 @@ public class Transfer extends BaseEntity {
     @Column(name = "to_location_id")
     private Long toLocationId;
 
+    @Column(name = "order_id")
+    private Long orderId;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status")
     private TransferStatus status = TransferStatus.DRAFT;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "created_by")
     private User createdBy;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "approved_by")
     private User approvedBy;
 
@@ -66,11 +70,11 @@ public class Transfer extends BaseEntity {
     @Column(name = "notes")
     private String notes;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "tenant_id")
     private Tenant tenant;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "product_id")
     private Product product;
 

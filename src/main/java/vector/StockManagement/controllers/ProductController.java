@@ -54,6 +54,9 @@ public class ProductController {
         return dto != null ? ResponseEntity.ok(dto) : ResponseEntity.notFound().build();
     }
 
+
+
+
 //    @GetMapping("/store")
 //    public ResponseEntity<List<Product>> getByStore(@RequestParam String store) {
 //        return ResponseEntity.ok(productService.getAllStoreProducts());

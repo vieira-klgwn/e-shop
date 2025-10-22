@@ -5,7 +5,7 @@ import lombok.Data;
 @Data
 public class TransferDTO {
 
-    private Long oderId;
+    private Long orderId;
     private String reason;
     private Integer quantityToTransfer;
     private Integer quantityDelivered;

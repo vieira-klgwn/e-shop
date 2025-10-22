@@ -6,16 +6,15 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import vector.StockManagement.config.TenantContext;
 import vector.StockManagement.model.*;
 import vector.StockManagement.model.dto.TransferDTO;
 import vector.StockManagement.model.enums.LocationType;
 import vector.StockManagement.model.enums.OrderLevel;
 import vector.StockManagement.model.enums.StockTransactionType;
 import vector.StockManagement.model.enums.TransferStatus;
-import vector.StockManagement.repositories.InventoryRepository;
-import vector.StockManagement.repositories.InvoiceRepository;
-import vector.StockManagement.repositories.OrderRepository;
-import vector.StockManagement.repositories.TransferRepository;
+import vector.StockManagement.repositories.*;
+import vector.StockManagement.services.ProductService;
 import vector.StockManagement.services.StockTransactionService;
 import vector.StockManagement.services.TransferService;
 
@@ -32,6 +31,9 @@ public class TransferServiceImpl implements TransferService {
     private final OrderRepository orderRepository;
     private final OrderServiceImpl orderServiceImpl;
     private final InvoiceRepository invoiceRepository;
+    private final TenantRepository tenantRepository;
+    private final ProductService productService;
+    private final ProductRepository productRepository;
 
     @Override
     public List<Transfer> findAll() {
@@ -113,10 +115,11 @@ public class TransferServiceImpl implements TransferService {
     @Override
     @Transactional
     public Transfer process(TransferDTO transferDTO, User user) {
-        Order order = orderRepository.getOrderById(transferDTO.getOderId());
+        Order order = orderRepository.getOrderById(transferDTO.getOrderId());
+        Tenant tenant = tenantRepository.findById(TenantContext.getTenantId()).orElseThrow(() -> new RuntimeException("Tenant not found"));
         Transfer transfer = new Transfer();
         transfer.setQty(transferDTO.getQuantityToTransfer());
-        transfer.setTenant(order.getTenant());
+        transfer.setTenant(tenant);
         transfer.setNotes(transferDTO.getReason());
         if (order.getLevel() == OrderLevel.L1){
             transfer.setFromLevel(LocationType.DISTRIBUTOR);
@@ -156,9 +159,13 @@ public class TransferServiceImpl implements TransferService {
         }
         //update the order
 //        order.setOrderAmount(order.getOrderAmount()-);
+
         transfer.setStatus(TransferStatus.PENDING);
+        transfer.setQty(transferDTO.getQuantityToTransfer());
         transfer.setCreatedBy(order.getCreatedBy());
         transfer.setCompletedAt(LocalDateTime.now());
-        return transferRepository.saveAndFlush(transfer);
+        transfer.setOrderId(transferDTO.getOrderId());
+        transferRepository.saveAndFlush(transfer);
+        return transfer;
     }
 }

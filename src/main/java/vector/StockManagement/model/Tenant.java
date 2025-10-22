@@ -1,6 +1,7 @@
 package vector.StockManagement.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.*;
 import vector.StockManagement.model.BaseEntity;
 import jakarta.persistence.*;
@@ -18,6 +19,7 @@ import java.util.Map;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Tenant extends BaseEntity {
 
     @NotBlank
