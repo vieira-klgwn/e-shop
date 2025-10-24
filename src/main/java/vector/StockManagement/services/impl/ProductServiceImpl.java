@@ -164,6 +164,7 @@ public class ProductServiceImpl implements ProductService {
 
         tenant = tenantRepository.findById(TenantContext.getTenantId()).orElseThrow(() -> new RuntimeException("Tenant not found"));
         product.setTenant(tenant);
+        product.setSize(product.getSize());
         productRepository.saveAndFlush(product);
         Inventory inventory = new Inventory();
         inventory.setProduct(product);
