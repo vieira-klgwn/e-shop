@@ -14,6 +14,7 @@ import vector.StockManagement.config.TenantContext;
 import vector.StockManagement.controllers.TestErrorController;
 import vector.StockManagement.model.*;
 import vector.StockManagement.model.dto.PriceDisplayDTO;
+import vector.StockManagement.model.dto.ProductDTO;
 import vector.StockManagement.model.dto.ProductDisplayDTO;
 import vector.StockManagement.model.enums.LocationType;
 import vector.StockManagement.model.enums.OrderStatus;
@@ -38,6 +39,7 @@ public class ProductServiceImpl implements ProductService {
     private final PriceListRepository priceListRepository;
     private static final Logger logger = LoggerFactory.getLogger(ProductServiceImpl.class);
     private final OrderRepository orderRepository;
+    private final ProductSizeRepository productSizeRepository;
 
 
     @Override
@@ -127,7 +129,7 @@ public class ProductServiceImpl implements ProductService {
         productDisplayDTO.setName(product.getName());
         productDisplayDTO.setDescription(product.getDescription());
         productDisplayDTO.setCategory(String.valueOf(product.getCategory()));
-        productDisplayDTO.setSize(product.getSize());
+//        productDisplayDTO.setSize(product.getSize());
         productDisplayDTO.setImageUrl(product.getImageUrl());
         productDisplayDTO.setFactoryPrice(product.getFactoryPrice());
         productDisplayDTO.setDistributorPrice(product.getDistributorPrice());
@@ -158,13 +160,22 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional
-    public Product save(Product product) {
-
+    public Product save(ProductDTO productDTO) {
+        Product product = new Product();
+        product.setName(productDTO.getProductName());
         Tenant tenant = null;
-
         tenant = tenantRepository.findById(TenantContext.getTenantId()).orElseThrow(() -> new RuntimeException("Tenant not found"));
         product.setTenant(tenant);
-        product.setSize(product.getSize());
+
+        for (ProductDTO.ProductSize sizeDTO: productDTO.getProductSizes()){
+            ProductSize productSize = new ProductSize();
+            productSize.setSize(sizeDTO.getName());
+            productSize.setPrice(sizeDTO.getPrice() != null? sizeDTO.getPrice(): product.getPrice());
+            productSizeRepository.save(productSize);
+            product.getSizes().add(productSize);
+
+        }
+
         productRepository.saveAndFlush(product);
         Inventory inventory = new Inventory();
         inventory.setProduct(product);
@@ -173,6 +184,7 @@ public class ProductServiceImpl implements ProductService {
         inventory.setTenant(tenant);
         inventory.setQtyOnHand(0);
         inventoryRepository.saveAndFlush(inventory);
+
         return productRepository.saveAndFlush(product);
     }
 
@@ -296,7 +308,7 @@ public class ProductServiceImpl implements ProductService {
             if (product.getDescription() != null) existing.setDescription(product.getDescription());
             if (product.getPrice() != null) existing.setPrice(product.getPrice());
             if (product.getUnit() != 0) existing.setUnit(product.getUnit());
-            if (product.getSize() != null) existing.setSize(product.getSize());
+//            if (product.getSize() != null) existing.setSize(product.getSize());
             if (product.getCode() != null) existing.setCode(product.getCode());
             if (product.getCategory() != null) existing.setCategory(product.getCategory());
             if (product.getAttributes() != null) existing.setAttributes(product.getAttributes());

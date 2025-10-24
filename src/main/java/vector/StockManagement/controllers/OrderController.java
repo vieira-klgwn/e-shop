@@ -11,7 +11,9 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import vector.StockManagement.model.Order;
+import vector.StockManagement.model.OrderLine;
 import vector.StockManagement.model.User;
+import vector.StockManagement.model.dto.AdjustOrderDTO;
 import vector.StockManagement.model.dto.OrderDTO;
 import vector.StockManagement.model.dto.OrderDisplayDTO;
 import vector.StockManagement.model.enums.OrderLevel;
@@ -22,6 +24,7 @@ import vector.StockManagement.services.OrderService;
 import vector.StockManagement.services.impl.OrderServiceImpl;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/orders")
@@ -42,6 +45,30 @@ public class OrderController {
         int start = Math.min((int) pageable.getOffset(), orders.size());
         int end = Math.min(start + pageable.getPageSize(), orders.size());
         return new PageImpl<>(orders.subList(start, end), pageable, orders.size());
+    }
+
+
+    @PutMapping("/{id}/adjust")
+    public ResponseEntity<Order> adjustOrder(@PathVariable Long id,@RequestBody AdjustOrderDTO adjustOrderDTO){
+        Order order = orderRepository.findById(id).orElseThrow(()-> new IllegalStateException("Order not found"));
+
+        //Custom discount
+        if(adjustOrderDTO.getCustomerDiscount() != null){
+            order.setCustomDiscount(adjustOrderDTO.getCustomerDiscount());
+        }
+
+        //Price tweak(e.g., when there is discount)
+        if (adjustOrderDTO.getCustomerDiscount() != null){
+            order.setCustomDiscount(adjustOrderDTO.getCustomerDiscount());
+            Map<Long, Long> adjusts = adjustOrderDTO.getProductPriceAdjustments();
+            for (OrderLine line :order.getOrderLines()){line.getLineTotal() - adjustOrderDTO.getCustomerDiscount()
+                line.setLineTotal(line.getLineTotal() - adjustOrderDTO.getCustomerDiscount());
+
+            }
+        }
+
+
+
     }
 
     @GetMapping("/distributor")

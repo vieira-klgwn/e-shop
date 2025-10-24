@@ -45,6 +45,7 @@ public class OrderServiceImpl implements OrderService {
     private final ProductServiceImpl productServiceImpl;
     private final ProductService productService;
     private final JavaMailSender mailSender;
+    private final ProductSizeRepository productSizeRepository;
 
     @Override
     public List<OrderDisplayDTO> findAll() {
@@ -221,6 +222,7 @@ public class OrderServiceImpl implements OrderService {
         order.setDeliveryAddress(orderDto.getDeliveryAddress());
         order.setDeliveryDate(LocalDateTime.now().plusDays(1));
         order.setStatus(OrderStatus.DRAFT);
+        order.setSeller(user.getDistributor());
         order.setCurrency("FRW");
 
         OrderLevel level = user.getRole().equals(Role.RETAILER) ? OrderLevel.L2 : OrderLevel.L1;
@@ -251,25 +253,32 @@ public class OrderServiceImpl implements OrderService {
                 }
 
 
-                // Get price based on level
+                ProductSize ps = productSizeRepository.findByProductAndSize(product, lineDto.getSize());
 
-//                Long price = getProductPrice(product, priceLevel);
-                Long price = null;
-                if (order.getLevel() == OrderLevel.L1) {
-
-                    price = product.getFactoryPrice();
-                }
-                else {
-                    price= product.getDistributorPrice();
+                if (ps == null || ps.getQuantityInStock() < lineDto.getQty()) {
+                    throw new RuntimeException("Insufficient stock for " + product.getName() + " with size " + lineDto.getSize());
                 }
 
 
-
-
-
-                if (price == -1L) {
-                    throw new RuntimeException("No price found for product: " + product.getSku() + " at level " + priceLevel);
-                }
+//                // Get price based on level
+//
+////                Long price = getProductPrice(product, priceLevel);
+//                Long price = null;
+//                if (order.getLevel() == OrderLevel.L1) {
+//
+//                    price = product.getFactoryPrice();
+//                }
+//                else {
+//                    price= product.getDistributorPrice();
+//                }
+//
+//
+//
+//
+//
+//                if (price == -1L) {
+//                    throw new RuntimeException("No price found for product: " + product.getSku() + " at level " + priceLevel);
+//                }
 
                 OrderLine orderLine = new OrderLine();
 
@@ -277,11 +286,19 @@ public class OrderServiceImpl implements OrderService {
                     throw new RuntimeException("Order quantity should be a positive number and not zero");
                 }
 
+                orderLine.setUnitPrice(ps.getPrice());
+
+                //price for a whole saler
+                User user1 = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found (buyer)"));
+
+                if (user1.getRole() == Role.WHOLE_SALER){
+                    orderLine.setUnitPrice(ps.getPrice()-500L);
+                }
+                orderLine.setProductSize(ps.getSize());
                 orderLine.setOrder(savedOrder);
                 orderLine.setProduct(product);
                 orderLine.setQty(lineDto.getQty());
-                orderLine.setUnitPrice(price);
-                orderLine.setLineTotal(price * lineDto.getQty());
+                orderLine.setLineTotal(ps.getPrice() * lineDto.getQty());
                 orderLine.setTenant(tenant);
                 orderLineRepository.save(orderLine);
                 totalAmount += orderLine.getLineTotal();

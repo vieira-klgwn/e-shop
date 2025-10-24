@@ -71,7 +71,8 @@ public enum Role {
 
     RETAILER(Set.of(RETAILER_ORDER)),
 
-    ACCOUNTANT_AT_STORE(Set.of(STORE_ACCOUNTANT));
+    ACCOUNTANT_AT_STORE(Set.of(STORE_ACCOUNTANT)),
+    WHOLE_SALER(Set.of(Permission.WHOLE_SALER));
 
 
 

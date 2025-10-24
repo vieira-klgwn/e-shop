@@ -15,6 +15,7 @@ import vector.StockManagement.model.enums.ProductCategory;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -56,10 +57,14 @@ public class Product extends BaseEntity {
 
     @Column(name = "unit")
     private int unit; // e.g., "kg", "liter", "piece"
+//
+//    @Size(max = 100)
+//    @Column(name = "size")
+//    private String size; // e.g., "500ml", "1kg"
 
-    @Size(max = 100)
-    @Column(name = "size")
-    private String size; // e.g., "500ml", "1kg"
+
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<ProductSize> sizes = new ArrayList<>();
 
     @Size(max = 50)
     @Column(name = "code")

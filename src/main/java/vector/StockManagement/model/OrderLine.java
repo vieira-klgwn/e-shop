@@ -36,6 +36,7 @@ public class OrderLine extends BaseEntity {
     @Column(name = "qty", nullable = false)
     private Integer qty;
 
+    private String productSize;
     @NotNull
     @DecimalMin("0.0")
     @Column(name = "unit_price", nullable = false, precision = 15, scale = 2)
@@ -65,11 +66,11 @@ public class OrderLine extends BaseEntity {
     private Tenant tenant;
 
 
-    public OrderLine(Order order, Product product, Integer qty, Long unitPrice) {
+    public OrderLine(Order order, Product product, Integer qty) {
         this.order = order;
         this.product = product;
         this.qty = qty;
-        this.unitPrice = unitPrice;
+
 //        calculateLineTotal();
     }
 

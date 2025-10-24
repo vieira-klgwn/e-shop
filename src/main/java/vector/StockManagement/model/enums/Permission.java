@@ -55,7 +55,9 @@ public enum Permission {
 
     RETAILER_ORDER("retailer:order"),
 
-    STORE_ACCOUNTANT("store:accountant");
+    STORE_ACCOUNTANT("store:accountant"),
+
+    WHOLE_SALER("order:fromDistributor");
 
 
     @Getter

@@ -132,8 +132,25 @@ public class Order extends BaseEntity {
     @Column(name = "delivery_address", length = 500)
     private String deliveryAddress;
 
+    @ManyToOne(fetch = FetchType.EAGER)
+    private User seller;
+
     @Column(name = "order_date")
     private LocalDateTime orderDate = LocalDateTime.now();
+
+    @Column(name = "discount")
+    private Long customDiscount;
+
+    @Column(name = "adjusted_total_price")
+    private Long adjustedTotalPrice;
+
+
+
+    @ElementCollection
+    @CollectionTable(name = "my_entity_attributes", joinColumns = @JoinColumn(name = "entity_id"))
+    @MapKeyColumn(name = "size")
+    @Column(name = "quantity")
+    private Map<Long, Long> partialQuantities;
 
 
     public Order(OrderLevel level, String currency, User createdBy, Tenant tenant) {

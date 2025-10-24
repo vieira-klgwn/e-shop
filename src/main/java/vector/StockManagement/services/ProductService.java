@@ -6,6 +6,7 @@ import vector.StockManagement.model.PriceList;
 import vector.StockManagement.model.PriceListItem;
 import vector.StockManagement.model.Product;
 import vector.StockManagement.model.dto.PriceDisplayDTO;
+import vector.StockManagement.model.dto.ProductDTO;
 import vector.StockManagement.model.dto.ProductDisplayDTO;
 import vector.StockManagement.model.enums.PriceListLevel;
 
@@ -17,7 +18,7 @@ public interface ProductService {
 
     Product findById(Long id);
     ProductDisplayDTO findById1(Long id, PriceListLevel level);
-    Product save(Product product);
+    Product save(ProductDTO productDTO);
 
     List<ProductDisplayDTO> getAllStoreProducts();
 

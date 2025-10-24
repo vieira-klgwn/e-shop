@@ -36,5 +36,8 @@ public class OrderDTO {
         private Integer qty;
         @NotNull @Positive
         private Integer qtyReserved;
+
+        @NotNull
+        private String size;
     }
 }
