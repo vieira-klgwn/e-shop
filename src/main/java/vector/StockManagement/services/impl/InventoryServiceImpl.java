@@ -115,7 +115,7 @@ public class InventoryServiceImpl implements InventoryService {
     public Inventory updateQtyOnHand(Long productId, Integer qtyOnHand) {
         Product product = productRepository.findById(productId).orElseThrow(() -> new IllegalArgumentException("Product not found"));
 
-        Inventory inventory = inventoryRepository.findByProductAndLocationType(product,LocationType.WAREHOUSE);
+        Inventory inventory = inventoryRepository.findByProductAndLocationType(product,LocationType.DISTRIBUTOR);
         if (inventory == null) {
             throw new IllegalArgumentException("Inventory for product not found");
         }

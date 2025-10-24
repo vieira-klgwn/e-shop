@@ -43,7 +43,7 @@ public class AuthenticationController {
 
 
     @PostMapping("/register")
-    @PreAuthorize("hasAnyRole('SUPER_ADMIN','ADMIN','MANAGING_DIRECTOR')")
+    @PreAuthorize("hasAnyRole('DISTRIBUTOR')")
     public ResponseEntity<AuthenticationResponse> register(@Valid @RequestBody RegisterRequest registerRequest) {
 
 
@@ -64,6 +64,14 @@ public class AuthenticationController {
     @PreAuthorize("hasAnyRole('DISTRIBUTOR')")
     public ResponseEntity<AuthenticationResponse> registerRetailer(@Valid @RequestBody RegisterRequest registerRequest, @AuthenticationPrincipal User currentDistributor) {
         registerRequest.setRole(Role.RETAILER);
+        registerRequest.setDistributor_id(currentDistributor.getId());
+        return ResponseEntity.ok(authenticationService.register(registerRequest));
+    }
+
+    @PostMapping("/register/whole_saler")
+    @PreAuthorize("hasAnyRole('DISTRIBUTOR')")
+    public ResponseEntity<AuthenticationResponse> registerWholeSaler(@Valid @RequestBody RegisterRequest registerRequest, @AuthenticationPrincipal User currentDistributor) {
+        registerRequest.setRole(Role.WHOLE_SALER);
         registerRequest.setDistributor_id(currentDistributor.getId());
         return ResponseEntity.ok(authenticationService.register(registerRequest));
     }
@@ -103,7 +111,7 @@ public class AuthenticationController {
 
 
     @PostMapping("/super_user/login")
-    public ResponseEntity<AuthenticationResponse> superUsesrLogin(@RequestBody AuthenticationRequest authenticationRequest) {
+    public ResponseEntity<AuthenticationResponse> superUserLogin(@RequestBody AuthenticationRequest authenticationRequest) {
         return ResponseEntity.ok(authenticationService.authenticate(authenticationRequest));
     }
 

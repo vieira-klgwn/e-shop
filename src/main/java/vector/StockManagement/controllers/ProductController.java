@@ -13,6 +13,7 @@ import org.springframework.web.multipart.MultipartFile;
 import vector.StockManagement.config.TenantContext;
 import vector.StockManagement.model.Product;
 import vector.StockManagement.model.dto.PriceDisplayDTO;
+import vector.StockManagement.model.dto.ProductDTO;
 import vector.StockManagement.model.dto.ProductDisplayDTO;
 import vector.StockManagement.model.enums.PriceListLevel;
 import vector.StockManagement.services.ProductService;
@@ -70,18 +71,18 @@ public class ProductController {
     }
 
     @PostMapping
-    public Product create(@RequestBody Product product) {
+    public Product create(@RequestBody ProductDTO productDTO) {
         Long tenantId = TenantContext.getTenantId();
-        logger.info("Creating product: {} for tenant: {}", product.getName(), tenantId);
+        logger.info("Creating product: {} for tenant: {}", productDTO.getProductName(),tenantId);
         
         try {
-            Product savedProduct = productService.save(product);
+            Product savedProduct = productService.save(productDTO);
             logger.info("Successfully created product: {} with ID: {} for tenant: {}", 
                        savedProduct.getName(), savedProduct.getId(), tenantId);
             return savedProduct;
         } catch (Exception e) {
             logger.error("Failed to create product: {} for tenant: {} | Error: {}", 
-                        product.getName(), tenantId, e.getMessage(), e);
+                        productDTO.getProductName(), tenantId, e.getMessage(), e);
             throw e;
         }
     }

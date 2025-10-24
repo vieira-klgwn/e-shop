@@ -230,7 +230,7 @@ public class Order extends BaseEntity {
     }
 
     public boolean canBeCancelled() {
-        return status == OrderStatus.DRAFT || status == OrderStatus.SUBMITTED || status == OrderStatus.APPROVED;
+        return status == OrderStatus.DRAFT || status == OrderStatus.SUBMITTED || status == OrderStatus.APPROVED_BY_ACCOUNTANT;
     }
 
     public void submit() {
@@ -242,7 +242,7 @@ public class Order extends BaseEntity {
 
     public void approve(User approver) {
         if (canBeApproved()) {
-            this.status = OrderStatus.APPROVED;
+            this.status = OrderStatus.APPROVED_BY_ACCOUNTANT;
             this.approvedBy = approver;
             this.approvedAt = LocalDateTime.now();
         }

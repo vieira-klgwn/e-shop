@@ -4,9 +4,11 @@ package vector.StockManagement.model.enums;
 public enum OrderStatus {
     DRAFT,
     SUBMITTED,
-    APPROVED,
+    APPROVED_BY_ACCOUNTANT,
+    APPROVED_BY_STORE_MANAGER,
     FULFILLING,
     FULFILLED,
     CANCELLED,
     REJECTED
+
 }

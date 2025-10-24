@@ -1,5 +1,6 @@
 package vector.StockManagement.controllers;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -12,12 +13,14 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import vector.StockManagement.model.Order;
 import vector.StockManagement.model.OrderLine;
+import vector.StockManagement.model.Product;
 import vector.StockManagement.model.User;
 import vector.StockManagement.model.dto.AdjustOrderDTO;
 import vector.StockManagement.model.dto.OrderDTO;
 import vector.StockManagement.model.dto.OrderDisplayDTO;
 import vector.StockManagement.model.enums.OrderLevel;
 import vector.StockManagement.model.enums.OrderStatus;
+import vector.StockManagement.repositories.OrderLineRepository;
 import vector.StockManagement.repositories.OrderRepository;
 import vector.StockManagement.repositories.UserRepository;
 import vector.StockManagement.services.OrderService;
@@ -35,6 +38,7 @@ public class OrderController {
     private final UserRepository userRepository;
     private final OrderServiceImpl orderServiceImpl;
     private final OrderRepository orderRepository;
+    private final OrderLineRepository orderLineRepository;
 
     @GetMapping
     @PreAuthorize("hasAnyRole('DISTRIBUTOR','ACCOUNTANT','WAREHOUSE_MANAGER','ADMIN','SALES_MANAGER','STORE_MANAGER','MANAGING_DIRECTOR')")
@@ -49,25 +53,38 @@ public class OrderController {
 
 
     @PutMapping("/{id}/adjust")
+    @Transactional
     public ResponseEntity<Order> adjustOrder(@PathVariable Long id,@RequestBody AdjustOrderDTO adjustOrderDTO){
         Order order = orderRepository.findById(id).orElseThrow(()-> new IllegalStateException("Order not found"));
 
-        //Custom discount
-        if(adjustOrderDTO.getCustomerDiscount() != null){
-            order.setCustomDiscount(adjustOrderDTO.getCustomerDiscount());
-        }
+//        //Custom discount
+//        if(adjustOrderDTO.getCustomerDiscount() != null){
+//            order.setCustomDiscount(adjustOrderDTO.getCustomerDiscount());
+//        }
 
         //Price tweak(e.g., when there is discount)
-        if (adjustOrderDTO.getCustomerDiscount() != null){
-            order.setCustomDiscount(adjustOrderDTO.getCustomerDiscount());
+        if (adjustOrderDTO.getProductPriceAdjustments()!= null) {
+
             Map<Long, Long> adjusts = adjustOrderDTO.getProductPriceAdjustments();
-            for (OrderLine line :order.getOrderLines()){line.getLineTotal() - adjustOrderDTO.getCustomerDiscount()
-                line.setLineTotal(line.getLineTotal() - adjustOrderDTO.getCustomerDiscount());
+
+            if (adjusts != null) {  // Null-safety
+                Long totalAmount = 0L;
+                for (OrderLine line : order.getOrderLines()) {
+                    Long adjustmentPrice = adjusts.getOrDefault(line.getProduct().getId(), line.getUnitPrice());  // Fallback to original price if no adjustment
+                    Long lineTotal = adjustmentPrice * line.getQty();
+                    line.setLineTotal(lineTotal);
+                    orderLineRepository.saveAndFlush(line);
+                    totalAmount += lineTotal;
+                }
+
+                order.setOrderAmount(totalAmount);
+
 
             }
         }
 
 
+        return ResponseEntity.ok(orderRepository.saveAndFlush(order));
 
     }
 
@@ -99,7 +116,7 @@ public class OrderController {
     public Page<OrderDisplayDTO> getStoreOrdersToFulfill(@RequestParam(defaultValue = "0") int page,
                                                @RequestParam(defaultValue = "0") int size, @AuthenticationPrincipal User currentUser) {
         Pageable pageable = PageRequest.of(page, size);
-        List<OrderDisplayDTO> orders = orderService.getOrdersFromRetailer(currentUser.getId()).stream().filter(order-> OrderStatus.valueOf(order.getOrderStatus())== OrderStatus.APPROVED).toList();
+        List<OrderDisplayDTO> orders = orderService.getOrdersFromRetailer(currentUser.getId()).stream().filter(order-> OrderStatus.valueOf(order.getOrderStatus())== OrderStatus.APPROVED_BY_ACCOUNTANT).toList();
         int start = Math.min((int) pageable.getOffset(), orders.size());
         int end = Math.min(start + pageable.getPageSize(), orders.size());
         return new PageImpl<>(orders.subList(start, end), pageable, orders.size());
@@ -161,9 +178,19 @@ public class OrderController {
         return ResponseEntity.ok(orderService.update(id, orderdto));
     }
 
-    @PutMapping("/approve/{id}")
+    @PutMapping("/store_manager/approve/{id}")
     @PreAuthorize("hasAnyRole('ACCOUNTANT', 'ACCOUNTANT_AT_STORE')")
-    public ResponseEntity<Order> approve(@AuthenticationPrincipal User user, @PathVariable Long id) {
+    public ResponseEntity<Order> approveByStoreManager(@AuthenticationPrincipal User user, @PathVariable Long id) {
+        Order order = orderRepository.getOrderById(id);
+        if (order == null) {
+            throw new RuntimeException("Order not found");
+        }
+        return ResponseEntity.ok(orderServiceImpl.approveByStoreManager(user.getId(),order ));
+    }
+
+    @PutMapping("/accountant/approve/{id}")
+    @PreAuthorize("hasAnyRole('ACCOUNTANT', 'ACCOUNTANT_AT_STORE')")
+    public ResponseEntity<Order> approveByAccountant(@AuthenticationPrincipal User user, @PathVariable Long id) {
         Order order = orderRepository.getOrderById(id);
         if (order == null) {
             throw new RuntimeException("Order not found");

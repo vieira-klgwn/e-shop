@@ -179,7 +179,7 @@ public class ProductServiceImpl implements ProductService {
         productRepository.saveAndFlush(product);
         Inventory inventory = new Inventory();
         inventory.setProduct(product);
-        inventory.setLocationType(LocationType.WAREHOUSE);
+        inventory.setLocationType(LocationType.DISTRIBUTOR);
         inventory.setLocationId(12L);
         inventory.setTenant(tenant);
         inventory.setQtyOnHand(0);

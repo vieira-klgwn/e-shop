@@ -345,7 +345,7 @@ public class OrderServiceImpl implements OrderService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
         
-        if (order.getStatus() != OrderStatus.APPROVED) {
+        if (order.getStatus() != OrderStatus.APPROVED_BY_ACCOUNTANT) {
             throw new RuntimeException("Can only fulfill approved orders");
         }
 
@@ -400,37 +400,37 @@ public class OrderServiceImpl implements OrderService {
         return orderRepository.save(existing);
     }
 
-    @Transactional
-    @Override
-    public Order approve(Long userId, Order order) {
+
+    public Order approveByStoreManager(Long userId, Order order){
+
         User approver = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("Approver not found"));
-        
-        if (!order.canBeApproved()) {
-            throw new RuntimeException("Order cannot be approved in current status: " + order.getStatus());
+
+        if (order.getStatus() != OrderStatus.SUBMITTED) {
+            throw new RuntimeException("Cannot approve order that is not in SUBMITTED status");
         }
-        
-        // Approve the order
-        order.approve(approver);
+
         LocationType type = LocationType.WAREHOUSE;
 
         if (order.getLevel()==OrderLevel.L1) {
-            type = LocationType.WAREHOUSE;
-        }
-        else {
             type = LocationType.DISTRIBUTOR;
         }
-        
+        else {
+            type = LocationType.RETAILER;
+        }
+
+
+
         // Reserve inventory for order lines
         for (OrderLine orderLine : order.getOrderLines()) {
             Inventory inventory = inventoryRepository.findByProductAndLocationType(orderLine.getProduct(), type);
-            
+
             if (inventory == null) {
                 throw new RuntimeException("No inventory found for product: " + orderLine.getProduct().getSku());
             }
-            
+
             if (!inventory.canReserve(orderLine.getQty())) {
-                throw new RuntimeException("Insufficient inventory for product: " + orderLine.getProduct().getSku() + 
+                throw new RuntimeException("Insufficient inventory for product: " + orderLine.getProduct().getSku() +
                         ". Available: " + inventory.getQtyAvailable() + ", Required: " + orderLine.getQty());
             }
 
@@ -439,14 +439,28 @@ public class OrderServiceImpl implements OrderService {
             inventoryService.reserveStock(orderLine.getProduct(),orderLine.getQty(),type);
             inventoryRepository.save(inventory);
         }
-        
+        order.setStatus(OrderStatus.APPROVED_BY_STORE_MANAGER);
+        return orderRepository.save(order);
+    }
+
+    @Transactional
+    @Override
+    public Order approve(Long userId, Order order) {
+
+        User approver = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Approver not found"));
+
+        if (!(order.getStatus()==OrderStatus.APPROVED_BY_STORE_MANAGER)) {
+            throw new RuntimeException("Order cannot be approved by accountant without approval from store manager " + order.getStatus());
+        }
+
         // Generate invoice
         Invoice invoice = createInvoiceFromOrder(order, approver);
         invoiceRepository.save(invoice);
         
         // Send notifications
         createOrderNotifications(order, "Order Approved");
-        
+        order.setStatus(OrderStatus.APPROVED_BY_ACCOUNTANT);
         return orderRepository.save(order);
     }
     
