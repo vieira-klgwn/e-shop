@@ -72,7 +72,7 @@ public class SecurityConfig {
 
                                 .requestMatchers(WHITE_LIST_URL).permitAll()
                                 .requestMatchers(SWAGGER_WHITELIST).permitAll()
-                                .requestMatchers("/api/auth/register").hasAnyRole("ADMIN", "SUPER_ADMIN", "MANAGING_DIRECTOR")
+                                .requestMatchers("/api/auth/register").hasAnyRole("ADMIN", "SUPER_ADMIN", "MANAGING_DIRECTOR","DISTRIBUTOR")
                                 .requestMatchers("/api/tenants/admin").hasRole("SUPER_ADMIN")
                                 .requestMatchers("/uploads/**", "/favicon.ico").permitAll()
                                 .requestMatchers("/api/tenants/{id}").permitAll()

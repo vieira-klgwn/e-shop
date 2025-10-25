@@ -30,7 +30,6 @@ import java.util.Map;
 @AllArgsConstructor
 public class Product extends BaseEntity {
 
-    @NotBlank
     @Size(max = 100)
     @Column(name = "sku", nullable = false)
     private String sku;
@@ -70,7 +69,6 @@ public class Product extends BaseEntity {
     @Column(name = "code")
     private String code;
 
-    @NotNull
     @Enumerated(EnumType.STRING)
     private ProductCategory category;
 

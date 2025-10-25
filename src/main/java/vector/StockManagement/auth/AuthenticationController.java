@@ -12,9 +12,12 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import vector.StockManagement.config.TenantContext;
+import vector.StockManagement.model.Tenant;
 import vector.StockManagement.model.Token;
 import vector.StockManagement.model.User;
 import vector.StockManagement.model.enums.Role;
+import vector.StockManagement.repositories.TenantRepository;
 import vector.StockManagement.repositories.TokenRepository;
 import vector.StockManagement.services.UserService;
 
@@ -36,6 +39,7 @@ public class AuthenticationController {
     private final AuthenticationService authenticationService;
     private final UserService userService;
     private final TokenRepository tokenRepository;
+    private final TenantRepository tenantRepository;
 
 
     @Value("${app.upload.dir:uploads}")
@@ -89,7 +93,9 @@ public class AuthenticationController {
     @PreAuthorize("hasAnyRole('DISTRIBUTOR')")
     public ResponseEntity<AuthenticationResponse> registerStoreManager(@Valid @RequestBody RegisterRequest registerRequest, @AuthenticationPrincipal User currentDistributor) {
         registerRequest.setRole(Role.STORE_MANAGER);
-        registerRequest.setDistributor_id(currentDistributor.getId());
+        registerRequest.setDistributor_id(TenantContext.getTenantId());
+
+        Tenant tenant = tenantRepository.findById(TenantContext.getTenantId()).orElseThrow(() -> new IllegalStateException("Tenant not found"));
         return ResponseEntity.ok(authenticationService.register(registerRequest));
     }
 
