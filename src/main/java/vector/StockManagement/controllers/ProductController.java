@@ -13,6 +13,7 @@ import org.springframework.web.multipart.MultipartFile;
 import vector.StockManagement.config.TenantContext;
 import vector.StockManagement.model.Product;
 import vector.StockManagement.model.dto.PriceDisplayDTO;
+import vector.StockManagement.model.dto.PriceOfEachSizeDTO;
 import vector.StockManagement.model.dto.ProductDTO;
 import vector.StockManagement.model.dto.ProductDisplayDTO;
 import vector.StockManagement.model.enums.PriceListLevel;
@@ -141,6 +142,16 @@ public class ProductController {
         return contentType != null && (contentType.equals("image/jpeg") ||
                 contentType.equals("image/png") ||
                 contentType.equals("image/gif"));
+    }
+
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Product> setPrices(@PathVariable Long id, @RequestBody PriceOfEachSizeDTO priceOfEachSizeDTO) {
+        Product product = productService.findById(id);
+        if (product == null) {
+            throw new IllegalArgumentException("Product not found");
+        }
+        return ResponseEntity.ok(productService.setPricesForEachSize(product, priceOfEachSizeDTO));
     }
 
     @DeleteMapping("/{id}")

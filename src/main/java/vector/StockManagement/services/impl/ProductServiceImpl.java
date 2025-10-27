@@ -6,27 +6,24 @@ import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 //import vector.StockManagement.config.TenantContext;
 //import vector.StockManagement.config.TenantTransactionSynchronization;
 import vector.StockManagement.config.TenantContext;
-import vector.StockManagement.controllers.TestErrorController;
 import vector.StockManagement.model.*;
 import vector.StockManagement.model.dto.PriceDisplayDTO;
+import vector.StockManagement.model.dto.PriceOfEachSizeDTO;
 import vector.StockManagement.model.dto.ProductDTO;
 import vector.StockManagement.model.dto.ProductDisplayDTO;
 import vector.StockManagement.model.enums.LocationType;
-import vector.StockManagement.model.enums.OrderStatus;
 import vector.StockManagement.model.enums.PriceListLevel;
 import vector.StockManagement.repositories.*;
 import vector.StockManagement.services.ProductService;
 
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor(onConstructor_ = {@Autowired})
@@ -159,6 +156,19 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    public Product setPricesForEachSize(Product product, PriceOfEachSizeDTO dto){
+        List<ProductSize> sizes = product.getSizes();
+        Map<Long, Long> dtos = dto.getProductSizePrices();
+        for (ProductSize size: sizes) {
+            ProductSize productSize = productSizeRepository.findById(size.getId()).orElseThrow(() -> new RuntimeException("Product size not found for this product"));
+            Long price = dtos.get(size.getId());
+            productSize.setPrice(price);
+        }
+        return productRepository.save(product);
+    }
+
+
+    @Override
     @Transactional
     public Product save(ProductDTO productDTO) {
         Product product = new Product();
@@ -171,6 +181,8 @@ public class ProductServiceImpl implements ProductService {
             ProductSize productSize = new ProductSize();
             productSize.setSize(sizeDTO.getName());
             productSize.setPrice(sizeDTO.getPrice() != null? sizeDTO.getPrice(): product.getPrice());
+            productRepository.save(product);
+            productSize.setProduct(product);
             productSizeRepository.save(productSize);
             product.getSizes().add(productSize);
 
@@ -187,6 +199,8 @@ public class ProductServiceImpl implements ProductService {
 
         return productRepository.saveAndFlush(product);
     }
+
+
 
     @Override
     public List<ProductDisplayDTO> getAllStoreProducts(){
