@@ -80,10 +80,10 @@ public class AuthenticationController {
         return ResponseEntity.ok(authenticationService.register(registerRequest));
     }
 
-    @PostMapping("/register/accountantAtStore")
+    @PostMapping("/register/accountant")
     @PreAuthorize("hasRole('DISTRIBUTOR')")
     public ResponseEntity<AuthenticationResponse> registerAccountantAtStore(@Valid @RequestBody RegisterRequest registerRequest, @AuthenticationPrincipal User currentDistributor) {
-        registerRequest.setRole(Role.ACCOUNTANT_AT_STORE);
+        registerRequest.setRole(Role.ACCOUNTANT);
         registerRequest.setDistributor_id(currentDistributor.getId());
         return ResponseEntity.ok(authenticationService.register(registerRequest));
     }
@@ -93,6 +93,16 @@ public class AuthenticationController {
     @PreAuthorize("hasAnyRole('DISTRIBUTOR')")
     public ResponseEntity<AuthenticationResponse> registerStoreManager(@Valid @RequestBody RegisterRequest registerRequest, @AuthenticationPrincipal User currentDistributor) {
         registerRequest.setRole(Role.STORE_MANAGER);
+        registerRequest.setDistributor_id(TenantContext.getTenantId());
+
+        Tenant tenant = tenantRepository.findById(TenantContext.getTenantId()).orElseThrow(() -> new IllegalStateException("Tenant not found"));
+        return ResponseEntity.ok(authenticationService.register(registerRequest));
+    }
+
+    @PostMapping("register/sales_manager")
+    @PreAuthorize("hasAnyRole('DISTRIBUTOR')")
+    public ResponseEntity<AuthenticationResponse> registerSalesManager(@Valid @RequestBody RegisterRequest registerRequest, @AuthenticationPrincipal User currentDistributor) {
+        registerRequest.setRole(Role.SALES_MANAGER);
         registerRequest.setDistributor_id(TenantContext.getTenantId());
 
         Tenant tenant = tenantRepository.findById(TenantContext.getTenantId()).orElseThrow(() -> new IllegalStateException("Tenant not found"));
@@ -131,6 +141,8 @@ public class AuthenticationController {
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid refresh token");
         }
     }
+
+
 
     @PostMapping("/{id}/upload-image")
     @PreAuthorize("hasAnyRole('ADMIN','DISTRIBUTOR')")

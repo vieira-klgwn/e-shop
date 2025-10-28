@@ -168,7 +168,7 @@ public class OrderController {
 
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('DISTRIBUTOR','STORE_MANAGER','RETAILER')")
+    @PreAuthorize("hasAnyRole('DISTRIBUTOR','STORE_MANAGER','RETAILER','WHOLE_SALER')")
     public ResponseEntity<Order> create(@AuthenticationPrincipal User user, @RequestBody OrderDTO orderDTO) {
         return ResponseEntity.ok(orderService.save(user.getId(), orderDTO));
     }
@@ -179,7 +179,7 @@ public class OrderController {
     }
 
     @PutMapping("/store_manager/approve/{id}")
-    @PreAuthorize("hasAnyRole('ACCOUNTANT', 'ACCOUNTANT_AT_STORE')")
+    @PreAuthorize("hasAnyRole('STORE_MANAGER')")
     public ResponseEntity<Order> approveByStoreManager(@AuthenticationPrincipal User user, @PathVariable Long id) {
         Order order = orderRepository.getOrderById(id);
         if (order == null) {
@@ -199,7 +199,7 @@ public class OrderController {
     }
 
     @PutMapping("/reject/{id}")
-    @PreAuthorize("hasAnyRole('ACCOUNTANT','ACCOUNTANT_AT_STORE')")
+    @PreAuthorize("hasAnyRole('ACCOUNTANT','ACCOUNTANT_AT_STORE','STORE_MANAGER')")
     public ResponseEntity<Order> reject(@PathVariable Long id) {
         Order order = orderService.findById(id);
         if (order == null) return ResponseEntity.notFound().build();
@@ -207,7 +207,7 @@ public class OrderController {
     }
 
     @PutMapping("/submit/{id}")
-    @PreAuthorize("hasAnyRole('DISTRIBUTOR','RETAILER')")
+    @PreAuthorize("hasAnyRole('DISTRIBUTOR','RETAILER','WHOLE_SALER')")
     public ResponseEntity<Order> submit(@AuthenticationPrincipal User user, @PathVariable Long id) {
         // keep compatibility by calling service method via update flow in implementation
         return ResponseEntity.ok(((vector.StockManagement.services.impl.OrderServiceImpl) orderService).submitOrder(id, user.getId()));

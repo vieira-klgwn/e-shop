@@ -17,6 +17,7 @@ import vector.StockManagement.model.dto.ProductDTO;
 import vector.StockManagement.model.dto.ProductDisplayDTO;
 import vector.StockManagement.model.enums.LocationType;
 import vector.StockManagement.model.enums.PriceListLevel;
+import vector.StockManagement.model.enums.ProductCategory;
 import vector.StockManagement.repositories.*;
 import vector.StockManagement.services.ProductService;
 
@@ -173,6 +174,8 @@ public class ProductServiceImpl implements ProductService {
     public Product save(ProductDTO productDTO) {
         Product product = new Product();
         product.setName(productDTO.getProductName());
+        product.setSku(productDTO.getSku());
+        product.setCategory(ProductCategory.valueOf(productDTO.getCategory()));
         Tenant tenant = null;
         tenant = tenantRepository.findById(TenantContext.getTenantId()).orElseThrow(() -> new RuntimeException("Tenant not found"));
         product.setTenant(tenant);
@@ -189,13 +192,7 @@ public class ProductServiceImpl implements ProductService {
         }
 
         productRepository.saveAndFlush(product);
-        Inventory inventory = new Inventory();
-        inventory.setProduct(product);
-        inventory.setLocationType(LocationType.DISTRIBUTOR);
-        inventory.setLocationId(12L);
-        inventory.setTenant(tenant);
-        inventory.setQtyOnHand(0);
-        inventoryRepository.saveAndFlush(inventory);
+
 
         return productRepository.saveAndFlush(product);
     }

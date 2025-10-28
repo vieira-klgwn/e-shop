@@ -7,6 +7,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
@@ -38,6 +39,8 @@ public class OrderDTO {
         private Integer qtyReserved;
 
         @NotNull
-        private String size;
+        private Map<String, Integer> sizes;
+
+
     }
 }

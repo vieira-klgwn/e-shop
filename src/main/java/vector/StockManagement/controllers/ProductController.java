@@ -12,18 +12,23 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import vector.StockManagement.config.TenantContext;
 import vector.StockManagement.model.Product;
+import vector.StockManagement.model.ProductSize;
 import vector.StockManagement.model.dto.PriceDisplayDTO;
 import vector.StockManagement.model.dto.PriceOfEachSizeDTO;
 import vector.StockManagement.model.dto.ProductDTO;
 import vector.StockManagement.model.dto.ProductDisplayDTO;
 import vector.StockManagement.model.enums.PriceListLevel;
+import vector.StockManagement.repositories.ProductRepository;
+import vector.StockManagement.repositories.ProductSizeRepository;
 import vector.StockManagement.services.ProductService;
+import vector.StockManagement.services.impl.ProductServiceImpl;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @RestController
@@ -33,6 +38,9 @@ public class ProductController {
 
     private static final Logger logger = LoggerFactory.getLogger(ProductController.class);
     private final ProductService productService;
+    private final ProductRepository productRepository;
+    private final ProductServiceImpl productServiceImpl;
+    private final ProductSizeRepository productSizeRepository;
 
     @Value("${app.upload.dir:uploads}")
     private String uploadDir;
@@ -47,6 +55,23 @@ public class ProductController {
     public List<ProductDisplayDTO> getAllStoreProducts() {
         PriceListLevel level = PriceListLevel.DISTRIBUTOR;
         return productService.getAllStoreProducts();
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<ProductDisplayDTO> getProductById(@PathVariable Long id, @RequestParam String size) {
+        Product product = productRepository.findById(id).orElseThrow(()-> new IllegalStateException("Product not found"));
+        ProductSize size1 = productSizeRepository.findByProductAndSize(product, size);
+
+        ProductDisplayDTO dto = new ProductDisplayDTO();
+        dto.setProductCategory(product.getCategory());
+        dto.setQty(size1.getQuantityInStock());
+        dto.setPrice(size1.getPrice());
+        dto.setTenantName(product.getTenant().getName());
+        dto.setSize(size1.getSize());
+        dto.setImageUrl(product.getImageUrl());
+        dto.setDescription(product.getDescription());
+        dto.setName(product.getName());
+        return ResponseEntity.ok(dto);
     }
 
     @GetMapping("/{id}/factory")

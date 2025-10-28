@@ -37,7 +37,7 @@ public class OrderLine extends BaseEntity {
     private Integer qty;
 
     private String productSize;
-    @NotNull
+
     @DecimalMin("0.0")
     @Column(name = "unit_price", nullable = false, precision = 15, scale = 2)
     private Long unitPrice;

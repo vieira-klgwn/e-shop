@@ -15,10 +15,7 @@ import vector.StockManagement.model.dto.OrderDTO;
 import vector.StockManagement.model.dto.OrderDisplayDTO;
 import vector.StockManagement.model.enums.*;
 import vector.StockManagement.repositories.*;
-import vector.StockManagement.services.OrderService;
-import vector.StockManagement.services.InventoryService;
-import vector.StockManagement.services.NotificationSerivice;
-import vector.StockManagement.services.ProductService;
+import vector.StockManagement.services.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -46,6 +43,7 @@ public class OrderServiceImpl implements OrderService {
     private final ProductService productService;
     private final JavaMailSender mailSender;
     private final ProductSizeRepository productSizeRepository;
+    private final ProductSizeService productSizeService;
 
     @Override
     public List<OrderDisplayDTO> findAll() {
@@ -237,8 +235,8 @@ public class OrderServiceImpl implements OrderService {
         Order savedOrder = orderRepository.saveAndFlush(order);
 
 
-        LocationType sourceLocation = (level == OrderLevel.L1) ? LocationType.WAREHOUSE : LocationType.DISTRIBUTOR;
-        PriceListLevel priceLevel = (level == OrderLevel.L1) ? PriceListLevel.FACTORY : PriceListLevel.DISTRIBUTOR;
+        LocationType sourceLocation = (level == OrderLevel.L1) ? LocationType.DISTRIBUTOR : LocationType.RETAILER;
+//        PriceListLevel priceLevel = (level == OrderLevel.L1) ? PriceListLevel.DISTRIBUTOR : PriceListLevel.DISTRIBUTOR;
 
         
         // Create order lines and calculate totals
@@ -248,16 +246,18 @@ public class OrderServiceImpl implements OrderService {
                 Product product = productRepository.findById(lineDto.getProductId()).orElseThrow(() -> new RuntimeException("Product not found"));
 
 //                Inventory inventory = inventoryRepository.findByProductAndLocationType(product, sourceLocation);
-                if (!inventoryService.hasSufficientStock(product, lineDto.getQty(), sourceLocation)) {
-                    throw new RuntimeException("Insufficient stock for product: " + product.getSku() + " at " + sourceLocation + " and its location is " + sourceLocation ) ;
-                }
+//                if (!inventoryService.hasSufficientStock(product, lineDto.getQty(), sourceLocation)) {
+//                    throw new RuntimeException("Insufficient stock for product: " + product.getSku() + " at " + sourceLocation + " and its location is " + sourceLocation ) ;
+//                }
 
 
-                ProductSize ps = productSizeRepository.findByProductAndSize(product, lineDto.getSize());
 
-                if (ps == null || ps.getQuantityInStock() < lineDto.getQty()) {
-                    throw new RuntimeException("Insufficient stock for " + product.getName() + " with size " + lineDto.getSize());
-                }
+
+                lineDto.getSizes().forEach((key, value) -> updateProductBySizeAfterOrder(product, key, value));
+
+//                if (ps == null || ps.getQuantityInStock() < lineDto.getQty()) {
+//                    throw new RuntimeException("Insufficient stock for " + product.getName() + " with size " + lineDto.getSize());
+//                }
 
 
 //                // Get price based on level
@@ -286,19 +286,31 @@ public class OrderServiceImpl implements OrderService {
                     throw new RuntimeException("Order quantity should be a positive number and not zero");
                 }
 
-                orderLine.setUnitPrice(ps.getPrice());
+//                orderLine.setUnitPrice(ps.getPrice());
 
                 //price for a whole saler
                 User user1 = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found (buyer)"));
 
-                if (user1.getRole() == Role.WHOLE_SALER){
-                    orderLine.setUnitPrice(ps.getPrice()-500L);
-                }
-                orderLine.setProductSize(ps.getSize());
+//                if (user1.getRole() == Role.WHOLE_SALER){
+//                    orderLine.setUnitPrice(ps.getPrice()-500L);
+//                }
+//                orderLine.setProductSize(ps.getSize());
                 orderLine.setOrder(savedOrder);
                 orderLine.setProduct(product);
                 orderLine.setQty(lineDto.getQty());
-                orderLine.setLineTotal(ps.getPrice() * lineDto.getQty());
+                List<Long> totals = new ArrayList<>();
+                lineDto.getSizes().forEach((sizeKey, value) -> {
+                    ProductSize size = productSizeRepository.findByProductAndSize(product,sizeKey);
+                    totals.add(size.getPrice() * value);
+
+                });
+                for(Long total: totals){
+
+                    if (orderLine.getLineTotal()==null){
+                        orderLine.setLineTotal(0L);
+                    }
+                    orderLine.setLineTotal(orderLine.getLineTotal() + total);
+                }
                 orderLine.setTenant(tenant);
                 orderLineRepository.save(orderLine);
                 totalAmount += orderLine.getLineTotal();
@@ -315,6 +327,25 @@ public class OrderServiceImpl implements OrderService {
         return savedOrder;
     }
 
+    private ProductSize updateProductBySizeAfterOrder(Product product, String productSize, Integer quantity) {
+        ProductSize size = productSizeRepository.findByProductAndSize(product, productSize);
+        if (size == null || size.getQuantityInStock() < quantity) {
+            throw new RuntimeException("Insufficient stock for " + product.getName() + " with size " + productSize);
+        }
+        size.setQuantityInStock(size.getQuantityInStock()- quantity);
+        return productSizeRepository.save(size);
+    }
+
+
+    private ProductSize updateProductBySizeAfterOrderRejection(Product product, String productSize, Integer quantity) {
+        ProductSize size = productSizeRepository.findByProductAndSize(product, productSize);
+        if (size == null || size.getQuantityInStock() < quantity) {
+            throw new RuntimeException("Insufficient stock for " + product.getName() + " with size " + productSize);
+        }
+        size.setQuantityInStock(size.getQuantityInStock()+ quantity);
+        return productSizeRepository.save(size);
+    }
+
     private Long getProductPrice(Product product, PriceListLevel priceLevel) {
         Long tenantId = TenantContext.getTenantId();
         List<PriceList> priceLists = priceListRepository.findByLevelAndIsActive(priceLevel, true);
@@ -328,6 +359,8 @@ public class OrderServiceImpl implements OrderService {
         }
         return -1L; // No price found
     }
+
+
 
     @Override
     @PreAuthorize("hasRole('ADMIN')")
@@ -349,14 +382,6 @@ public class OrderServiceImpl implements OrderService {
             throw new RuntimeException("Can only fulfill approved orders");
         }
 
-        LocationType sourceLocation = (order.getLevel() == OrderLevel.L1) ? LocationType.WAREHOUSE : LocationType.DISTRIBUTOR;
-        LocationType targetLocation = (order.getLevel() == OrderLevel.L1) ? LocationType.DISTRIBUTOR : LocationType.RETAILER;
-        // Process inventory movement
-        for (OrderLine orderLine : order.getOrderLines()) {
-            inventoryService.transferStock(orderLine.getProduct(), orderLine.getQty(), sourceLocation, targetLocation);
-            inventoryService.releaseReservedStock(orderLine.getProduct(), orderLine.getQty(), sourceLocation);
-        }
-        
 
         order.setStatus(OrderStatus.FULFILLED);
         createOrderNotifications(order, "Order Fulfilled");
@@ -410,36 +435,9 @@ public class OrderServiceImpl implements OrderService {
             throw new RuntimeException("Cannot approve order that is not in SUBMITTED status");
         }
 
-        LocationType type = LocationType.WAREHOUSE;
 
-        if (order.getLevel()==OrderLevel.L1) {
-            type = LocationType.DISTRIBUTOR;
-        }
-        else {
-            type = LocationType.RETAILER;
-        }
-
-
-
-        // Reserve inventory for order lines
-        for (OrderLine orderLine : order.getOrderLines()) {
-            Inventory inventory = inventoryRepository.findByProductAndLocationType(orderLine.getProduct(), type);
-
-            if (inventory == null) {
-                throw new RuntimeException("No inventory found for product: " + orderLine.getProduct().getSku());
-            }
-
-            if (!inventory.canReserve(orderLine.getQty())) {
-                throw new RuntimeException("Insufficient inventory for product: " + orderLine.getProduct().getSku() +
-                        ". Available: " + inventory.getQtyAvailable() + ", Required: " + orderLine.getQty());
-            }
-
-
-
-            inventoryService.reserveStock(orderLine.getProduct(),orderLine.getQty(),type);
-            inventoryRepository.save(inventory);
-        }
         order.setStatus(OrderStatus.APPROVED_BY_STORE_MANAGER);
+        order.setApprovedBy(approver);
         return orderRepository.save(order);
     }
 
@@ -539,9 +537,14 @@ public class OrderServiceImpl implements OrderService {
         if (order.getStatus() != OrderStatus.SUBMITTED) {
             throw new RuntimeException("Can only reject submitted orders");
         }
+
+        for (OrderLine orderLine : order.getOrderLines()) {
+            ProductSize size = productSizeRepository.findByProductAndSize(orderLine.getProduct(),orderLine.getProductSize());
+            updateProductBySizeAfterOrderRejection(orderLine.getProduct(),size.getSize(),orderLine.getQty());
+        }
         
         order.setStatus(OrderStatus.REJECTED);
-        
+
         // Create notification
         createOrderNotifications(order, "Order Rejected");
         

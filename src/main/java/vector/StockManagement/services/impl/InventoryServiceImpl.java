@@ -6,10 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-import vector.StockManagement.model.Inventory;
-import vector.StockManagement.model.Product;
-import vector.StockManagement.model.Tenant;
-import vector.StockManagement.model.User;
+import vector.StockManagement.model.*;
 import vector.StockManagement.model.enums.LocationType;
 import vector.StockManagement.model.enums.Role;
 import vector.StockManagement.repositories.InventoryRepository;
@@ -112,8 +109,10 @@ public class InventoryServiceImpl implements InventoryService {
     }
 
     @Override
-    public Inventory updateQtyOnHand(Long productId, Integer qtyOnHand) {
+    public Inventory updateQtyOnHand(Long productId,Integer qtyOnHand) {
+
         Product product = productRepository.findById(productId).orElseThrow(() -> new IllegalArgumentException("Product not found"));
+
 
         Inventory inventory = inventoryRepository.findByProductAndLocationType(product,LocationType.DISTRIBUTOR);
         if (inventory == null) {
