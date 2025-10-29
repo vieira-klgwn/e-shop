@@ -45,8 +45,7 @@ public class ProductServiceImpl implements ProductService {
     public List<ProductDisplayDTO> findAll () {
         List<ProductDisplayDTO> productDisplayDTOs = new ArrayList<>();
 
-
-            for (Product product : productRepository.findAll()) {
+        for (Product product : productRepository.findAll()) {
 
                 ProductDisplayDTO productDisplayDTO = new ProductDisplayDTO();
                 productDisplayDTO.setId(product.getId());
@@ -54,13 +53,10 @@ public class ProductServiceImpl implements ProductService {
                 productDisplayDTO.setSizes(product.getSizes());
                 productDisplayDTO.setImageUrl(product.getImageUrl());
                 productDisplayDTO.setCategory(product.getCategory().toString());
+                productDisplayDTOs.add(productDisplayDTO);
 
-            }
-            return productDisplayDTOs;
-
-
-
-
+        }
+        return productDisplayDTOs;
     }
 
 
