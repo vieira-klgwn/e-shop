@@ -42,48 +42,24 @@ public class ProductServiceImpl implements ProductService {
 
 
     @Override
-    public List<ProductDisplayDTO> findAll (PriceListLevel level) {
+    public List<ProductDisplayDTO> findAll () {
         List<ProductDisplayDTO> productDisplayDTOs = new ArrayList<>();
 
-        if (level == PriceListLevel.DISTRIBUTOR){
-            Long productId = null;
-//            List<Order> orders = orderRepository.findAllByStatus(OrderStatus.FULFILLED);
-//            for(Order order: orders) {
-//                for(OrderLine orderLine: order.getOrderLines()) {
-//                    productId = orderLine.getProduct().getId();
-//                }
-//            }
-            List<Inventory> storeInventory = inventoryRepository.findAllByLocationType(LocationType.DISTRIBUTOR);
-            for (Inventory inventory: storeInventory){
-                productId = inventory.getProduct().getId();
-            }
 
-            for (Product  product: productRepository.findAll()) {
-                if (Objects.equals(product.getId(), productId)) {
-                    ProductDisplayDTO productDisplayDTO = getProductDisplayDTO(product);
-                    productDisplayDTO.setPrice(getProductPrice(product, level));
-                    productDisplayDTO.setQty(inventoryRepository.findByProductAndLocationType(product, LocationType.DISTRIBUTOR).getQtyAvailable());
-                    productDisplayDTOs.add(productDisplayDTO);
+            for (Product product : productRepository.findAll()) {
 
-                }
+                ProductDisplayDTO productDisplayDTO = new ProductDisplayDTO();
+                productDisplayDTO.setId(product.getId());
+                productDisplayDTO.setName(product.getName());
+                productDisplayDTO.setSizes(product.getSizes());
+                productDisplayDTO.setImageUrl(product.getImageUrl());
+                productDisplayDTO.setCategory(product.getCategory().toString());
 
             }
             return productDisplayDTOs;
-        }
-        else {
-            for (Product product: productRepository.findAll()) {
-                if (inventoryRepository.findByProductAndLocationType(product, LocationType.WAREHOUSE )== null) {
-                    continue;
-                }
 
-                ProductDisplayDTO dto = getProductDisplayDTO(product);
-                dto.setPrice(getProductPrice(product, level));
-                dto.setQty(inventoryRepository.findByProductAndLocationType(product, LocationType.WAREHOUSE).getQtyOnHand());
-                productDisplayDTOs.add(dto);
-            }
-            return productDisplayDTOs;
 
-        }
+
 
     }
 
@@ -130,8 +106,6 @@ public class ProductServiceImpl implements ProductService {
         productDisplayDTO.setCategory(String.valueOf(product.getCategory()));
 //        productDisplayDTO.setSize(product.getSize());
         productDisplayDTO.setImageUrl(product.getImageUrl());
-        productDisplayDTO.setFactoryPrice(product.getFactoryPrice());
-        productDisplayDTO.setDistributorPrice(product.getDistributorPrice());
         productDisplayDTO.setProductCategory(product.getCategory());
         return productDisplayDTO;
     }

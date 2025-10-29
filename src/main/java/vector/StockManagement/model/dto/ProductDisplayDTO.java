@@ -2,7 +2,10 @@ package vector.StockManagement.model.dto;
 
 import lombok.Data;
 import vector.StockManagement.model.Product;
+import vector.StockManagement.model.ProductSize;
 import vector.StockManagement.model.enums.ProductCategory;
+
+import java.util.List;
 
 @Data
 public class ProductDisplayDTO {
@@ -17,8 +20,8 @@ public class ProductDisplayDTO {
     private Integer qty;
     private String tenantName;
     private ProductCategory productCategory;
-    private Long distributorPrice;
-    private Long factoryPrice;
+
+    private List<ProductSize> sizes;
 
 
 }

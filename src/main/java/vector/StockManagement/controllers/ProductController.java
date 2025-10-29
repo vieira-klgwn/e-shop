@@ -45,11 +45,16 @@ public class ProductController {
     @Value("${app.upload.dir:uploads}")
     private String uploadDir;
 
-    @GetMapping("/factory")
-    public List<ProductDisplayDTO> getAllWarehouseProducts() {
-        PriceListLevel level = PriceListLevel.FACTORY;
-        return productService.findAll(level);
+    @GetMapping
+    public ResponseEntity<List<ProductDisplayDTO>> getAllProducts() {
+        return ResponseEntity.ok(productService.findAll());
     }
+//
+//    @GetMapping("/factory")
+//    public List<ProductDisplayDTO> getAllWarehouseProducts() {
+//        PriceListLevel level = PriceListLevel.FACTORY;
+//        return productService.findAll(level);
+//    }
 
     @GetMapping("/store")
     public List<ProductDisplayDTO> getAllStoreProducts() {

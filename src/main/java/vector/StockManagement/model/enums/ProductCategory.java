@@ -19,4 +19,5 @@ public enum ProductCategory {
     MEN,
     WOMEN,
     CHILDREN,
+    MEN_WOMEN
 }

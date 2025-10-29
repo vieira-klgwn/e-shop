@@ -15,7 +15,7 @@ import java.util.List;
 
 public interface ProductService {
 
-    List<ProductDisplayDTO> findAll(PriceListLevel level);
+    List<ProductDisplayDTO> findAll();
 
     Product findById(Long id);
     ProductDisplayDTO findById1(Long id, PriceListLevel level);
