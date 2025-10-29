@@ -9,6 +9,8 @@ public enum OrderStatus {
     FULFILLING,
     FULFILLED,
     CANCELLED,
-    REJECTED
+    REJECTED,
+    PRICE_ADJUSTED,
+    QUANTITY_ADJUSTED,
 
 }

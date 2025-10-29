@@ -57,34 +57,7 @@ public class OrderController {
     public ResponseEntity<Order> adjustOrder(@PathVariable Long id,@RequestBody AdjustOrderDTO adjustOrderDTO){
         Order order = orderRepository.findById(id).orElseThrow(()-> new IllegalStateException("Order not found"));
 
-//        //Custom discount
-//        if(adjustOrderDTO.getCustomerDiscount() != null){
-//            order.setCustomDiscount(adjustOrderDTO.getCustomerDiscount());
-//        }
-
-        //Price tweak(e.g., when there is discount)
-        if (adjustOrderDTO.getProductPriceAdjustments()!= null) {
-
-            Map<Long, Long> adjusts = adjustOrderDTO.getProductPriceAdjustments();
-
-            if (adjusts != null) {  // Null-safety
-                Long totalAmount = 0L;
-                for (OrderLine line : order.getOrderLines()) {
-                    Long adjustmentPrice = adjusts.getOrDefault(line.getProduct().getId(), line.getUnitPrice());  // Fallback to original price if no adjustment
-                    Long lineTotal = adjustmentPrice * line.getQty();
-                    line.setLineTotal(lineTotal);
-                    orderLineRepository.saveAndFlush(line);
-                    totalAmount += lineTotal;
-                }
-
-                order.setOrderAmount(totalAmount);
-
-
-            }
-        }
-
-
-        return ResponseEntity.ok(orderRepository.saveAndFlush(order));
+        return ResponseEntity.ok(orderService.adjustOrder(id,adjustOrderDTO));
 
     }
 

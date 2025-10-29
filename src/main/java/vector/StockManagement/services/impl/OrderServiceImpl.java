@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 //import vector.StockManagement.config.TenantContext;
 import vector.StockManagement.config.TenantContext;
 import vector.StockManagement.model.*;
+import vector.StockManagement.model.dto.AdjustOrderDTO;
 import vector.StockManagement.model.dto.OrderDTO;
 import vector.StockManagement.model.dto.OrderDisplayDTO;
 import vector.StockManagement.model.enums.*;
@@ -21,6 +22,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -301,7 +303,9 @@ public class OrderServiceImpl implements OrderService {
                 List<Long> totals = new ArrayList<>();
                 lineDto.getSizes().forEach((sizeKey, value) -> {
                     ProductSize size = productSizeRepository.findByProductAndSize(product,sizeKey);
+                    orderLine.getProductSizes().add(size);
                     totals.add(size.getPrice() * value);
+                    size.setQuantityOrdered(value.longValue());
 
                 });
                 for(Long total: totals){
@@ -370,6 +374,102 @@ public class OrderServiceImpl implements OrderService {
             throw new RuntimeException("Cannot delete order that is not in DRAFT or CANCELLED status");
         }
         orderRepository.deleteById(id);
+    }
+
+
+    @Override
+    public Order adjustOrder(Long id, AdjustOrderDTO adjustOrderDTO){
+
+        Order order = orderRepository.findById(id).orElseThrow(() -> new RuntimeException("Order not found"));
+
+        if (adjustOrderDTO.getProductPriceAdjustments() != null){
+
+
+            Long totalAmount = 0L;
+            Map<Long,Long> adjustments = adjustOrderDTO.getProductPriceAdjustments();
+            for (Map.Entry<Long,Long> adjustment: adjustments.entrySet()){
+                for(OrderLine line: order.getOrderLines()){
+
+                    for (ProductSize size: line.getProductSizes()){
+                        if(size.getId().equals(adjustment.getKey())){
+
+
+
+                            List<Long> totals = new ArrayList<>();
+
+                            adjustments.forEach( (key, value) -> totals.add(value * size.getQuantityOrdered()));
+
+
+
+
+
+
+
+                            line.setLineTotal(0L);
+                            orderLineRepository.save(line);
+                            for(Long total: totals){
+
+                                line.setLineTotal(line.getLineTotal() + total);
+                                orderLineRepository.save(line);
+                                totalAmount += line.getLineTotal();
+                            }
+
+
+
+                        }
+                    }
+                }
+            }
+            order.setOrderAmount(totalAmount);
+            order.setStatus(OrderStatus.PRICE_ADJUSTED);
+
+        }
+
+
+        if (adjustOrderDTO.getPartialQtys()!= null){
+            Long totalAmount = 0L;
+            Map<Long, Long> partialQtys = adjustOrderDTO.getPartialQtys();
+            for (Map.Entry<Long,Long> partialQty: partialQtys.entrySet()){
+                for (OrderLine line: order.getOrderLines()){
+//                    if(line.getProduct().getId().equals(partialQty.getKey())){
+//                        List<Long> totals = new ArrayList<>();
+//                        ProductSize size = productSizeRepository.findByProductAndSize(line.getProduct(), )
+//                        partialQtys.forEach( (key, value) -> totals.add(value * line.getQty()));
+//                    }
+
+                    for(ProductSize size: line.getProductSizes()){
+                        List<Long> totals = new ArrayList<>();
+                        if (size.getId().equals(partialQty.getKey())){
+
+                            partialQtys.forEach((key, value) -> {
+                                totals.add(size.getPrice() * value);
+                                size.setQuantityOrdered(value);
+                                productSizeRepository.save(size);
+                            });
+                        }
+
+
+                        line.setLineTotal(0L);
+                        orderLineRepository.save(line);
+                        for (Long total: totals){
+
+                            line.setLineTotal(line.getLineTotal() + total);
+                            orderLineRepository.save(line);
+                        }
+                    }
+
+                    totalAmount += line.getLineTotal();
+
+
+                }
+                order.setOrderAmount(totalAmount);
+            }
+
+
+
+        }
+
+        return  orderRepository.save(order);
     }
     
     @Transactional
@@ -539,8 +639,13 @@ public class OrderServiceImpl implements OrderService {
         }
 
         for (OrderLine orderLine : order.getOrderLines()) {
-            ProductSize size = productSizeRepository.findByProductAndSize(orderLine.getProduct(),orderLine.getProductSize());
-            updateProductBySizeAfterOrderRejection(orderLine.getProduct(),size.getSize(),orderLine.getQty());
+
+            for(ProductSize size1: orderLine.getProductSizes()){
+
+                updateProductBySizeAfterOrderRejection(orderLine.getProduct(),size1.getSize(),orderLine.getQty());
+            }
+
+
         }
         
         order.setStatus(OrderStatus.REJECTED);

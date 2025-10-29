@@ -17,6 +17,14 @@ public class ProductSize {
     @JsonIgnore
     private Product product;
 
+    @ManyToOne
+    @JoinColumn(name = "orderline")
+    @JsonIgnore
+    private OrderLine orderLine;
+
+    @Column(name = "quantity_ordered")
+    private Long quantityOrdered;
+
     @Column(name = "size")
     private String size;  // e.g., "250ml"
 

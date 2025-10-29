@@ -9,7 +9,9 @@ import jakarta.validation.constraints.Size;
 import lombok.*;
 import org.hibernate.annotations.Filter;
 
+import javax.sound.sampled.Line;
 import java.math.BigDecimal;
+import java.util.List;
 
 // Order Line Entity
 @EqualsAndHashCode(callSuper = true)
@@ -36,7 +38,11 @@ public class OrderLine extends BaseEntity {
     @Column(name = "qty", nullable = false)
     private Integer qty;
 
-    private String productSize;
+    @OneToMany(mappedBy = "orderLine")
+    @JsonIgnore
+    private List<ProductSize> productSizes;
+
+
 
     @DecimalMin("0.0")
     @Column(name = "unit_price", nullable = false, precision = 15, scale = 2)

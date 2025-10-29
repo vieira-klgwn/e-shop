@@ -18,6 +18,7 @@ import vector.StockManagement.model.dto.ProductDisplayDTO;
 import vector.StockManagement.model.enums.LocationType;
 import vector.StockManagement.model.enums.PriceListLevel;
 import vector.StockManagement.model.enums.ProductCategory;
+import vector.StockManagement.model.enums.ProductStatus;
 import vector.StockManagement.repositories.*;
 import vector.StockManagement.services.ProductService;
 
@@ -175,6 +176,8 @@ public class ProductServiceImpl implements ProductService {
         Product product = new Product();
         product.setName(productDTO.getProductName());
         product.setSku(productDTO.getSku());
+        product.setUnitOfMeasurement(productDTO.getUnitOfMeasurement());
+        product.setProductStatus(ProductStatus.valueOf(productDTO.getProductStatus()));
         product.setCategory(ProductCategory.valueOf(productDTO.getCategory()));
         Tenant tenant = null;
         tenant = tenantRepository.findById(TenantContext.getTenantId()).orElseThrow(() -> new RuntimeException("Tenant not found"));

@@ -2,6 +2,7 @@ package vector.StockManagement.services;
 
 import vector.StockManagement.model.Order;
 import vector.StockManagement.model.User;
+import vector.StockManagement.model.dto.AdjustOrderDTO;
 import vector.StockManagement.model.dto.OrderDTO;
 import vector.StockManagement.model.dto.OrderDisplayDTO;
 
@@ -22,6 +23,9 @@ public interface OrderService {
     Order findById(Long id);
     Order save(Long userId,OrderDTO orderDto);
     void delete(Long id);
+
+    Order adjustOrder(Long id, AdjustOrderDTO adjustOrderDTO);
+
     Order update(Long id, OrderDTO orderDto);
     Order approve(Long userId,Order order);
     Order reject(Order order);
