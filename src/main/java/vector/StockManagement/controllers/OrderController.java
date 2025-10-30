@@ -41,7 +41,7 @@ public class OrderController {
     private final OrderLineRepository orderLineRepository;
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('DISTRIBUTOR','ACCOUNTANT','WAREHOUSE_MANAGER','ADMIN','SALES_MANAGER','STORE_MANAGER','MANAGING_DIRECTOR')")
+    @PreAuthorize("hasAnyRole('DISTRIBUTOR','ACCOUNTANT','WAREHOUSE_MANAGER','ADMIN','SALES_MANAGER','STORE_MANAGER','MANAGING_DIRECTOR','WHOLE_SALER')")
     public Page<OrderDisplayDTO> getAll(@RequestParam(defaultValue = "0") int page,
                               @RequestParam(defaultValue = "20") int size) {
         Pageable pageable = PageRequest.of(page, size);

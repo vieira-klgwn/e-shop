@@ -20,6 +20,7 @@ public class ProductDTO {
     public static class ProductSize{
         private String name;
         private Long price;
+        private Integer quantity;
 
     }
 }

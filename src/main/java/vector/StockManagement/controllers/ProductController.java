@@ -27,6 +27,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -63,19 +64,27 @@ public class ProductController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ProductDisplayDTO> getProductById(@PathVariable Long id, @RequestParam String size) {
+    public ResponseEntity<ProductDisplayDTO> getProductById(@PathVariable Long id) {
         Product product = productRepository.findById(id).orElseThrow(()-> new IllegalStateException("Product not found"));
-        ProductSize size1 = productSizeRepository.findByProductAndSize(product, size);
+        List<ProductSize> sizes = new ArrayList<>();
+        for (ProductSize productSize : productSizeRepository.findByProduct(product)) {
+
+            ProductDisplayDTO productDisplayDTO = new ProductDisplayDTO();
+            productDisplayDTO.setId(productSize.getId());
+            productDisplayDTO.setName(productSize.getSize());
+            productDisplayDTO.setQty(productSize.getQuantityInStock());
+            productDisplayDTO.setPrice(productSize.getPrice());
+            sizes.add(productSize);
+
+        }
 
         ProductDisplayDTO dto = new ProductDisplayDTO();
         dto.setProductCategory(product.getCategory());
-        dto.setQty(size1.getQuantityInStock());
-        dto.setPrice(size1.getPrice());
         dto.setTenantName(product.getTenant().getName());
-        dto.setSize(size1.getSize());
         dto.setImageUrl(product.getImageUrl());
         dto.setDescription(product.getDescription());
         dto.setName(product.getName());
+        dto.setSizes(sizes);
         return ResponseEntity.ok(dto);
     }
 
