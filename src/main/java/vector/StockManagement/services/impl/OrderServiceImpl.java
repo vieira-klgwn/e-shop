@@ -303,6 +303,9 @@ public class OrderServiceImpl implements OrderService {
                 List<Long> totals = new ArrayList<>();
                 lineDto.getSizes().forEach((sizeKey, value) -> {
                     ProductSize size = productSizeRepository.findByProductAndSize(product,sizeKey);
+                    if (orderLine.getProductSizes() == null){
+                        orderLine.setProductSizes(new ArrayList<>());
+                    }
                     orderLine.getProductSizes().add(size);
                     totals.add(size.getPrice() * value);
                     size.setQuantityOrdered(value.longValue());
