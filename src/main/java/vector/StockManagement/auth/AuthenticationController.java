@@ -93,7 +93,7 @@ public class AuthenticationController {
     @PreAuthorize("hasAnyRole('DISTRIBUTOR')")
     public ResponseEntity<AuthenticationResponse> registerStoreManager(@Valid @RequestBody RegisterRequest registerRequest, @AuthenticationPrincipal User currentDistributor) {
         registerRequest.setRole(Role.STORE_MANAGER);
-        registerRequest.setDistributor_id(TenantContext.getTenantId());
+        registerRequest.setDistributor_id(currentDistributor.getId());
 
         Tenant tenant = tenantRepository.findById(TenantContext.getTenantId()).orElseThrow(() -> new IllegalStateException("Tenant not found"));
         return ResponseEntity.ok(authenticationService.register(registerRequest));
