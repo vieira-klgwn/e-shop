@@ -22,6 +22,11 @@ public class ProductSizeController {
         return ResponseEntity.ok(productSizeService.updateQtyOnHand(productSizeDto.getProductId(), productSizeDto.getProductSize(), productSizeDto.getQtyOnHand()));
     }
 
+    @PutMapping("/updatePrice")
+    public  ResponseEntity<ProductSize> updateProductPrice(@RequestBody ProductSizeDTO productSizeDto){
+        return ResponseEntity.ok(productSizeService.updatePriceBySize(productSizeDto.getProductId(), productSizeDto.getProductSize(), productSizeDto.getPrice()));
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<ProductSize> findProductSizeById(@PathVariable Long id){
         return ResponseEntity.ok(productSizeRepository.findById(id).orElseThrow(()->new IllegalArgumentException("Product not found")));

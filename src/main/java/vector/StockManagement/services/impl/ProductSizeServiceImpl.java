@@ -30,6 +30,14 @@ public class ProductSizeServiceImpl implements ProductSizeService {
     }
 
     @Override
+    public ProductSize updatePriceBySize(Long productId, String productSize, Long price){
+        Product product = productRepository.findById(productId).orElseThrow(() -> new IllegalArgumentException("Product not found"));
+        ProductSize sizeOfProduct = productSizeRepository.findByProductAndSize(product, productSize);
+        sizeOfProduct.setPrice(price);
+        return productSizeRepository.save(sizeOfProduct);
+    }
+
+    @Override
     public ProductSize findProductSizeById(Long productSizeId) {
         return productSizeRepository.findById(productSizeId).orElseThrow(()->new IllegalArgumentException("Product not found"));
     }

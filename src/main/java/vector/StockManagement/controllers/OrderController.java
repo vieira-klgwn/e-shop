@@ -41,7 +41,7 @@ public class OrderController {
     private final OrderLineRepository orderLineRepository;
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('DISTRIBUTOR','ACCOUNTANT','WAREHOUSE_MANAGER','ADMIN','SALES_MANAGER','STORE_MANAGER','MANAGING_DIRECTOR','WHOLE_SALER')")
+    @PreAuthorize("hasAnyRole('DISTRIBUTOR','ACCOUNTANT','WAREHOUSE_MANAGER','ADMIN','SALES_MANAGER','STORE_MANAGER','MANAGING_DIRECTOR','WHOLE_SALER', 'RETAILER')")
     public Page<OrderDisplayDTO> getAll(@RequestParam(defaultValue = "0") int page,
                               @RequestParam(defaultValue = "20") int size) {
         Pageable pageable = PageRequest.of(page, size);
@@ -124,7 +124,7 @@ public class OrderController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'DISTRIBUTOR', 'STORE_MANAGER', 'SALES_MANAGER', 'ACCOUNTANT','WAREHOUSE_MANAGER','ACCOUNTANT_AT_STORE', 'RETAILER','MANAGING_DIRECTOR')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'DISTRIBUTOR', 'STORE_MANAGER', 'SALES_MANAGER', 'ACCOUNTANT','WAREHOUSE_MANAGER','ACCOUNTANT_AT_STORE', 'RETAILER','MANAGING_DIRECTOR', 'WHOLE_SALER')")
     public ResponseEntity<OrderDisplayDTO> getById(@PathVariable Long id) {
         return  ResponseEntity.ok(orderService.findByIdDisplayed(id));
     }

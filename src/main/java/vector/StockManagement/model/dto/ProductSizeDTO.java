@@ -7,4 +7,5 @@ public class ProductSizeDTO {
     private Long productId;
     private String productSize;
     private Integer qtyOnHand;
+    private Long price;
 }
