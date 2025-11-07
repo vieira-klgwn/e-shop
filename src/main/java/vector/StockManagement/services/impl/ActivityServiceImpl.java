@@ -19,13 +19,14 @@ public class ActivityServiceImpl implements ActivityService {
     private final ActivityRepository activityRepository;
 
     @Override
-    public Activity createActivity(User user, String activityName, ActivityCategory category) {
+    public Activity createActivity(User user, String activityName, ActivityCategory category, String activityDescription) {
         Activity activity = new Activity();
         activity.setUser(user);
         activity.setActivityName(activityName);
         activity.setDescription(activityName);
         activity.setDateTime(LocalDateTime.now());
         activity.setCategory(category);
+        activity.setDescription(activityDescription);
         return activityRepository.save(activity);
     }
 

@@ -8,18 +8,22 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import vector.StockManagement.config.TenantContext;
 import vector.StockManagement.model.Product;
 import vector.StockManagement.model.ProductSize;
+import vector.StockManagement.model.User;
 import vector.StockManagement.model.dto.PriceDisplayDTO;
 import vector.StockManagement.model.dto.PriceOfEachSizeDTO;
 import vector.StockManagement.model.dto.ProductDTO;
 import vector.StockManagement.model.dto.ProductDisplayDTO;
+import vector.StockManagement.model.enums.ActivityCategory;
 import vector.StockManagement.model.enums.PriceListLevel;
 import vector.StockManagement.repositories.ProductRepository;
 import vector.StockManagement.repositories.ProductSizeRepository;
+import vector.StockManagement.services.ActivityService;
 import vector.StockManagement.services.ProductService;
 import vector.StockManagement.services.impl.ProductServiceImpl;
 
@@ -42,6 +46,7 @@ public class ProductController {
     private final ProductRepository productRepository;
     private final ProductServiceImpl productServiceImpl;
     private final ProductSizeRepository productSizeRepository;
+    private final ActivityService activityService;
 
     @Value("${app.upload.dir:uploads}")
     private String uploadDir;
@@ -111,7 +116,7 @@ public class ProductController {
     }
 
     @PostMapping
-    public Product create(@RequestBody ProductDTO productDTO) {
+    public Product create(@AuthenticationPrincipal User user, @RequestBody ProductDTO productDTO) {
         Long tenantId = TenantContext.getTenantId();
         logger.info("Creating product: {} for tenant: {}", productDTO.getProductName(),tenantId);
         
@@ -119,12 +124,15 @@ public class ProductController {
             Product savedProduct = productService.save(productDTO);
             logger.info("Successfully created product: {} with ID: {} for tenant: {}", 
                        savedProduct.getName(), savedProduct.getId(), tenantId);
+            activityService.createActivity(user,"Product Registered", ActivityCategory.PRODUCTS, "Product successfully registered for product: " + productDTO.getProductName() + "by Sales manager: " + user.getEmail());
             return savedProduct;
         } catch (Exception e) {
             logger.error("Failed to create product: {} for tenant: {} | Error: {}", 
                         productDTO.getProductName(), tenantId, e.getMessage(), e);
+            activityService.createActivity(user,"Product Registration failed", ActivityCategory.PRODUCTS, "Product registration failed for product: " + productDTO.getProductName() + "by Sales manager: " + user.getEmail());
             throw e;
         }
+
     }
 
 //    @PutMapping("/{id}")

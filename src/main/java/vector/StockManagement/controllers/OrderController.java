@@ -18,11 +18,13 @@ import vector.StockManagement.model.User;
 import vector.StockManagement.model.dto.AdjustOrderDTO;
 import vector.StockManagement.model.dto.OrderDTO;
 import vector.StockManagement.model.dto.OrderDisplayDTO;
+import vector.StockManagement.model.enums.ActivityCategory;
 import vector.StockManagement.model.enums.OrderLevel;
 import vector.StockManagement.model.enums.OrderStatus;
 import vector.StockManagement.repositories.OrderLineRepository;
 import vector.StockManagement.repositories.OrderRepository;
 import vector.StockManagement.repositories.UserRepository;
+import vector.StockManagement.services.ActivityService;
 import vector.StockManagement.services.OrderService;
 import vector.StockManagement.services.impl.OrderServiceImpl;
 
@@ -39,6 +41,7 @@ public class OrderController {
     private final OrderServiceImpl orderServiceImpl;
     private final OrderRepository orderRepository;
     private final OrderLineRepository orderLineRepository;
+    private final ActivityService activityService;
 
     @GetMapping
     @PreAuthorize("hasAnyRole('DISTRIBUTOR','ACCOUNTANT','WAREHOUSE_MANAGER','ADMIN','SALES_MANAGER','STORE_MANAGER','MANAGING_DIRECTOR','WHOLE_SALER', 'RETAILER')")
@@ -143,7 +146,10 @@ public class OrderController {
     @PostMapping
     @PreAuthorize("hasAnyRole('DISTRIBUTOR','STORE_MANAGER','RETAILER','WHOLE_SALER')")
     public ResponseEntity<Order> create(@AuthenticationPrincipal User user, @RequestBody OrderDTO orderDTO) {
-        return ResponseEntity.ok(orderService.save(user.getId(), orderDTO));
+
+        Order order = orderService.save(user.getId(), orderDTO);
+        activityService.createActivity(user, "Order Created", ActivityCategory.ORDERS,"Order created by user "+ user.getEmail());
+        return ResponseEntity.ok(order);
     }
 
     @PutMapping("/{id}")
@@ -158,7 +164,9 @@ public class OrderController {
         if (order == null) {
             throw new RuntimeException("Order not found");
         }
-        return ResponseEntity.ok(orderServiceImpl.approveByStoreManager(user.getId(),order ));
+        activityService.createActivity(user, "Order Approved", ActivityCategory.ORDERS,"Order approved by store manager "+ user.getEmail());
+        Order order1 = orderServiceImpl.approveByStoreManager(user.getId(),order );
+        return ResponseEntity.ok(order1);
     }
 
     @PutMapping("/accountant/approve/{id}")
@@ -168,28 +176,38 @@ public class OrderController {
         if (order == null) {
             throw new RuntimeException("Order not found");
         }
-        return ResponseEntity.ok(orderServiceImpl.approve(user.getId(),order ));
+
+        Order order1 = orderService.approve(user.getId(), order);
+        activityService.createActivity(user, "Order Approved", ActivityCategory.ORDERS,"Order approved by accountant"+ user.getEmail());
+
+        return ResponseEntity.ok(order1);
     }
 
     @PutMapping("/reject/{id}")
     @PreAuthorize("hasAnyRole('ACCOUNTANT','ACCOUNTANT_AT_STORE','STORE_MANAGER')")
-    public ResponseEntity<Order> reject(@PathVariable Long id) {
+    public ResponseEntity<Order> reject(@AuthenticationPrincipal User user, @PathVariable Long id) {
         Order order = orderService.findById(id);
         if (order == null) return ResponseEntity.notFound().build();
-        return ResponseEntity.ok(orderService.reject(order));
+        Order order1 = orderService.reject(order);
+        activityService.createActivity(user, "Order Rejected", ActivityCategory.ORDERS,"Order rejected by user "+ user.getEmail());
+        return ResponseEntity.ok(order1);
     }
 
     @PutMapping("/submit/{id}")
     @PreAuthorize("hasAnyRole('DISTRIBUTOR','RETAILER','WHOLE_SALER')")
     public ResponseEntity<Order> submit(@AuthenticationPrincipal User user, @PathVariable Long id) {
         // keep compatibility by calling service method via update flow in implementation
-        return ResponseEntity.ok(((vector.StockManagement.services.impl.OrderServiceImpl) orderService).submitOrder(id, user.getId()));
+        Order order =((vector.StockManagement.services.impl.OrderServiceImpl) orderService).submitOrder(id, user.getId());
+        activityService.createActivity(user, "Order Submitted", ActivityCategory.ORDERS,"Order submitted by user "+ user.getEmail());
+        return ResponseEntity.ok(order);
     }
 
     @PutMapping("/fulfill/{id}")
     @PreAuthorize("hasAnyRole('WAREHOUSE_MANAGER','STORE_MANAGER')")
     public ResponseEntity<Order> fulfill(@AuthenticationPrincipal User user, @PathVariable Long id) {
-        return ResponseEntity.ok(((vector.StockManagement.services.impl.OrderServiceImpl) orderService).fulfillOrder(id, user.getId()));
+        activityService.createActivity(user, "Order Fulfilled", ActivityCategory.ORDERS,"Order fulfilled by store manager: "+ user.getEmail());
+        Order order = ((vector.StockManagement.services.impl.OrderServiceImpl) orderService).fulfillOrder(id, user.getId());
+        return ResponseEntity.ok(order);
     }
 
     @PutMapping("/store/fulfill/{id}")

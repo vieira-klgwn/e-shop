@@ -16,9 +16,11 @@ import vector.StockManagement.config.TenantContext;
 import vector.StockManagement.model.Tenant;
 import vector.StockManagement.model.Token;
 import vector.StockManagement.model.User;
+import vector.StockManagement.model.enums.ActivityCategory;
 import vector.StockManagement.model.enums.Role;
 import vector.StockManagement.repositories.TenantRepository;
 import vector.StockManagement.repositories.TokenRepository;
+import vector.StockManagement.services.ActivityService;
 import vector.StockManagement.services.UserService;
 
 import java.io.IOException;
@@ -40,6 +42,7 @@ public class AuthenticationController {
     private final UserService userService;
     private final TokenRepository tokenRepository;
     private final TenantRepository tenantRepository;
+    private final ActivityService activityService;
 
 
     @Value("${app.upload.dir:uploads}")
@@ -48,7 +51,7 @@ public class AuthenticationController {
 
     @PostMapping("/register")
     @PreAuthorize("hasAnyRole('DISTRIBUTOR')")
-    public ResponseEntity<AuthenticationResponse> register(@Valid @RequestBody RegisterRequest registerRequest) {
+    public ResponseEntity<AuthenticationResponse> register(@Valid @RequestBody RegisterRequest registerRequest, @AuthenticationPrincipal User user) {
 
 
         String regex = "^\\+2507[8293]\\d{7}$";
@@ -60,7 +63,9 @@ public class AuthenticationController {
         }
 
 
+
         logger.debug("Register request for email: {}", registerRequest.getEmail());
+        activityService.createActivity(user, "Created User", ActivityCategory.USER_REGISTRATION, "User with email " + registerRequest.getEmail() + " created");
         return ResponseEntity.ok(authenticationService.register(registerRequest));
     }
 

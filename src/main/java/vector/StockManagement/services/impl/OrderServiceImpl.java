@@ -307,7 +307,15 @@ public class OrderServiceImpl implements OrderService {
                         orderLine.setProductSizes(new ArrayList<>());
                     }
                     orderLine.getProductSizes().add(size);
-                    totals.add(size.getPrice() * value);
+                    Long unitPrice = 0L;
+
+                    if (user.getRole() ==Role.RETAILER){
+                        unitPrice = size.getPrice()-500;
+                    }
+                    else {
+                        unitPrice = size.getPrice();
+                    }
+                    totals.add(unitPrice * value);
                     size.setQuantityOrdered(value.longValue());
 
                 });

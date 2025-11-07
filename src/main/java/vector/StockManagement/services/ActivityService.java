@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public interface ActivityService {
-    Activity createActivity(User user, String activityName, ActivityCategory category);
+    Activity createActivity(User user, String activityName, ActivityCategory category, String description);
     List<Activity> getActivitiesByUser(User user);
     Activity updateActivity(Long id, Activity activity);
     void deleteActivity(Long id);
