@@ -40,6 +40,8 @@ public class OrderDTO {
         @NotNull @Positive
         private Integer qtyReserved;
 
+
+
         @NotNull
         private Map<String, Integer> sizes;
 

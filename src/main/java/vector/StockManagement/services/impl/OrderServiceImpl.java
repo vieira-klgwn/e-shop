@@ -4,6 +4,7 @@ import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.Hibernate;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -11,9 +12,7 @@ import org.springframework.stereotype.Service;
 //import vector.StockManagement.config.TenantContext;
 import vector.StockManagement.config.TenantContext;
 import vector.StockManagement.model.*;
-import vector.StockManagement.model.dto.AdjustOrderDTO;
-import vector.StockManagement.model.dto.OrderDTO;
-import vector.StockManagement.model.dto.OrderDisplayDTO;
+import vector.StockManagement.model.dto.*;
 import vector.StockManagement.model.enums.*;
 import vector.StockManagement.repositories.*;
 import vector.StockManagement.services.*;
@@ -23,6 +22,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 
 @Service
 @RequiredArgsConstructor
@@ -46,6 +46,8 @@ public class OrderServiceImpl implements OrderService {
     private final JavaMailSender mailSender;
     private final ProductSizeRepository productSizeRepository;
     private final ProductSizeService productSizeService;
+    private static final Logger logger = Logger.getLogger(OrderServiceImpl.class.getName());
+
 
     @Override
     public List<OrderDisplayDTO> findAll() {
@@ -54,9 +56,8 @@ public class OrderServiceImpl implements OrderService {
 
         List<OrderDisplayDTO> displays = new ArrayList<>();
         for (OrderDisplayDTO displayDTO : displayDTOs) {
-            if (orderRepository.findById(displayDTO.getOrderId()).get().getLevel() == OrderLevel.L1) {
-                displays.add(displayDTO);
-            }
+
+            displays.add(displayDTO);
         }
         return displays;
     }
@@ -149,6 +150,11 @@ public class OrderServiceImpl implements OrderService {
         orderDisplayDTO.setApprovedBy(order.getApprovedBy());
 
 
+        // Force-load lazy collections to avoid empty proxies
+        Hibernate.initialize(order.getOrderLines());
+        for (OrderLine line : order.getOrderLines()) {
+            Hibernate.initialize(line.getProductSizes());
+        }
 
         List<OrderDisplayDTO.OrderLineDTO> lineDTOS = new ArrayList<>();
 
@@ -161,29 +167,39 @@ public class OrderServiceImpl implements OrderService {
         return orderDisplayDTO;
     }
 
-    private static OrderDisplayDTO.OrderLineDTO getOrderLineDTO(Order order, OrderLine line) {
-        Long productPrice = null;
-        if (order.getLevel() == OrderLevel.L1) {
-//                productPrice = productServiceImpl.getProductPrice(line.getProduct(), PriceListLevel.FACTORY);
-            productPrice = line.getProduct().getFactoryPrice();
-        }
-        else {
-//                productPrice = productServiceImpl.getProductPrice(line.getProduct(), PriceListLevel.DISTRIBUTOR);
-            productPrice = line.getProduct().getDistributorPrice();
-        }
+    public OrderDisplayDTO.OrderLineDTO getOrderLineDTO(Order order, OrderLine line) {
+
+        List<ProductSize> sizes = line.getProductSizes();
 
 
-        if (productPrice == null) {
-            // Log for debugging: logger.warn("No price for product {} in order {}", line.getProduct().getId(), order.getId());
-            productPrice = 0L;  // Or throw new RuntimeException("Missing price for product: " + line.getProduct().getName());
-        }
+        List<OrderProductSizeDTO> orderProductSizesDTO = new ArrayList<>();
 
+
+        Long total = 0L;
+        for (ProductSize size : sizes) {
+
+
+            OrderProductSizeDTO orderProductSizeDTO = new OrderProductSizeDTO();
+            orderProductSizeDTO.setProductSize(size.getSize());
+            orderProductSizeDTO.setQuantityOrdered(size.getQuantityOrdered());
+            orderProductSizeDTO.setQtyOnHand(size.getQuantityInStock());
+            orderProductSizeDTO.setPrice(size.getPrice());
+            orderProductSizesDTO.add(orderProductSizeDTO);
+
+            total += size.getQuantityOrdered() * size.getPrice();
+
+
+        }
         OrderDisplayDTO.OrderLineDTO lineDTO = new OrderDisplayDTO.OrderLineDTO();
         lineDTO.setProductName(line.getProduct().getName());
-        lineDTO.setPrice(productPrice);
-        lineDTO.setLineTotal(line.getQty()* productPrice);
-        lineDTO.setQuantity(line.getQty());
+        lineDTO.setLineTotal(total);
+        lineDTO.setProductSizes(orderProductSizesDTO);
+        lineDTO.setPrice(total);
         return lineDTO;
+
+
+
+
     }
 
     @Override
@@ -284,9 +300,9 @@ public class OrderServiceImpl implements OrderService {
 
                 OrderLine orderLine = new OrderLine();
 
-                if (lineDto.getQty() <= 0){
-                    throw new RuntimeException("Order quantity should be a positive number and not zero");
-                }
+//                if (lineDto.getQty() <= 0){
+//                    throw new RuntimeException("Order quantity should be a positive number and not zero");
+//                }
 
 //                orderLine.setUnitPrice(ps.getPrice());
 
@@ -299,7 +315,7 @@ public class OrderServiceImpl implements OrderService {
 //                orderLine.setProductSize(ps.getSize());
                 orderLine.setOrder(savedOrder);
                 orderLine.setProduct(product);
-                orderLine.setQty(lineDto.getQty());
+//                orderLine.setQty(lineDto.getQty());
                 List<Long> totals = new ArrayList<>();
                 lineDto.getSizes().forEach((sizeKey, value) -> {
                     ProductSize size = productSizeRepository.findByProductAndSize(product,sizeKey);
@@ -307,6 +323,7 @@ public class OrderServiceImpl implements OrderService {
                         orderLine.setProductSizes(new ArrayList<>());
                     }
                     orderLine.getProductSizes().add(size);
+                    size.setOrderLine(orderLine);
                     Long unitPrice = 0L;
 
                     if (user.getRole() ==Role.RETAILER){
@@ -317,6 +334,9 @@ public class OrderServiceImpl implements OrderService {
                     }
                     totals.add(unitPrice * value);
                     size.setQuantityOrdered(value.longValue());
+                    orderLineRepository.save(orderLine);
+                    productSizeRepository.save(size);
+
 
                 });
                 for(Long total: totals){
@@ -330,6 +350,7 @@ public class OrderServiceImpl implements OrderService {
                 orderLineRepository.save(orderLine);
                 totalAmount += orderLine.getLineTotal();
                 savedOrder.getOrderLines().add(orderLine);
+                orderRepository.save(savedOrder);
 //                inventoryService.reserveStock(product,lineDto.getQty(),sourceLocation); this was causing errors
             }
 
@@ -354,8 +375,8 @@ public class OrderServiceImpl implements OrderService {
 
     private ProductSize updateProductBySizeAfterOrderRejection(Product product, String productSize, Integer quantity) {
         ProductSize size = productSizeRepository.findByProductAndSize(product, productSize);
-        if (size == null || size.getQuantityInStock() < quantity) {
-            throw new RuntimeException("Insufficient stock for " + product.getName() + " with size " + productSize);
+        if (size == null) {
+            throw new RuntimeException("Oops, Size for this order might not exist!");
         }
         size.setQuantityInStock(size.getQuantityInStock()+ quantity);
         return productSizeRepository.save(size);
@@ -393,7 +414,7 @@ public class OrderServiceImpl implements OrderService {
 
         Order order = orderRepository.findById(id).orElseThrow(() -> new RuntimeException("Order not found"));
 
-        if (adjustOrderDTO.getProductPriceAdjustments() != null){
+        if (adjustOrderDTO.getProductPriceAdjustments() != null && !adjustOrderDTO.getProductPriceAdjustments().isEmpty()){
 
 
             Long totalAmount = 0L;
@@ -437,7 +458,7 @@ public class OrderServiceImpl implements OrderService {
         }
 
 
-        if (adjustOrderDTO.getPartialQtys()!= null){
+        if (adjustOrderDTO.getPartialQtys()!= null && !adjustOrderDTO.getPartialQtys().isEmpty()){
             Long totalAmount = 0L;
             Map<Long, Long> partialQtys = adjustOrderDTO.getPartialQtys();
             for (Map.Entry<Long,Long> partialQty: partialQtys.entrySet()){
@@ -447,17 +468,19 @@ public class OrderServiceImpl implements OrderService {
 //                        ProductSize size = productSizeRepository.findByProductAndSize(line.getProduct(), )
 //                        partialQtys.forEach( (key, value) -> totals.add(value * line.getQty()));
 //                    }
+                    if (partialQty.getValue() < 0) {
+                        throw new RuntimeException("Quantity cannot be negative: " + partialQty.getValue());
+                    }
 
                     for(ProductSize size: line.getProductSizes()){
                         List<Long> totals = new ArrayList<>();
                         if (size.getId().equals(partialQty.getKey())){
 
-                            partialQtys.forEach((key, value) -> {
-                                totals.add(size.getPrice() * value);
-                                size.setQuantityOrdered(value);
-                                productSizeRepository.save(size);
-                            });
+                            totals.add(size.getPrice() * partialQty.getValue());
+                            size.setQuantityOrdered(partialQty.getValue());
+                            productSizeRepository.save(size);
                         }
+
 
 
                         line.setLineTotal(0L);

@@ -34,12 +34,13 @@ public class OrderLine extends BaseEntity {
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private Product product;
 
-    @NotNull
-    @Column(name = "qty", nullable = false)
+
+    @Column(name = "qty")
     private Integer qty;
 
-    @OneToMany(mappedBy = "orderLine")
+    @Column(name = "productSizes")
     @JsonIgnore
+    @OneToMany(mappedBy = "orderLine", cascade = CascadeType.ALL, fetch = FetchType.EAGER)  // Or ManyToMany if join table
     private List<ProductSize> productSizes;
 
 

@@ -94,7 +94,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
 
-    private static ProductDisplayDTO getProductDisplayDTO(Product product) {
+    public static ProductDisplayDTO getProductDisplayDTO(Product product) {
         ProductDisplayDTO productDisplayDTO = new ProductDisplayDTO();
         productDisplayDTO.setId(product.getId());
         productDisplayDTO.setName(product.getName());

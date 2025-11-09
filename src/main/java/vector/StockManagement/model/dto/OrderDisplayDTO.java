@@ -27,9 +27,10 @@ public class OrderDisplayDTO {
     @Data
     public static class OrderLineDTO{
         private String productName;
-        private Integer quantity;
+//        private Integer quantity;
         private Long lineTotal;
         private Long price;
+        private List<OrderProductSizeDTO> productSizes;
     }
 
 }
