@@ -182,6 +182,7 @@ public class OrderServiceImpl implements OrderService {
 
             OrderProductSizeDTO orderProductSizeDTO = new OrderProductSizeDTO();
             orderProductSizeDTO.setProductSize(size.getSize());
+            orderProductSizeDTO.setProductSizeId(size.getId());
             orderProductSizeDTO.setQuantityOrdered(size.getQuantityOrdered());
             orderProductSizeDTO.setQtyOnHand(size.getQuantityInStock());
             orderProductSizeDTO.setPrice(size.getPrice());

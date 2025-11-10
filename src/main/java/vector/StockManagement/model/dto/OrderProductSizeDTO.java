@@ -6,6 +6,7 @@ import lombok.Data;
 public class OrderProductSizeDTO {
 
             private String productSize;
+            private Long productSizeId;
             private Integer qtyOnHand;
             private Long quantityOrdered;
             private Long price;
