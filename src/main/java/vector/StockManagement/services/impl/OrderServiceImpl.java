@@ -49,6 +49,7 @@ public class OrderServiceImpl implements OrderService {
     private static final Logger logger = Logger.getLogger(OrderServiceImpl.class.getName());
 
 
+
     @Override
     public List<OrderDisplayDTO> findAll() {
 
@@ -410,100 +411,76 @@ public class OrderServiceImpl implements OrderService {
 
 
     @Override
-    public Order adjustOrder(Long id, AdjustOrderDTO adjustOrderDTO){
-
+    public Order adjustOrder(Long id, AdjustOrderDTO adjustOrderDTO) {
         Order order = orderRepository.findById(id).orElseThrow(() -> new RuntimeException("Order not found"));
+        boolean isAdjusted = false;  // Use boolean primitive for simplicity
 
-        if (adjustOrderDTO.getProductPriceAdjustments() != null && !adjustOrderDTO.getProductPriceAdjustments().isEmpty()){
+        // Price Adjustments Block
+        if (adjustOrderDTO.getProductPriceAdjustments() != null && !adjustOrderDTO.getProductPriceAdjustments().isEmpty()) {
+            isAdjusted = true;
+            Map<Long, Long> adjustments = adjustOrderDTO.getProductPriceAdjustments();
+            for (OrderLine line : order.getOrderLines()) {
+                line.setLineTotal(0L);  // Reset once per line
+                orderLineRepository.save(line);
+                for (ProductSize size : line.getProductSizes()) {
+                    for (Map.Entry<Long, Long> adjustment : adjustments.entrySet()) {
+                        if (size.getId().equals(adjustment.getKey())) {
+                            // Fix: Use only this adjustment's value * this size's qty (not all adjustments)
+                            Long newTotalForSize = (adjustment.getValue() != null ? adjustment.getValue() : 0L) *
+                                    (size.getQuantityOrdered() != null ? size.getQuantityOrdered() : 0L);
+                            line.setLineTotal(line.getLineTotal() + newTotalForSize);
 
-
-            Long totalAmount = 0L;
-            Map<Long,Long> adjustments = adjustOrderDTO.getProductPriceAdjustments();
-            for (Map.Entry<Long,Long> adjustment: adjustments.entrySet()){
-                for(OrderLine line: order.getOrderLines()){
-
-                    for (ProductSize size: line.getProductSizes()){
-                        if(size.getId().equals(adjustment.getKey())){
-
-
-
-                            List<Long> totals = new ArrayList<>();
-
-                            adjustments.forEach( (key, value) -> totals.add(value * size.getQuantityOrdered()));
-
-
-
-
-
-
-
-                            line.setLineTotal(0L);
                             orderLineRepository.save(line);
-                            for(Long total: totals){
-
-                                line.setLineTotal(line.getLineTotal() + total);
-                                orderLineRepository.save(line);
-                                totalAmount += line.getLineTotal();
-                            }
-
-
-
+                            break;  // No need to check other adjustments for this size
                         }
                     }
                 }
             }
-            order.setOrderAmount(totalAmount);
-            order.setStatus(OrderStatus.PRICE_ADJUSTED);
-
         }
 
-
-        if (adjustOrderDTO.getPartialQtys()!= null && !adjustOrderDTO.getPartialQtys().isEmpty()){
-            Long totalAmount = 0L;
+        // Partial Quantity Block
+        if (adjustOrderDTO.getPartialQtys() != null && !adjustOrderDTO.getPartialQtys().isEmpty()) {
+            isAdjusted = true;
             Map<Long, Long> partialQtys = adjustOrderDTO.getPartialQtys();
-            for (Map.Entry<Long,Long> partialQty: partialQtys.entrySet()){
-                for (OrderLine line: order.getOrderLines()){
-//                    if(line.getProduct().getId().equals(partialQty.getKey())){
-//                        List<Long> totals = new ArrayList<>();
-//                        ProductSize size = productSizeRepository.findByProductAndSize(line.getProduct(), )
-//                        partialQtys.forEach( (key, value) -> totals.add(value * line.getQty()));
-//                    }
-                    if (partialQty.getValue() < 0) {
-                        throw new RuntimeException("Quantity cannot be negative: " + partialQty.getValue());
-                    }
-
-                    for(ProductSize size: line.getProductSizes()){
-                        List<Long> totals = new ArrayList<>();
-                        if (size.getId().equals(partialQty.getKey())){
-
-                            totals.add(size.getPrice() * partialQty.getValue());
+            for (Map.Entry<Long, Long> partialQty : partialQtys.entrySet()) {
+                if (partialQty.getValue() < 0) {
+                    throw new RuntimeException("Quantity cannot be negative: " + partialQty.getValue());
+                }
+                for (OrderLine line : order.getOrderLines()) {
+                    line.setLineTotal(0L);  // Reset once per line (ensures clean calc)
+                    orderLineRepository.save(line);
+                    for (ProductSize size : line.getProductSizes()) {
+                        if (size.getId().equals(partialQty.getKey())) {
+                            if (partialQty.getValue() > size.getQuantityOrdered()){
+                                throw new RuntimeException("The updated quantity you want to add, is greater than the ordered quantity before");
+                            }
                             size.setQuantityOrdered(partialQty.getValue());
                             productSizeRepository.save(size);
-                        }
-
-
-
-                        line.setLineTotal(0L);
-                        orderLineRepository.save(line);
-                        for (Long total: totals){
-
-                            line.setLineTotal(line.getLineTotal() + total);
+                            // Calc and add this size's new total (price * new qty)
+                            Long newTotalForSize = (size.getPrice() != null ? size.getPrice() : 0L) *
+                                    (partialQty.getValue() != null ? partialQty.getValue() : 0L);
+                            line.setLineTotal(line.getLineTotal() + newTotalForSize);
                             orderLineRepository.save(line);
+                            size.setQuantityInStock(size.getQuantityInStock() + partialQty.getValue().intValue());
+                            productSizeRepository.save(size);
+                            break;  // Assume one partial per size; no need for further
                         }
                     }
-
-                    totalAmount += line.getLineTotal();
-
-
                 }
-                order.setOrderAmount(totalAmount);
             }
-
-
-
         }
 
-        return  orderRepository.save(order);
+        // Final: Recalc orderAmount from all lineTotals (simple sum, handles both blocks correctly)
+        Long totalAmount = order.getOrderLines().stream()
+                .mapToLong(line -> line.getLineTotal() != null ? line.getLineTotal() : 0L)
+                .sum();
+        order.setOrderAmount(totalAmount);
+
+        if (isAdjusted) {
+            order.setStatus(OrderStatus.PRICE_ADJUSTED);  // Set for either adjustment type
+        }
+
+        return orderRepository.save(order);
     }
     
     @Transactional
@@ -582,7 +559,7 @@ public class OrderServiceImpl implements OrderService {
         User approver = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("Approver not found"));
 
-        if (!(order.getStatus()==OrderStatus.APPROVED_BY_STORE_MANAGER)) {
+        if (!(order.getStatus()==OrderStatus.APPROVED_BY_STORE_MANAGER || order.getStatus() == OrderStatus.QUANTITY_ADJUSTED)) {
             throw new RuntimeException("Order cannot be approved by accountant without approval from store manager " + order.getStatus());
         }
 

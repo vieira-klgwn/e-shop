@@ -9,6 +9,7 @@ import vector.StockManagement.model.dto.InvoiceDisplayDTO;
 import vector.StockManagement.repositories.InvoiceRepository;
 import vector.StockManagement.services.InvoiceService;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,6 +19,23 @@ public class InvoiceServiceImpl implements InvoiceService {
 
     private final InvoiceRepository invoiceRepository;
     private final OrderServiceImpl orderServiceImpl;
+
+    @Override
+    public List<InvoiceDisplayDTO> findOverdueInvoices(){
+        List<Invoice> invoices = invoiceRepository.findAll();
+        List<InvoiceDisplayDTO> overdueInvoices = new ArrayList<>();
+        for (Invoice invoice : invoices) {
+            if(invoice.getDueDate().isBefore(LocalDate.now().plusDays(1)) ){
+                InvoiceDisplayDTO invoiceDisplayDTO = getInvoiceDisplayDTO(invoice);
+                overdueInvoices.add(invoiceDisplayDTO);
+            }
+
+
+        }
+
+
+        return overdueInvoices;
+    }
 
     @Override
     public List<InvoiceDisplayDTO> findAll(User userCreateBy) {

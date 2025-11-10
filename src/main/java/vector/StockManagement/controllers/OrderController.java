@@ -194,7 +194,7 @@ public class OrderController {
     }
 
     @PutMapping("/submit/{id}")
-    @PreAuthorize("hasAnyRole('DISTRIBUTOR','RETAILER','WHOLE_SALER')")
+    @PreAuthorize("hasAnyRole('DISTRIBUTOR','RETAILER','WHOLE_SALER','ACCOUNTANT')")
     public ResponseEntity<Order> submit(@AuthenticationPrincipal User user, @PathVariable Long id) {
         // keep compatibility by calling service method via update flow in implementation
         Order order =((vector.StockManagement.services.impl.OrderServiceImpl) orderService).submitOrder(id, user.getId());

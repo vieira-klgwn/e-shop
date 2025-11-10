@@ -29,6 +29,19 @@ public class InvoiceController {
     private final TenantAwareValidator tenantValidator;
     private final UserRepository userRepository;
 
+    @GetMapping("/overdue")
+//    @PreAuthorize("hasAnyRole('ADMIN', 'ACCOUNTANT', 'SALES_MANAGER','WAREHOUSE_MANAGER','STORE_MANAGER')")
+    public Page<InvoiceDisplayDTO> getAllOverdueInvoices(@RequestParam(defaultValue = "0") int page,
+                                          @RequestParam(defaultValue = "20") int size,
+                                          @PathVariable Long id) {
+        Pageable pageable = PageRequest.of(page, size);
+        User user = userRepository.findById(id).orElseThrow(() -> new  IllegalStateException("User not found"));
+        List<InvoiceDisplayDTO> invoices = invoiceService.findOverdueInvoices();
+        int start = Math.min((int) pageable.getOffset(), invoices.size());
+        int end = Math.min(start + pageable.getPageSize(), invoices.size());
+        return new PageImpl<>(invoices.subList(start, end), pageable, invoices.size());
+    }
+
     @GetMapping("/allInvoices/{id}")
 //    @PreAuthorize("hasAnyRole('ADMIN', 'ACCOUNTANT', 'SALES_MANAGER','WAREHOUSE_MANAGER','STORE_MANAGER')")
     public Page<InvoiceDisplayDTO> getAll(@RequestParam(defaultValue = "0") int page,

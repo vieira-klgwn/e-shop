@@ -7,6 +7,8 @@ import vector.StockManagement.model.dto.InvoiceDisplayDTO;
 import java.util.List;
 
 public interface InvoiceService {
+    List<InvoiceDisplayDTO> findOverdueInvoices();
+
     List<InvoiceDisplayDTO> findAll(User user);
     List<InvoiceDisplayDTO> findAll();
 
