@@ -7,6 +7,7 @@ import org.aspectj.weaver.ast.Or;
 import org.hibernate.annotations.Filter;
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
+import vector.StockManagement.model.dto.AdjustOrderDTO;
 import vector.StockManagement.model.enums.OrderChannel;
 import vector.StockManagement.model.enums.OrderLevel;
 import vector.StockManagement.model.enums.OrderStatus;
@@ -42,10 +43,18 @@ public class Order extends BaseEntity {
     @Column(name = "number", nullable = false, unique = true)
     private String number;
 
+    @OneToOne(mappedBy = "order")
+    @JsonIgnore
+    private AdjustHistory adjustHistory;
+
 //    @NotNull
     @Enumerated(EnumType.STRING)
     @Column(name = "level") //removed nullable false
     private OrderLevel level;
+
+    @OneToOne(mappedBy = "order")
+    @JsonIgnore
+    private AdjustOrderDTO adjustOrderDTO;
 
     @NotNull
     @Enumerated(EnumType.STRING)

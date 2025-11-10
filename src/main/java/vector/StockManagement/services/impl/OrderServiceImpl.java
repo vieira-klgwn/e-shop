@@ -67,15 +67,8 @@ public class OrderServiceImpl implements OrderService {
     public List<OrderDisplayDTO> findAllByDistributor(Long distributorId) {
         User user = userRepository.findById(distributorId).orElseThrow(() -> new RuntimeException("User not found"));
 
-        List<OrderDisplayDTO> displayDTOs = orderRepository.findAllByCreatedBy(user).stream().map(this::getOrderDisplayDTO).toList();
 
-        List<OrderDisplayDTO> displays = new ArrayList<>();
-        for (OrderDisplayDTO displayDTO : displayDTOs) {
-            if (orderRepository.findById(displayDTO.getOrderId()).get().getLevel() == OrderLevel.L1) {
-                displays.add(displayDTO);
-            }
-        }
-        return displays;
+        return orderRepository.findAllByCreatedBy(user).stream().map(this::getOrderDisplayDTO).toList();
     }
 
     @Override
@@ -243,10 +236,10 @@ public class OrderServiceImpl implements OrderService {
         order.setSeller(user.getDistributor());
         order.setCurrency("FRW");
 
-        OrderLevel level = user.getRole().equals(Role.RETAILER) ? OrderLevel.L2 : OrderLevel.L1;
+//        OrderLevel level = user.getRole().equals(Role.RETAILER) ? OrderLevel.L1 : OrderLevel.L1;
 
-        System.out.println(level.toString());
-        order.setLevel(level);
+
+        order.setLevel(OrderLevel.L1);
 
 
 
@@ -255,7 +248,7 @@ public class OrderServiceImpl implements OrderService {
         Order savedOrder = orderRepository.saveAndFlush(order);
 
 
-        LocationType sourceLocation = (level == OrderLevel.L1) ? LocationType.DISTRIBUTOR : LocationType.RETAILER;
+//        LocationType sourceLocation = (level == OrderLevel.L1) ? LocationType.DISTRIBUTOR : LocationType.RETAILER;
 //        PriceListLevel priceLevel = (level == OrderLevel.L1) ? PriceListLevel.DISTRIBUTOR : PriceListLevel.DISTRIBUTOR;
 
         
@@ -411,35 +404,16 @@ public class OrderServiceImpl implements OrderService {
     }
 
 
+
+
+    // In your OrderServiceImpl class
     @Override
-    public Order adjustOrder(Long id, AdjustOrderDTO adjustOrderDTO) {
+    @Transactional  // Ensures single transaction; flushes only at commit (avoids mid-iteration flushes)
+    public Order adjustOrder(Long id, AdjustOrderDTO adjustOrderDTO, Boolean isAllowedToAdjust) {
         Order order = orderRepository.findById(id).orElseThrow(() -> new RuntimeException("Order not found"));
-        boolean isAdjusted = false;  // Use boolean primitive for simplicity
+        boolean isAdjusted = false;
 
-        // Price Adjustments Block
-        if (adjustOrderDTO.getProductPriceAdjustments() != null && !adjustOrderDTO.getProductPriceAdjustments().isEmpty()) {
-            isAdjusted = true;
-            Map<Long, Long> adjustments = adjustOrderDTO.getProductPriceAdjustments();
-            for (OrderLine line : order.getOrderLines()) {
-                line.setLineTotal(0L);  // Reset once per line
-                orderLineRepository.save(line);
-                for (ProductSize size : line.getProductSizes()) {
-                    for (Map.Entry<Long, Long> adjustment : adjustments.entrySet()) {
-                        if (size.getId().equals(adjustment.getKey())) {
-                            // Fix: Use only this adjustment's value * this size's qty (not all adjustments)
-                            Long newTotalForSize = (adjustment.getValue() != null ? adjustment.getValue() : 0L) *
-                                    (size.getQuantityOrdered() != null ? size.getQuantityOrdered() : 0L);
-                            line.setLineTotal(line.getLineTotal() + newTotalForSize);
-
-                            orderLineRepository.save(line);
-                            break;  // No need to check other adjustments for this size
-                        }
-                    }
-                }
-            }
-        }
-
-        // Partial Quantity Block
+        // Partial Quantity Block (apply first, as it changes quantities used in price calcs)
         if (adjustOrderDTO.getPartialQtys() != null && !adjustOrderDTO.getPartialQtys().isEmpty()) {
             isAdjusted = true;
             Map<Long, Long> partialQtys = adjustOrderDTO.getPartialQtys();
@@ -447,41 +421,79 @@ public class OrderServiceImpl implements OrderService {
                 if (partialQty.getValue() < 0) {
                     throw new RuntimeException("Quantity cannot be negative: " + partialQty.getValue());
                 }
-                for (OrderLine line : order.getOrderLines()) {
-                    line.setLineTotal(0L);  // Reset once per line (ensures clean calc)
-                    orderLineRepository.save(line);
-                    for (ProductSize size : line.getProductSizes()) {
+                // Find and update the specific size (no full loop over all lines per partial for efficiency)
+                boolean found = false;
+                for (OrderLine line : order.getOrderLines()) {  // Direct iteration safe now (no mid-saves)
+                    for (ProductSize size : line.getProductSizes()) {  // Direct iteration
                         if (size.getId().equals(partialQty.getKey())) {
-                            if (partialQty.getValue() > size.getQuantityOrdered()){
+                            if (partialQty.getValue() > size.getQuantityOrdered()) {
                                 throw new RuntimeException("The updated quantity you want to add, is greater than the ordered quantity before");
                             }
+                            // Note: This adds the difference to stock (assuming partialQty is the new total qty, so delta = new - old)
+                            Long deltaQty = partialQty.getValue() - size.getQuantityOrdered();
                             size.setQuantityOrdered(partialQty.getValue());
-                            productSizeRepository.save(size);
-                            // Calc and add this size's new total (price * new qty)
-                            Long newTotalForSize = (size.getPrice() != null ? size.getPrice() : 0L) *
-                                    (partialQty.getValue() != null ? partialQty.getValue() : 0L);
-                            line.setLineTotal(line.getLineTotal() + newTotalForSize);
-                            orderLineRepository.save(line);
-                            size.setQuantityInStock(size.getQuantityInStock() + partialQty.getValue().intValue());
-                            productSizeRepository.save(size);
-                            break;  // Assume one partial per size; no need for further
+                            // NO saveAndFlush here—defer to end via cascade
+                            size.setQuantityInStock(size.getQuantityInStock() + deltaQty.intValue());
+                            found = true;
+                            break;
                         }
                     }
+                    if (found) break;
+                }
+                if (!found) {
+                    // Optional: Log warning - partial for non-existent size
                 }
             }
         }
 
-        // Final: Recalc orderAmount from all lineTotals (simple sum, handles both blocks correctly)
+        // Price Adjustments Block (apply after partials, using updated qtys)
+        Map<Long, Long> adjustments = null;
+        if (adjustOrderDTO.getProductPriceAdjustments() != null && !adjustOrderDTO.getProductPriceAdjustments().isEmpty() && isAllowedToAdjust) {
+            isAdjusted = true;
+            adjustments = adjustOrderDTO.getProductPriceAdjustments();
+        }
+
+        // Recalculate ALL lineTotals based on current qtys and prices (adjusted if applicable)
+        // No zeroing or saves in loops—sum contributions from all sizes
+        for (OrderLine line : order.getOrderLines()) {  // Direct iteration safe
+            Long calculatedTotal = 0L;
+            for (ProductSize size : line.getProductSizes()) {  // Direct iteration
+                Long priceToUse = size.getPrice() != null ? size.getPrice() : 0L;
+                Long qtyToUse = size.getQuantityOrdered() != null ? size.getQuantityOrdered() : 0L;
+
+                // If price adjustment for this size, override price
+                if (adjustments != null && adjustments.containsKey(size.getId())) {
+                    priceToUse = adjustments.get(size.getId());
+                }
+
+                calculatedTotal += priceToUse * qtyToUse;
+            }
+            line.setLineTotal(calculatedTotal);
+            // NO saveAndFlush here—defer
+        }
+
+        // Final: Recalc orderAmount from all lineTotals (simple sum)
         Long totalAmount = order.getOrderLines().stream()
                 .mapToLong(line -> line.getLineTotal() != null ? line.getLineTotal() : 0L)
                 .sum();
-        order.setOrderAmount(totalAmount);
+
+        // Apply overall adjustments if present (e.g., customerDiscount or priceAdjustment)
+        // Assuming these are absolute deductions/additions to total
+        Long finalAmount = totalAmount;
+        if (adjustOrderDTO.getCustomerDiscount() != null) {
+            finalAmount -= adjustOrderDTO.getCustomerDiscount();
+        }
+        if (adjustOrderDTO.getPriceAdjustment() != null) {
+            finalAmount += adjustOrderDTO.getPriceAdjustment();  // Or -= if it's a discount
+        }
+        order.setOrderAmount(finalAmount < 0 ? 0L : finalAmount);  // Clamp to >=0
 
         if (isAdjusted) {
-            order.setStatus(OrderStatus.PRICE_ADJUSTED);  // Set for either adjustment type
+            order.setStatus(OrderStatus.PRICE_ADJUSTED);
         }
 
-        return orderRepository.save(order);
+        // Single save at end: Cascades to OrderLines/ProductSizes (no intermediate flushes)
+        return orderRepository.save(order);  // This triggers one flush/commit for all changes
     }
     
     @Transactional
@@ -729,6 +741,12 @@ public class OrderServiceImpl implements OrderService {
 
         }
         return "Email service is working";
+    }
+
+    @Override
+    public Order allowAdjustPrice(User sender, Order order, AdjustOrderDTO adjustOrderDTO) {
+        adjustOrder(order.getId(), adjustOrderDTO,Boolean.TRUE );
+        return order;
     }
 
 //    @Override

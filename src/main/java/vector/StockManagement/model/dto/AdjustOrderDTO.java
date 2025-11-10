@@ -1,17 +1,44 @@
 package vector.StockManagement.model.dto;
 
-
+import jakarta.persistence.*;
 import lombok.Data;
+import vector.StockManagement.model.Order;
 
 import java.util.HashMap;
 import java.util.Map;
 
 @Data
+@Table(name = "adjust_order_dto")
+@Entity
 public class AdjustOrderDTO {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
     private Long customerDiscount;
+
+    @ElementCollection
+    @CollectionTable(
+            name = "adjust_order_partial_qtys",
+            joinColumns = @JoinColumn(name = "adjust_order_dto_id")
+    )
+    @MapKeyColumn(name = "product_size_id")
+    @Column(name = "partial_qty")
     private Map<Long, Long> partialQtys = new HashMap<>();
+
     private Long priceAdjustment;
 
+    @ElementCollection
+    @CollectionTable(
+            name = "adjust_order_product_price_adjustments",
+            joinColumns = @JoinColumn(name = "adjust_order_dto_id")
+    )
+    @MapKeyColumn(name = "product_size_id")
+    @Column(name = "price_adjustment")
     private Map<Long, Long> productPriceAdjustments = new HashMap<>();
 
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @JoinColumn(name = "order_id")
+    private Order order;
 }

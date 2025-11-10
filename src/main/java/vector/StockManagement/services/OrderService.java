@@ -24,13 +24,14 @@ public interface OrderService {
     Order save(Long userId,OrderDTO orderDto);
     void delete(Long id);
 
-    Order adjustOrder(Long id, AdjustOrderDTO adjustOrderDTO);
+    Order adjustOrder(Long id, AdjustOrderDTO adjustOrderDTO, Boolean isAllowedToAdjust);
 
     Order update(Long id, OrderDTO orderDto);
     Order approve(Long userId,Order order);
     Order reject(Order order);
 
     String sendReminder(User sender, User receiver, Order order);
+    Order allowAdjustPrice(User sender, Order order, AdjustOrderDTO adjustOrderDTO);
 
 
 //    void submitOrder(Long orderId, User submitter);
