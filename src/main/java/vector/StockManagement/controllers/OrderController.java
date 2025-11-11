@@ -22,6 +22,7 @@ import vector.StockManagement.model.dto.OrderDisplayDTO;
 import vector.StockManagement.model.enums.ActivityCategory;
 import vector.StockManagement.model.enums.OrderLevel;
 import vector.StockManagement.model.enums.OrderStatus;
+import vector.StockManagement.model.enums.Role;
 import vector.StockManagement.repositories.AdjustOrderDTORepository;
 import vector.StockManagement.repositories.OrderLineRepository;
 import vector.StockManagement.repositories.OrderRepository;
@@ -101,6 +102,11 @@ public class OrderController {
         AdjustOrderDTO adjustOrderDTO = adjustOrderDTORepository.findByOrder(order);
         return ResponseEntity.ok(orderService.adjustOrder(id,adjustOrderDTO,Boolean.TRUE));
 
+    }
+
+    @PutMapping("/{id}/changeQuantity")
+    public ResponseEntity<Order> changeOrderQuantity(@PathVariable Long id, @RequestBody AdjustOrderDTO adjustOrderDTO){
+        return ResponseEntity.ok(orderService.adjustOrder(id, adjustOrderDTO,Boolean.TRUE));
     }
 
     @GetMapping("/own")
