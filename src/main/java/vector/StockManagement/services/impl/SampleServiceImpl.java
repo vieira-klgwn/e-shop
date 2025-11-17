@@ -1,5 +1,6 @@
 package vector.StockManagement.services.impl;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import vector.StockManagement.model.*;
@@ -26,6 +27,8 @@ public class SampleServiceImpl implements SampleService {
     private final InventoryService inventoryService;
     private final UserRepository userRepository;
     private final SampleItemRepository sampleItemRepository;
+    private final OrderServiceImpl orderServiceImpl;
+    private final ProductSizeRepository productSizeRepository;
 
     /// in the future, optimize this Sample to only consider that one product will be sent per sample.
     @Override
@@ -41,8 +44,8 @@ public class SampleServiceImpl implements SampleService {
         sampleResponse.setCreatedAt(sample.getCreatedAt());
         sampleResponse.setTotalItems(sample.getQuantity());// this is not serious bro
         sampleResponse.setId(sample.getId());
-        sampleResponse.setDistributorFirstName(sample.getDistributor().getFirstName());
-        sampleResponse.setDistributorLastName(sample.getDistributor().getLastName());
+        sampleResponse.setDistributorFirstName(sample.getCustomer().getFirstName());
+        sampleResponse.setDistributorLastName(sample.getCustomer().getLastName());
         sampleResponse.setSampleStatus(sample.getStatus().toString());
         sampleResponse.setId(sample.getId());
         return sampleResponse;
@@ -63,9 +66,8 @@ public class SampleServiceImpl implements SampleService {
             }
             sampleResponse.setCreatedAt(sample.getCreatedAt());
             sampleResponse.setTotalItems(sample.getQuantity());// this is not serious bro
-            sampleResponse.setId(sample.getId());
-            sampleResponse.setDistributorFirstName(sample.getDistributor().getFirstName());
-            sampleResponse.setDistributorLastName(sample.getDistributor().getLastName());
+            sampleResponse.setDistributorFirstName(sample.getCustomer().getFirstName());
+            sampleResponse.setDistributorLastName(sample.getCustomer().getLastName());
             sampleResponse.setSampleStatus(sample.getStatus().toString());
             sampleResponse.setId(sample.getId());
             sampleResponses.add(sampleResponse);
@@ -91,6 +93,7 @@ public class SampleServiceImpl implements SampleService {
     }
 
     @Override
+    @Transactional
     public Sample create(CreateSampleRequest request, User user) {
 
 //        LocationType locationType = null;
@@ -120,19 +123,54 @@ public class SampleServiceImpl implements SampleService {
 //            sample.getItems().add(sampleItem);
 //        }
 
-        User distributor = userRepository.findById(request.getDistributorId()).get();
+        User customer = userRepository.findById(request.getCustomerId()).get();
 
 
 
-        sample.setQuantity(request.getQuantity());
-        sample.setProductId(request.getProductId());
+
+
 
         sample.setCreatedAt(LocalDateTime.now());
         sample.setNotes(request.getNotes());
-        sample.setDistributor(distributor);
+        sample.setCustomer(customer);
         sample.setTenantId(user.getTenant().getId());
         sample.setStatus(SampleStatus.PENDING);
+
+
+
+        request.getItems().forEach(item -> {
+
+            item.getSizes().forEach((key, value) -> {
+                Product product = productRepository.findById(item.getProductId()).orElseThrow(() -> new RuntimeException("Product not found"));
+                updateProductBySizeAfterOrder(product, key, value);
+                ProductSize size = productSizeRepository.findByProductAndSize(product, key);
+                SampleItem sampleItem = new SampleItem();
+                sampleItem.setProduct(product);
+                sampleRepository.save(sample);
+                sampleItem.setSample(sample);
+                sampleItemRepository.save(sampleItem);
+                size.setSampleItem(sampleItem);
+                productSizeRepository.save(size);
+                sample.getItems().add(sampleItem);
+
+            });
+        });
+
+
+
         return sampleRepository.save(sample);
+
+
+    }
+
+    private ProductSize updateProductBySizeAfterOrder(Product product, String productSize, Integer quantity) {
+
+        ProductSize size = productSizeRepository.findByProductAndSize(product, productSize);
+        if (size == null || size.getQuantityInStock() < quantity) {
+            throw new RuntimeException("Insufficient stock for " + product.getName() + " with size " + productSize);
+        }
+        size.setQuantityInStock(size.getQuantityInStock()- quantity);
+        return productSizeRepository.save(size);
 
 
     }

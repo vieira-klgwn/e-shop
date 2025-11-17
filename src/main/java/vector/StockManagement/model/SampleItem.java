@@ -1,7 +1,13 @@
 package vector.StockManagement.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
+
+import java.util.List;
+import java.util.Map;
 
 @Entity
 @Data
@@ -19,7 +25,14 @@ public class SampleItem {
     @JoinColumn(name = "product_id")
     private Product product;
 
-    @Column(name = "quantity")
-    private Integer quantity;
+    @OneToMany(mappedBy = "sampleItem", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @JsonManagedReference
+    @JsonIgnore
+    private List<ProductSize> productSizes;
+
+
+
+
+
 
 }

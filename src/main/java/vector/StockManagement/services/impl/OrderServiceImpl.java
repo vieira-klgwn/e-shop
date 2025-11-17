@@ -213,6 +213,7 @@ public class OrderServiceImpl implements OrderService {
         return orderRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Order not found"));
     }
 
+    // I am dong the wrong thing when I use the "quantity ordered thing...when a new order is made , the value of quantityOrdered is overriden by that current order's value"
     @Transactional
     @Override
     public Order save(Long userId, OrderDTO orderDto) {
@@ -358,7 +359,7 @@ public class OrderServiceImpl implements OrderService {
         return savedOrder;
     }
 
-    private ProductSize updateProductBySizeAfterOrder(Product product, String productSize, Integer quantity) {
+    public ProductSize updateProductBySizeAfterOrder(Product product, String productSize, Integer quantity) {
         ProductSize size = productSizeRepository.findByProductAndSize(product, productSize);
         if (size == null || size.getQuantityInStock() < quantity) {
             throw new RuntimeException("Insufficient stock for " + product.getName() + " with size " + productSize);

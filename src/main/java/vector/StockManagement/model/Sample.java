@@ -1,6 +1,8 @@
 package vector.StockManagement.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -27,7 +29,9 @@ public class Sample {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToMany(mappedBy = "sample", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "sample", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @JsonIgnore
+    @JsonManagedReference
     private List<SampleItem> items = new ArrayList<>();// Line items: product + quantity
 
     @Column(name = "tenant_id") // For multi-tenancy
@@ -50,7 +54,7 @@ public class Sample {
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "distributor_id")
-    private User distributor;
+    private User customer;
 
 
 
