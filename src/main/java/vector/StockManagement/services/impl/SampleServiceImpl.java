@@ -70,7 +70,9 @@ public class SampleServiceImpl implements SampleService {
             sampleResponse.setDistributorLastName(sample.getCustomer().getLastName());
             sampleResponse.setSampleStatus(sample.getStatus().toString());
             sampleResponse.setId(sample.getId());
+            sampleResponse.setSampleItems(sample.getItems());
             sampleResponses.add(sampleResponse);
+            sampleResponse.setTotalItems(sample.getItems().size());
 
 
         }
