@@ -37,6 +37,9 @@ public class User implements UserDetails {
     private String firstName;
     private String lastName;
 
+    @OneToMany(mappedBy = "customer")
+    private List<OrderedProductSize> productsOrdered = new ArrayList<>();
+
     @JsonIgnore
     private String password;
 

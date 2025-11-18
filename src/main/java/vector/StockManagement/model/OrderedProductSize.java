@@ -1,18 +1,22 @@
 package vector.StockManagement.model;
 
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Data;
-import org.hibernate.annotations.UpdateTimestamp;
+import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.CreatedDate;
 
+import javax.annotation.processing.Generated;
 import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
-@Table(name = "product_size")
+@Table(name = "ordered_product_size")
 @Data
-public class ProductSize {
+@NoArgsConstructor
+public class OrderedProductSize {
     @Id
     @GeneratedValue
     private Long id;
@@ -27,17 +31,15 @@ public class ProductSize {
     @JsonIgnore
     private OrderLine orderLine;
 
-    @Column(name = "quantity_ordered")
-    private Long quantityOrdered;
+
 
     @Column(name = "size")
     private String size;  // e.g., "250ml"
 
-    @ManyToOne
-    @JoinColumn(name = "sample_id")
-    @JsonIgnore
-    private SampleItem sampleItem;
 
+    @ManyToOne
+    @JoinColumn(name = "customer_id")
+    private User customer;
 
 
     @Column(name = "price_of_this_size")

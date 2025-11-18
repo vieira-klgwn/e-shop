@@ -12,5 +12,6 @@ public enum OrderStatus {
     REJECTED,
     PRICE_ADJUSTED,
     QUANTITY_ADJUSTED,
+    TRANSFERRED
 
 }

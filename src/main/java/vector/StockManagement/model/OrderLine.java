@@ -41,7 +41,7 @@ public class OrderLine extends BaseEntity {
     @Column(name = "productSizes")
     @JsonIgnore
     @OneToMany(mappedBy = "orderLine", cascade = CascadeType.ALL, fetch = FetchType.EAGER)  // Or ManyToMany if join table
-    private List<ProductSize> productSizes;
+    private List<OrderedProductSize> productSizes;
 
 
 

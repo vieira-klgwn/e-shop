@@ -47,7 +47,7 @@ public class OrderServiceImpl implements OrderService {
     private final ProductSizeRepository productSizeRepository;
     private final ProductSizeService productSizeService;
     private static final Logger logger = Logger.getLogger(OrderServiceImpl.class.getName());
-
+    private final OrderedProductSizeRepository orderedProductSizeRepository;
 
 
     @Override
@@ -163,25 +163,25 @@ public class OrderServiceImpl implements OrderService {
 
     public OrderDisplayDTO.OrderLineDTO getOrderLineDTO(Order order, OrderLine line) {
 
-        List<ProductSize> sizes = line.getProductSizes();
+        List<OrderedProductSize> sizes = line.getProductSizes();
 
 
         List<OrderProductSizeDTO> orderProductSizesDTO = new ArrayList<>();
 
 
         Long total = 0L;
-        for (ProductSize size : sizes) {
+        for (OrderedProductSize size : sizes) {
 
 
             OrderProductSizeDTO orderProductSizeDTO = new OrderProductSizeDTO();
             orderProductSizeDTO.setProductSize(size.getSize());
             orderProductSizeDTO.setProductSizeId(size.getId());
-            orderProductSizeDTO.setQuantityOrdered(size.getQuantityOrdered());
+            orderProductSizeDTO.setQuantityOrdered(size.getQuantityInStock().longValue());
             orderProductSizeDTO.setQtyOnHand(size.getQuantityInStock());
             orderProductSizeDTO.setPrice(size.getPrice());
             orderProductSizesDTO.add(orderProductSizeDTO);
 
-            total += size.getQuantityOrdered() * size.getPrice();
+            total += size.getQuantityInStock() * size.getPrice();
 
 
         }
@@ -315,10 +315,26 @@ public class OrderServiceImpl implements OrderService {
                 List<Long> totals = new ArrayList<>();
                 lineDto.getSizes().forEach((sizeKey, value) -> {
                     ProductSize size = productSizeRepository.findByProductAndSize(product,sizeKey);
+
+                    //Create whole_saler's stock
+                    OrderedProductSize orderedProductSize = new OrderedProductSize();
+                    orderedProductSize.setQuantityInStock(value);
+                    orderedProductSize.setPrice(size.getPrice());
+                    orderedProductSize.setOrderLine(orderLine);
+                    orderedProductSize.setProduct(product);
+                    orderedProductSize.setCustomer(user1);
+                    orderedProductSizeRepository.save(orderedProductSize);
+                    user1.getProductsOrdered().add(orderedProductSize);
+                    userRepository.save(user1);
+
+
+
                     if (orderLine.getProductSizes() == null){
                         orderLine.setProductSizes(new ArrayList<>());
                     }
-                    orderLine.getProductSizes().add(size);
+                    orderLine.getProductSizes().add(orderedProductSize);
+                    orderedProductSize.setOrderLine(orderLine);
+                    orderedProductSizeRepository.save(orderedProductSize);
                     size.setOrderLine(orderLine);
                     Long unitPrice = 0L;
 
@@ -425,16 +441,16 @@ public class OrderServiceImpl implements OrderService {
                 // Find and update the specific size (no full loop over all lines per partial for efficiency)
                 boolean found = false;
                 for (OrderLine line : order.getOrderLines()) {  // Direct iteration safe now (no mid-saves)
-                    for (ProductSize size : line.getProductSizes()) {  // Direct iteration
+                    for (OrderedProductSize size : line.getProductSizes()) {  // Direct iteration
                         if (size.getId().equals(partialQty.getKey())) {
-                            if (partialQty.getValue() > size.getQuantityOrdered()) {
+                            if (partialQty.getValue() > size.getQuantityInStock()) {
                                 throw new RuntimeException("The updated quantity you want to add, is greater than the ordered quantity before");
                             }
                             // Note: This adds the difference to stock (assuming partialQty is the new total qty, so delta = new - old)
-                            Long deltaQty = partialQty.getValue() - size.getQuantityOrdered();
-                            size.setQuantityOrdered(partialQty.getValue());
+
+
                             // NO saveAndFlush here—defer to end via cascade
-                            size.setQuantityInStock(size.getQuantityInStock() + deltaQty.intValue());
+                            size.setQuantityInStock(size.getQuantityInStock() - partialQty.getValue().intValue());
                             found = true;
                             break;
                         }
@@ -458,9 +474,9 @@ public class OrderServiceImpl implements OrderService {
         // No zeroing or saves in loops—sum contributions from all sizes
         for (OrderLine line : order.getOrderLines()) {  // Direct iteration safe
             Long calculatedTotal = 0L;
-            for (ProductSize size : line.getProductSizes()) {  // Direct iteration
+            for (OrderedProductSize size : line.getProductSizes()) {  // Direct iteration
                 Long priceToUse = size.getPrice() != null ? size.getPrice() : 0L;
-                Long qtyToUse = size.getQuantityOrdered() != null ? size.getQuantityOrdered() : 0L;
+                Long qtyToUse = size.getQuantityInStock() != null ? size.getQuantityInStock() : 0L;
 
                 // If price adjustment for this size, override price
                 if (adjustments != null && adjustments.containsKey(size.getId())) {
@@ -665,9 +681,9 @@ public class OrderServiceImpl implements OrderService {
 
         for (OrderLine orderLine : order.getOrderLines()) {
 
-            for(ProductSize size1: orderLine.getProductSizes()){
+            for(OrderedProductSize size1: orderLine.getProductSizes()){
 
-                updateProductBySizeAfterOrderRejection(orderLine.getProduct(),size1.getSize(),orderLine.getQty());
+                updateProductBySizeAfterOrderRejection(orderLine.getProduct(),size1.getSize(),size1.getQuantityInStock());
             }
 
 
