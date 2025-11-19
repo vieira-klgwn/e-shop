@@ -39,6 +39,7 @@ public class OrderedProductSize {
 
     @ManyToOne
     @JoinColumn(name = "customer_id")
+    @JsonIgnore
     private User customer;
 
 

@@ -142,6 +142,7 @@ public class Order extends BaseEntity {
     private String deliveryAddress;
 
     @ManyToOne(fetch = FetchType.EAGER)
+    @JsonIgnore
     private User seller;
 
     @Column(name = "order_date")
