@@ -10,4 +10,5 @@ public class OrderProductSizeDTO {
             private Integer qtyOnHand;
             private Long quantityOrdered;
             private Long price;
+
 }

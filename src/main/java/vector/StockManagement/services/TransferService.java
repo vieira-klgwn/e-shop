@@ -8,8 +8,8 @@ import vector.StockManagement.model.dto.TransferDTO;
 import java.util.List;
 
 public interface TransferService {
-    List<Transfer> findAll();
-    Transfer findById(Long id);
+    List<TransferDTO> findAll();
+    TransferDTO findById(Long id);
     Transfer save(Transfer transfer);
     void delete(Long id);
 

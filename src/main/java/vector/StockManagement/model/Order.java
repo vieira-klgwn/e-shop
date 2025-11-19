@@ -52,9 +52,11 @@ public class Order extends BaseEntity {
     @Column(name = "level") //removed nullable false
     private OrderLevel level;
 
-    @OneToOne(mappedBy = "order")
+    @OneToMany(mappedBy = "order")
     @JsonIgnore
-    private AdjustOrderDTO adjustOrderDTO;
+    private List<AdjustOrderDTO> adjustOrderDTO;
+
+
 
     @NotNull
     @Enumerated(EnumType.STRING)

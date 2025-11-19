@@ -2,6 +2,7 @@ package vector.StockManagement.repositories;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
+import vector.StockManagement.model.OrderLine;
 import vector.StockManagement.model.OrderedProductSize;
 import vector.StockManagement.model.User;
 
@@ -12,4 +13,6 @@ public interface OrderedProductSizeRepository extends JpaRepository<OrderedProdu
     List<OrderedProductSize> findAllByCustomer(User customer);
 
     List<OrderedProductSize> findAllByCustomerAndIsFulfilled(User customer, Boolean isFulfilled);
+
+    List<OrderedProductSize> findByOrderLine(OrderLine orderLine);
 }

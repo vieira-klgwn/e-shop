@@ -1,5 +1,6 @@
 package vector.StockManagement.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import org.hibernate.annotations.Filter;
 import vector.StockManagement.model.enums.LocationType;
@@ -13,6 +14,9 @@ import jakarta.validation.constraints.Size;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
 // Transfer Entity
 @EqualsAndHashCode(callSuper = true)
 @Entity
@@ -80,6 +84,10 @@ public class Transfer extends BaseEntity {
 
     @Column(name = "qty")
     private Integer qty;
+
+    @OneToMany(mappedBy = "transfer")
+    @JsonIgnore
+    List<OrderedProductSize> items = new ArrayList<>();
 
     @Column(name = "completed_at")
     private LocalDateTime completedAt;

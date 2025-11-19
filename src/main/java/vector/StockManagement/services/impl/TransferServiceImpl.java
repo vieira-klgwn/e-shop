@@ -4,6 +4,7 @@ package vector.StockManagement.services.impl;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.aspectj.weaver.ast.Or;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -18,6 +19,7 @@ import vector.StockManagement.services.StockTransactionService;
 import vector.StockManagement.services.TransferService;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -40,13 +42,28 @@ public class TransferServiceImpl implements TransferService {
     private final OrderedProductSizeRepository orderedProductSizeRepository;
 
     @Override
-    public List<Transfer> findAll() {
-        return transferRepository.findAll();
+    public List<TransferDTO> findAll() {
+
+        List<TransferDTO> transfers = new ArrayList<>();
+        for(Transfer transfer : transferRepository.findAll()) {
+            TransferDTO transferDTO = getTransferDTO(transfer);
+            transfers.add(transferDTO);
+        }
+        return transfers;
     }
 
     @Override
-    public Transfer findById(Long id) {
-        return transferRepository.findById(id).orElse(null);
+    public TransferDTO findById(Long id) {
+        Transfer transfer = transferRepository.findById(id).orElseThrow( ()-> new RuntimeException("Transfer Not found"));
+        return getTransferDTO(transfer);
+    }
+
+    private TransferDTO getTransferDTO(Transfer transfer) {
+        TransferDTO transferDTO = new TransferDTO();
+        transferDTO.setFrom(transfer.getCreatedBy().getEmail());
+        transferDTO.setReason(transfer.getNotes());
+        transferDTO.setItems(transfer.getItems());
+        return transferDTO;
     }
 
     @Override
@@ -60,7 +77,7 @@ public class TransferServiceImpl implements TransferService {
 
     @Transactional
     public Transfer completeTransfer(Long transferId) {
-        Transfer transfer = findById(transferId);
+        Transfer transfer = transferRepository.findById(transferId).orElseThrow( ()-> new RuntimeException("Transfer Not found"));
         if (transfer == null || transfer.getStatus() != TransferStatus.PENDING) {
             throw new RuntimeException("Transfer not found or already completed");
         }
@@ -146,8 +163,24 @@ public class TransferServiceImpl implements TransferService {
 
                             // Note: This adds the difference to stock (assuming partialQty is the new total qty, so delta = new - old)
 
+                            // add this stock you want to transfer to the main stock
+                            ProductSize productSize = productSizeRepository.findByProductAndSize(size.getProduct(), size.getSize());
+
+                            if (productSize == null){
+                                throw new RuntimeException("Oops, Product size for this order does not exist: " + size.getSize() );
+
+                            }
+                            productSize.setQuantityInStock(productSize.getQuantityInStock() + size.getQuantityInStock());
+                            productSizeRepository.save(productSize);
+
+                            //adjust the buyer's stock
                             size.setQuantityInStock(partialQty.getValue().intValue());
                             orderedProductSizeRepository.save(size);
+
+
+                            //update again the main stock after making a transfer
+                            productSize.setQuantityInStock(productSize.getQuantityInStock() - size.getQuantityInStock());
+                            productSizeRepository.save(productSize);
 
 
                             found = true;
@@ -199,9 +232,9 @@ public class TransferServiceImpl implements TransferService {
         Order order = orderRepository.getOrderById(transferDTO.getOrderId());
         Tenant tenant = tenantRepository.findById(TenantContext.getTenantId()).orElseThrow(() -> new RuntimeException("Tenant not found"));
         Transfer transfer = new Transfer();
-        transfer.setQty(transferDTO.getQuantityToTransfer());
         transfer.setTenant(tenant);
         transfer.setNotes(transferDTO.getReason());
+        transferRepository.saveAndFlush(transfer);
 
         adjustOrder(order.getId(), transferDTO);
 
@@ -212,9 +245,23 @@ public class TransferServiceImpl implements TransferService {
             }
         }
 
+        List<OrderedProductSize> items = new ArrayList<>();
+        for (OrderLine orderLine : order.getOrderLines()){
+            List<OrderedProductSize> sizes = orderedProductSizeRepository.findByOrderLine(orderLine);
 
-        transfer.setStatus(TransferStatus.PENDING);
-        transfer.setQty(transferDTO.getQuantityToTransfer());
+            for(OrderedProductSize size: sizes){
+                items.add(size);
+                size.setTransfer(transfer);
+                orderedProductSizeRepository.saveAndFlush(size);
+            }
+        }
+        transfer.getItems().addAll(items);
+        transferRepository.saveAndFlush(transfer);
+
+
+
+        transfer.setStatus(TransferStatus.COMPLETED);
+
         transfer.setCreatedBy(order.getCreatedBy());
         transfer.setCompletedAt(LocalDateTime.now());
         transfer.setOrderId(transferDTO.getOrderId());

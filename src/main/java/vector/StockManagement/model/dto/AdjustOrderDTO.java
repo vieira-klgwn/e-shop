@@ -2,8 +2,10 @@ package vector.StockManagement.model.dto;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import org.springframework.data.annotation.CreatedDate;
 import vector.StockManagement.model.Order;
 
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -38,7 +40,12 @@ public class AdjustOrderDTO {
     @Column(name = "price_adjustment")
     private Map<Long, Long> productPriceAdjustments = new HashMap<>();
 
-    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinColumn(name = "order_id")
     private Order order;
+
+
+    @CreatedDate
+    @Column(name = "created_date")
+    private LocalDateTime createdDate = LocalDateTime.now();
 }

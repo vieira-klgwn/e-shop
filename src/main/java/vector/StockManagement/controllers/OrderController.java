@@ -32,6 +32,7 @@ import vector.StockManagement.services.AdjustHistoryService;
 import vector.StockManagement.services.OrderService;
 import vector.StockManagement.services.impl.OrderServiceImpl;
 
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -67,6 +68,7 @@ public class OrderController {
             @PathVariable Long id) { // Assuming User is the principal type
 
         Order order = orderRepository.findById(id).orElseThrow(() ->new RuntimeException("Order not found"));
+
         // Optional: Basic validation (expand as needed, e.g., check maps for negatives)
         if (adjustOrderDTO.getPartialQtys() != null) {
             adjustOrderDTO.getPartialQtys().forEach((key, value) -> {
@@ -88,23 +90,31 @@ public class OrderController {
 
         // Persist to DB
         AdjustOrderDTO persistedDto = adjustOrderDTORepository.save(savedDto);
-        order.setAdjustOrderDTO(savedDto);
+        order.getAdjustOrderDTO().add(persistedDto);
         orderRepository.save(order);
         // Return the saved DTO with generated ID
         return ResponseEntity.ok(persistedDto);
     }
 
     @PutMapping("/{id}/adjust")
+    @PreAuthorize("hasRole('DISTRIBUTOR')")
     @Transactional
     public ResponseEntity<Order> adjustOrder(@PathVariable Long id){
         Order order = orderRepository.findById(id).orElseThrow(()-> new IllegalStateException("Order not found"));
 
-        AdjustOrderDTO adjustOrderDTO = adjustOrderDTORepository.findByOrder(order);
-        return ResponseEntity.ok(orderService.adjustOrder(id,adjustOrderDTO,Boolean.TRUE));
+
+
+        AdjustOrderDTO latest =
+                order.getAdjustOrderDTO().stream()
+                        .max(Comparator.comparing(AdjustOrderDTO::getCreatedDate))
+                        .orElse(null);
+
+        return ResponseEntity.ok(orderService.adjustOrder(id,latest,Boolean.TRUE));
 
     }
 
     @PutMapping("/{id}/changeQuantity")
+    @PreAuthorize("hasRole('STORE_MANAGER')")
     public ResponseEntity<Order> changeOrderQuantity(@PathVariable Long id, @RequestBody AdjustOrderDTO adjustOrderDTO){
         return ResponseEntity.ok(orderService.adjustOrder(id, adjustOrderDTO,Boolean.TRUE));
     }

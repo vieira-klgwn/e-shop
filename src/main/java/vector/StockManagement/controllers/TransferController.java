@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import vector.StockManagement.model.Transfer;
 import vector.StockManagement.model.User;
 import vector.StockManagement.model.dto.TransferDTO;
+import vector.StockManagement.repositories.TransferRepository;
 import vector.StockManagement.services.TransferService;
 
 import java.util.List;
@@ -20,15 +21,16 @@ import java.util.List;
 public class TransferController {
 
     private final TransferService transferService;
+    private final TransferRepository transferRepository;
 
     @GetMapping
-    public List<Transfer> getAll() {
+    public List<TransferDTO> getAll() {
         return transferService.findAll();
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Transfer> getById(@PathVariable Long id) {
-        Transfer transfer = transferService.findById(id);
+    public ResponseEntity<TransferDTO> getById(@PathVariable Long id) {
+        TransferDTO transfer = transferService.findById(id);
         return transfer != null ? ResponseEntity.ok(transfer) : ResponseEntity.notFound().build();
     }
 
@@ -44,7 +46,7 @@ public class TransferController {
 
     @PutMapping("/{id}")
     public ResponseEntity<Transfer> update(@PathVariable Long id, @RequestBody Transfer transfer) {
-        Transfer existing = transferService.findById(id);
+        Transfer existing = transferRepository.findById(id).orElseThrow(() -> new RuntimeException("Transfer not found"));
         if (existing == null) return ResponseEntity.notFound().build();
         transfer.setStatus(existing.getStatus());
         return ResponseEntity.ok(transferService.save(transfer));

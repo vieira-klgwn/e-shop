@@ -29,6 +29,10 @@ public class OrderedProductSize {
     private OrderLine orderLine;
 
 
+    @ManyToOne
+    @JoinColumn(name = "transfer_id")
+    @JsonIgnore
+    private Transfer transfer;
 
     @Column(name = "size")
     private String size;  // e.g., "250ml"

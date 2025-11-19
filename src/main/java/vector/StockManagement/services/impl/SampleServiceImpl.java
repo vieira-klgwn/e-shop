@@ -157,6 +157,10 @@ public class SampleServiceImpl implements SampleService {
                 orderedProductSize.setQuantityInStock(value);
                 orderedProductSizeRepository.save(orderedProductSize);
 
+                //update the stock too
+                size.setQuantityInStock(size.getQuantityInStock() - orderedProductSize.getQuantityInStock());
+                productSizeRepository.save(size);
+
                 SampleItem sampleItem = new SampleItem();
                 sampleItem.setProduct(product);
                 sampleRepository.save(sample);

@@ -321,6 +321,7 @@ public class OrderServiceImpl implements OrderService {
                     OrderedProductSize orderedProductSize = new OrderedProductSize();
                     orderedProductSize.setQuantityInStock(value);
                     orderedProductSize.setPrice(size.getPrice());
+                    orderedProductSize.setSize(size.getSize());
                     orderedProductSize.setOrderLine(orderLine);
                     orderedProductSize.setProduct(product);
                     orderedProductSize.setCustomer(user1);
@@ -452,8 +453,23 @@ public class OrderServiceImpl implements OrderService {
                             // Note: This adds the difference to stock (assuming partialQty is the new total qty, so delta = new - old)
 
 
+                            //update the quantity in the main stock
+                            ProductSize productSize = productSizeRepository.findByProductAndSize(size.getProduct(), size.getSize());
+                            if (productSize == null){
+                                throw new RuntimeException("Oops, Product size for this order does not exist: " + size.getSize() );
+
+                            }
+                            productSize.setQuantityInStock(productSize.getQuantityInStock() +  size.getQuantityInStock());
+                            productSizeRepository.save(productSize);
+ //
                             // NO saveAndFlush here—defer to end via cascade
-                            size.setQuantityInStock(size.getQuantityInStock() - partialQty.getValue().intValue());
+                            size.setQuantityInStock(partialQty.getValue().intValue());
+                            orderedProductSizeRepository.saveAndFlush(size);
+                            productSize.setQuantityInStock(productSize.getQuantityInStock() - size.getQuantityInStock());
+                            productSizeRepository.save(productSize);
+
+
+
                             found = true;
                             break;
                         }
@@ -489,7 +505,8 @@ public class OrderServiceImpl implements OrderService {
                 calculatedTotal += priceToUse * qtyToUse;
             }
             line.setLineTotal(calculatedTotal);
-            // NO saveAndFlush here—defer
+            orderLineRepository.saveAndFlush(line);
+
         }
 
         // Final: Recalc orderAmount from all lineTotals (simple sum)
@@ -506,7 +523,7 @@ public class OrderServiceImpl implements OrderService {
         if (adjustOrderDTO.getPriceAdjustment() != null) {
             finalAmount += adjustOrderDTO.getPriceAdjustment();  // Or -= if it's a discount
         }
-        order.setOrderAmount(finalAmount < 0 ? 0L : finalAmount);  // Clamp to >=0
+        order.setOrderAmount(totalAmount);  // Clamp to >=0
 
         if (isAdjusted) {
             order.setStatus(OrderStatus.PRICE_ADJUSTED);
@@ -584,8 +601,8 @@ public class OrderServiceImpl implements OrderService {
         User approver = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("Approver not found"));
 
-        if (order.getStatus() != OrderStatus.SUBMITTED) {
-            throw new RuntimeException("Cannot approve order that is not in SUBMITTED status");
+        if (order.getStatus() != OrderStatus.SUBMITTED && order.getStatus() != OrderStatus.QUANTITY_ADJUSTED) {
+            throw new RuntimeException("Cannot approve order that is not in SUBMITTED or QUANTITY_ADJUSTED status");
         }
 
 
