@@ -30,7 +30,7 @@ public class OrderedProductSizeServiceImpl implements OrderedProductSizeService 
     @Override
     public List<OrderedProductSize> findOrderedProductSizeByCustomer(Long id) {
         User user = userRepository.findById(id).orElseThrow(() -> new RuntimeException("User Not Found"));
-        return orderedProductSizeRepository.findAllByCustomer(user);
+        return orderedProductSizeRepository.findAllByCustomerAndIsFulfilled(user, true);
     }
 
     @Override

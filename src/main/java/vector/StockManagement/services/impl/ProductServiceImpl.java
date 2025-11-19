@@ -145,6 +145,7 @@ public class ProductServiceImpl implements ProductService {
     public Product save(ProductDTO productDTO) {
         Product product = new Product();
         product.setName(productDTO.getProductName());
+        product.setDescription(productDTO.getDescription());
         product.setSku(productDTO.getSku());
         product.setUnitOfMeasurement(productDTO.getUnitOfMeasurement());
         product.setProductStatus(ProductStatus.valueOf(productDTO.getProductStatus()));

@@ -3,14 +3,11 @@ package vector.StockManagement.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.CreatedDate;
 
-import javax.annotation.processing.Generated;
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Entity
 @Table(name = "ordered_product_size")
@@ -48,6 +45,14 @@ public class OrderedProductSize {
 
     @Column(name = "quantity_in_stock")
     private Integer quantityInStock = 0;  // Track per size
+
+    @ManyToOne
+    @JoinColumn(name = "sample_item")
+    @JsonIgnore
+    private SampleItem sampleItem;
+
+    @Column(name = "isFulfilled")
+    private Boolean isFulfilled = false;
 
     @CreatedDate
     @Column(name = "created_at")

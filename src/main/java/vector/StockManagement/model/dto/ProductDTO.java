@@ -13,6 +13,7 @@ public class ProductDTO {
     private List<ProductSize> productSizes;
     private String category;
     private String sku;
+    private String description;
     private String unitOfMeasurement;
     private String  productStatus;
 

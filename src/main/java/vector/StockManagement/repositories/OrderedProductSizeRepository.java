@@ -10,4 +10,6 @@ import java.util.List;
 @Repository
 public interface OrderedProductSizeRepository extends JpaRepository<OrderedProductSize, Long> {
     List<OrderedProductSize> findAllByCustomer(User customer);
+
+    List<OrderedProductSize> findAllByCustomerAndIsFulfilled(User customer, Boolean isFulfilled);
 }

@@ -11,6 +11,7 @@ import org.hibernate.annotations.Filter;
 
 import javax.sound.sampled.Line;
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 
 // Order Line Entity
@@ -41,7 +42,7 @@ public class OrderLine extends BaseEntity {
     @Column(name = "productSizes")
     @JsonIgnore
     @OneToMany(mappedBy = "orderLine", cascade = CascadeType.ALL, fetch = FetchType.EAGER)  // Or ManyToMany if join table
-    private List<OrderedProductSize> productSizes;
+    private List<OrderedProductSize> productSizes = new ArrayList<>();
 
 
 

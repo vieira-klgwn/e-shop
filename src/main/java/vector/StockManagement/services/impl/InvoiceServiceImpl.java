@@ -4,6 +4,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import vector.StockManagement.model.Invoice;
+import vector.StockManagement.model.OrderLine;
+import vector.StockManagement.model.OrderedProductSize;
 import vector.StockManagement.model.User;
 import vector.StockManagement.model.dto.InvoiceDisplayDTO;
 import vector.StockManagement.repositories.InvoiceRepository;
@@ -81,6 +83,11 @@ public class InvoiceServiceImpl implements InvoiceService {
         invoiceDisplayDTO.setCurrency(invoice.getCurrency());
         invoiceDisplayDTO.setStatus(invoice.getStatus().toString());
         invoiceDisplayDTO.setDueDate(invoice.getDueDate());
+        for (OrderLine orderLine: invoice.getOrder().getOrderLines()){
+            for (OrderedProductSize size: orderLine.getProductSizes()){
+                invoiceDisplayDTO.getOrderedProductSizes().add(size);
+            }
+        }
         invoiceDisplayDTO.setIssuedBy(invoice.getIssuedBy());
         invoiceDisplayDTO.setOrder(orderServiceImpl.getOrderDisplayDTO(invoice.getOrder()));
         invoiceDisplayDTO.setOrderBy(invoice.getOrder().getCreatedBy());

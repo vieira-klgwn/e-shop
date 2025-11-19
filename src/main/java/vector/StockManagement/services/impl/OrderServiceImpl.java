@@ -335,6 +335,7 @@ public class OrderServiceImpl implements OrderService {
                     orderLine.getProductSizes().add(orderedProductSize);
                     orderedProductSize.setOrderLine(orderLine);
                     orderedProductSizeRepository.save(orderedProductSize);
+                    orderLine.getProductSizes().add(orderedProductSize);
                     size.setOrderLine(orderLine);
                     Long unitPrice = 0L;
 
@@ -429,10 +430,11 @@ public class OrderServiceImpl implements OrderService {
     public Order adjustOrder(Long id, AdjustOrderDTO adjustOrderDTO, Boolean isAllowedToAdjust) {
         Order order = orderRepository.findById(id).orElseThrow(() -> new RuntimeException("Order not found"));
         boolean isAdjusted = false;
+        boolean quantityIsChanged = false;
 
         // Partial Quantity Block (apply first, as it changes quantities used in price calcs)
         if (adjustOrderDTO.getPartialQtys() != null && !adjustOrderDTO.getPartialQtys().isEmpty()) {
-            isAdjusted = true;
+            quantityIsChanged = true;
             Map<Long, Long> partialQtys = adjustOrderDTO.getPartialQtys();
             for (Map.Entry<Long, Long> partialQty : partialQtys.entrySet()) {
                 if (partialQty.getValue() < 0) {
@@ -507,6 +509,9 @@ public class OrderServiceImpl implements OrderService {
 
         if (isAdjusted) {
             order.setStatus(OrderStatus.PRICE_ADJUSTED);
+        } else if (quantityIsChanged) {
+            order.setStatus(OrderStatus.QUANTITY_ADJUSTED);
+
         }
 
         // Single save at end: Cascades to OrderLines/ProductSizes (no intermediate flushes)
@@ -525,6 +530,12 @@ public class OrderServiceImpl implements OrderService {
 
 
         order.setStatus(OrderStatus.FULFILLED);
+        for(OrderLine line: order.getOrderLines()){
+            for (OrderedProductSize size: line.getProductSizes()){
+                size.setIsFulfilled(true);
+                orderedProductSizeRepository.save(size);
+            }
+        }
         createOrderNotifications(order, "Order Fulfilled");
 
         return orderRepository.save(order);
@@ -589,7 +600,7 @@ public class OrderServiceImpl implements OrderService {
         User approver = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("Approver not found"));
 
-        if (!(order.getStatus()==OrderStatus.APPROVED_BY_STORE_MANAGER || order.getStatus() == OrderStatus.QUANTITY_ADJUSTED)) {
+        if (!(order.getStatus()==OrderStatus.APPROVED_BY_STORE_MANAGER || order.getStatus() == OrderStatus.QUANTITY_ADJUSTED || order.getStatus() == OrderStatus.PRICE_ADJUSTED)) {
             throw new RuntimeException("Order cannot be approved by accountant without approval from store manager " + order.getStatus());
         }
 

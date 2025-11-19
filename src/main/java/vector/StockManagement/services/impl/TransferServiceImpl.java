@@ -37,6 +37,7 @@ public class TransferServiceImpl implements TransferService {
     private final ProductRepository productRepository;
     private final ProductSizeRepository productSizeRepository;
     private final OrderLineRepository orderLineRepository;
+    private final OrderedProductSizeRepository orderedProductSizeRepository;
 
     @Override
     public List<Transfer> findAll() {
@@ -118,6 +119,11 @@ public class TransferServiceImpl implements TransferService {
     @Transactional  // Ensures single transaction; flushes only at commit (avoids mid-iteration flushes)
     public void adjustOrder(Long id, TransferDTO transferDTO) {
         Order order = orderRepository.findById(id).orElseThrow(() -> new RuntimeException("Order not found"));
+
+        if (order.getStatus() != OrderStatus.FULFILLED){
+            throw new RuntimeException("Order can not be transferred when it is not fulfilled");
+        }
+
         boolean isTransfered = false;
 
         // Partial Quantity Block (apply first, as it changes quantities used in price calcs)
@@ -137,11 +143,13 @@ public class TransferServiceImpl implements TransferService {
                             if (partialQty.getValue() > size.getQuantityInStock()) {
                                 throw new RuntimeException("The updated quantity you want to add, is greater than the ordered quantity before");
                             }
+
                             // Note: This adds the difference to stock (assuming partialQty is the new total qty, so delta = new - old)
 
                             size.setQuantityInStock(partialQty.getValue().intValue());
-                            // NO saveAndFlush here—defer to end via cascade
-                            size.setQuantityInStock(size.getQuantityInStock() + partialQty.getValue().intValue());
+                            orderedProductSizeRepository.save(size);
+
+
                             found = true;
                             break;
                         }

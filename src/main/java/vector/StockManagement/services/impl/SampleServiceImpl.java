@@ -29,6 +29,7 @@ public class SampleServiceImpl implements SampleService {
     private final SampleItemRepository sampleItemRepository;
     private final OrderServiceImpl orderServiceImpl;
     private final ProductSizeRepository productSizeRepository;
+    private final OrderedProductSizeRepository orderedProductSizeRepository;
 
     /// in the future, optimize this Sample to only consider that one product will be sent per sample.
     @Override
@@ -147,13 +148,25 @@ public class SampleServiceImpl implements SampleService {
                 Product product = productRepository.findById(item.getProductId()).orElseThrow(() -> new RuntimeException("Product not found"));
                 updateProductBySizeAfterOrder(product, key, value);
                 ProductSize size = productSizeRepository.findByProductAndSize(product, key);
+                OrderedProductSize orderedProductSize = new OrderedProductSize();
+                orderedProductSize.setProduct(product);
+                orderedProductSize.setCreatedAt(LocalDateTime.now());
+                orderedProductSize.setSize(key);
+                orderedProductSize.setCustomer(user);
+                orderedProductSize.setPrice(size.getPrice());
+                orderedProductSize.setQuantityInStock(value);
+                orderedProductSizeRepository.save(orderedProductSize);
+
                 SampleItem sampleItem = new SampleItem();
                 sampleItem.setProduct(product);
                 sampleRepository.save(sample);
                 sampleItem.setSample(sample);
+
+                sampleItem.getProductSizes().add(orderedProductSize);
+                sampleItem.setProductName(product.getName());
                 sampleItemRepository.save(sampleItem);
-                size.setSampleItem(sampleItem);
-                productSizeRepository.save(size);
+                orderedProductSize.setSampleItem(sampleItem);
+                orderedProductSizeRepository.save(orderedProductSize);
                 sample.getItems().add(sampleItem);
 
             });

@@ -71,17 +71,7 @@ public class ProductController {
     @GetMapping("/{id}")
     public ResponseEntity<ProductDisplayDTO> getProductById(@PathVariable Long id) {
         Product product = productRepository.findById(id).orElseThrow(()-> new IllegalStateException("Product not found"));
-        List<ProductSize> sizes = new ArrayList<>();
-        for (ProductSize productSize : productSizeRepository.findByProduct(product)) {
 
-            ProductDisplayDTO productDisplayDTO = new ProductDisplayDTO();
-            productDisplayDTO.setId(productSize.getId());
-            productDisplayDTO.setName(productSize.getSize());
-            productDisplayDTO.setQty(productSize.getQuantityInStock());
-            productDisplayDTO.setPrice(productSize.getPrice());
-            sizes.add(productSize);
-
-        }
 
         ProductDisplayDTO dto = new ProductDisplayDTO();
         dto.setProductCategory(product.getCategory());
@@ -89,7 +79,8 @@ public class ProductController {
         dto.setImageUrl(product.getImageUrl());
         dto.setDescription(product.getDescription());
         dto.setName(product.getName());
-        dto.setSizes(sizes);
+        dto.setId(product.getId());
+        dto.setSizes(product.getSizes());
         return ResponseEntity.ok(dto);
     }
 

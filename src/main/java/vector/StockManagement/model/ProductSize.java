@@ -33,12 +33,6 @@ public class ProductSize {
     @Column(name = "size")
     private String size;  // e.g., "250ml"
 
-    @ManyToOne
-    @JoinColumn(name = "sample_id")
-    @JsonIgnore
-    private SampleItem sampleItem;
-
-
 
     @Column(name = "price_of_this_size")
     private Long price;  // Per-size price (can override base)
