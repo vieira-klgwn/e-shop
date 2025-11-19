@@ -181,15 +181,16 @@ public class OrderServiceImpl implements OrderService {
             orderProductSizeDTO.setPrice(size.getPrice());
             orderProductSizesDTO.add(orderProductSizeDTO);
 
+
             total += size.getQuantityInStock() * size.getPrice();
 
 
         }
         OrderDisplayDTO.OrderLineDTO lineDTO = new OrderDisplayDTO.OrderLineDTO();
         lineDTO.setProductName(line.getProduct().getName());
-        lineDTO.setLineTotal(total);
+        lineDTO.setLineTotal(line.getLineTotal());
         lineDTO.setProductSizes(orderProductSizesDTO);
-        lineDTO.setPrice(total);
+        lineDTO.setPrice(line.getLineTotal());
         return lineDTO;
 
 
