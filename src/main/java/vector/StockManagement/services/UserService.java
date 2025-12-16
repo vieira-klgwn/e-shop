@@ -14,6 +14,8 @@ import vector.StockManagement.config.TenantContext;
 import vector.StockManagement.model.ChangePasswordRequest;
 import vector.StockManagement.model.Tenant;
 import vector.StockManagement.model.User;
+import vector.StockManagement.model.dto.UserDTO;
+import vector.StockManagement.model.enums.Gender;
 import vector.StockManagement.model.enums.Role;
 import vector.StockManagement.repositories.TenantRepository;
 import vector.StockManagement.repositories.UserRepository;
@@ -46,19 +48,26 @@ public class UserService {
         userRepository.save(user);
     }
 
-    public User createUser(User newUser) {
+    public User createUser(User currentUser, UserDTO newUser) {
 
         // user should belong to a particular tenant.
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
         if (principal instanceof User user) {
-            Tenant currentTenant = user.getTenant();
-            newUser.setTenant(currentTenant);
-            userRepository.save(newUser);
-            tenantRepository.save(currentTenant);
-            currentTenant.getUsers().add(newUser);
 
-            return newUser;
+            User user1 = new User();
+            user1.setTin(newUser.getTin());
+            user1.setFirstName(newUser.getFirstName());
+            user1.setLastName(newUser.getLastName());
+            user1.setRole(Role.valueOf(newUser.getRole()));
+            user1.setGender(Gender.valueOf(newUser.getGender()));
+            user1.setPhone(newUser.getPhoneNumber());
+            user1.setBirthDate(newUser.getBirthDate());
+            user1.setTenant(user.getTenant());
+
+            user1.setEmail(newUser.getEmail() != null? newUser.getEmail() : "User has no email");
+            return userRepository.save(user1);
+
         }
         else {
             throw new IllegalStateException("Authenticated user is not of type CustomUserDetails");

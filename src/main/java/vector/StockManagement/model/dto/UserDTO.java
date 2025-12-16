@@ -24,5 +24,6 @@ public class UserDTO {
     private String tenantId;
     private String nationality;
     private LocalDate birthDate;
+    private String tin;
     private LocalDateTime createdAt;
 }

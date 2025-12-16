@@ -43,6 +43,8 @@ public class User implements UserDetails {
     @JsonIgnore
     private String password;
 
+    private String tin;
+
     @Column(nullable = false, unique = true)
     private String email;
 

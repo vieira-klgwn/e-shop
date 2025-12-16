@@ -44,10 +44,10 @@ public class UserController {
     private static final Logger logger = LoggerFactory.getLogger(UserController.class);
 
     @PostMapping
-    public ResponseEntity<User> createUser(@Valid @RequestBody User user) {
+    public ResponseEntity<User> createUser(@AuthenticationPrincipal User currentUser,@Valid @RequestBody UserDTO user) {
         logger.debug("Creating user: {}", user.getEmail());
 
-        User createdUser = userService.createUser(user);
+        User createdUser = userService.createUser(currentUser,user);
         return new ResponseEntity<>(createdUser, HttpStatus.CREATED);
     }
 
@@ -201,7 +201,6 @@ public class UserController {
                     return new ResponseEntity<>(HttpStatus.NOT_FOUND);
                 });
     }
-
 
     @PostMapping("/{id}/upload-image")  // Admins or self-upload (assuming email as principal name)
     public ResponseEntity<User> uploadUserImage(@PathVariable Long id,
