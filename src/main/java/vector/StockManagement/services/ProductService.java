@@ -27,6 +27,7 @@ public interface ProductService {
     List<ProductDisplayDTO> getAllStoreProducts();
 
     void delete(Long id);
+    Product disableProduct(Long id);
     Product update(Long id, Product product);
     PriceDisplayDTO getProductPrices(Long productId, Long tenantId);
 }

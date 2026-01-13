@@ -52,7 +52,6 @@ public class OrderController {
     private final AdjustHistoryService adjustHistoryService;
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('DISTRIBUTOR','ACCOUNTANT','WAREHOUSE_MANAGER','ADMIN','SALES_MANAGER','STORE_MANAGER','MANAGING_DIRECTOR','WHOLE_SALER', 'RETAILER')")
     public Page<OrderDisplayDTO> getAll(@RequestParam(defaultValue = "0") int page,
                               @RequestParam(defaultValue = "20") int size) {
         Pageable pageable = PageRequest.of(page, size);
@@ -97,7 +96,6 @@ public class OrderController {
     }
 
     @PutMapping("/{id}/adjust")
-    @PreAuthorize("hasRole('DISTRIBUTOR')")
     @Transactional
     public ResponseEntity<Order> adjustOrder(@PathVariable Long id){
         Order order = orderRepository.findById(id).orElseThrow(()-> new IllegalStateException("Order not found"));
@@ -114,13 +112,11 @@ public class OrderController {
     }
 
     @PutMapping("/{id}/changeQuantity")
-    @PreAuthorize("hasRole('STORE_MANAGER')")
     public ResponseEntity<Order> changeOrderQuantity(@PathVariable Long id, @RequestBody AdjustOrderDTO adjustOrderDTO){
         return ResponseEntity.ok(orderService.adjustOrder(id, adjustOrderDTO,Boolean.TRUE));
     }
 
     @GetMapping("/own")
-    @PreAuthorize("hasAnyRole('DISTRIBUTOR','ACCOUNTANT','WAREHOUSE_MANAGER','ADMIN','SALES_MANAGER','STORE_MANAGER','MANAGING_DIRECTOR','RETAILER', 'WHOLE_SALER')")
     public Page<OrderDisplayDTO> getAllByDistributor(@RequestParam(defaultValue = "0") int page,
                                         @RequestParam(defaultValue = "20") int size, @AuthenticationPrincipal User currentUser) {
         Pageable pageable = PageRequest.of(page, size);
@@ -131,7 +127,6 @@ public class OrderController {
     }
 
     @GetMapping("/store_ordersToApprove") // accountant uses this api to get all orders from the retailer
-    @PreAuthorize("hasAnyRole('ACCOUNTANT_AT_STORE','MANAGING_DIRECTOR')")
     public Page<OrderDisplayDTO> getStoreOrdersToApprove(@RequestParam(defaultValue = "0") int page,
                                                    @RequestParam(defaultValue = "0") int size, @AuthenticationPrincipal User currentUser) {
         Pageable pageable = PageRequest.of(page, size);
@@ -143,7 +138,6 @@ public class OrderController {
     }
 
     @GetMapping("/store_ordersToFulfill")
-    @PreAuthorize("hasAnyRole('STORE_MANAGER')")
     public Page<OrderDisplayDTO> getStoreOrdersToFulfill(@RequestParam(defaultValue = "0") int page,
                                                @RequestParam(defaultValue = "0") int size, @AuthenticationPrincipal User currentUser) {
         Pageable pageable = PageRequest.of(page, size);
@@ -158,7 +152,6 @@ public class OrderController {
 
 
     @GetMapping("/retailer/store_orders")  //use this api to see all orders from the store--retailer uses it to see all orders he/she made---distributor is also using it to see all retailer orders
-    @PreAuthorize("hasAnyRole('DISTRIBUTOR','STORE_MANAGER','RETAILER','MANAGING_DIRECTOR')")
     public Page<OrderDisplayDTO> getAllStoreOrders(@RequestParam(defaultValue = "0") int page,
                                                    @RequestParam(defaultValue = "0") int size, @AuthenticationPrincipal User currentUser) {
         Pageable pageable = PageRequest.of(page, size);
@@ -170,7 +163,6 @@ public class OrderController {
     }
 
     @GetMapping("/store_orders")  //use this api to see all orders from the store--retailer uses it to see all orders he/she made---distributor is also using it to see all retailer orders
-    @PreAuthorize("hasAnyRole('DISTRIBUTOR','STORE_MANAGER','RETAILER','MANAGING_DIRECTOR')")
     public Page<OrderDisplayDTO> getAllStoreOrdersForDistributor(@RequestParam(defaultValue = "0") int page,
                                                    @RequestParam(defaultValue = "0") int size, @AuthenticationPrincipal User currentUser) {
         Pageable pageable = PageRequest.of(page, size);
@@ -182,7 +174,6 @@ public class OrderController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'DISTRIBUTOR', 'STORE_MANAGER', 'SALES_MANAGER', 'ACCOUNTANT','WAREHOUSE_MANAGER','ACCOUNTANT_AT_STORE', 'RETAILER','MANAGING_DIRECTOR', 'WHOLE_SALER')")
     public ResponseEntity<OrderDisplayDTO> getById(@PathVariable Long id) {
         return  ResponseEntity.ok(orderService.findByIdDisplayed(id));
     }
@@ -199,7 +190,6 @@ public class OrderController {
 
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('DISTRIBUTOR','STORE_MANAGER','RETAILER','WHOLE_SALER')")
     public ResponseEntity<Order> create(@AuthenticationPrincipal User user, @RequestBody OrderDTO orderDTO) {
 
         Order order = orderService.save(user.getId(), orderDTO);
@@ -213,7 +203,6 @@ public class OrderController {
     }
 
     @PutMapping("/store_manager/approve/{id}")
-    @PreAuthorize("hasAnyRole('STORE_MANAGER')")
     public ResponseEntity<Order> approveByStoreManager(@AuthenticationPrincipal User user, @PathVariable Long id) {
         Order order = orderRepository.getOrderById(id);
         if (order == null) {
@@ -225,7 +214,6 @@ public class OrderController {
     }
 
     @PutMapping("/accountant/approve/{id}")
-    @PreAuthorize("hasAnyRole('ACCOUNTANT', 'ACCOUNTANT_AT_STORE')")
     public ResponseEntity<Order> approveByAccountant(@AuthenticationPrincipal User user, @PathVariable Long id) {
         Order order = orderRepository.getOrderById(id);
         if (order == null) {
@@ -239,7 +227,6 @@ public class OrderController {
     }
 
     @PutMapping("/reject/{id}")
-    @PreAuthorize("hasAnyRole('ACCOUNTANT','ACCOUNTANT_AT_STORE','STORE_MANAGER')")
     public ResponseEntity<Order> reject(@AuthenticationPrincipal User user, @PathVariable Long id) {
         Order order = orderService.findById(id);
         if (order == null) return ResponseEntity.notFound().build();
@@ -249,7 +236,6 @@ public class OrderController {
     }
 
     @PutMapping("/submit/{id}")
-    @PreAuthorize("hasAnyRole('DISTRIBUTOR','RETAILER','WHOLE_SALER','ACCOUNTANT')")
     public ResponseEntity<Order> submit(@AuthenticationPrincipal User user, @PathVariable Long id) {
         // keep compatibility by calling service method via update flow in implementation
         Order order =((vector.StockManagement.services.impl.OrderServiceImpl) orderService).submitOrder(id, user.getId());
@@ -258,7 +244,6 @@ public class OrderController {
     }
 
     @PutMapping("/fulfill/{id}")
-    @PreAuthorize("hasAnyRole('WAREHOUSE_MANAGER','STORE_MANAGER')")
     public ResponseEntity<Order> fulfill(@AuthenticationPrincipal User user, @PathVariable Long id) {
         activityService.createActivity(user, "Order Fulfilled", ActivityCategory.ORDERS,"Order fulfilled by store manager: "+ user.getEmail());
         Order order = ((vector.StockManagement.services.impl.OrderServiceImpl) orderService).fulfillOrder(id, user.getId());
@@ -266,7 +251,6 @@ public class OrderController {
     }
 
     @PutMapping("/store/fulfill/{id}")
-    @PreAuthorize("hasAnyRole('STORE_MANAGER')")
     public ResponseEntity<Order> fulfillRetailOrders(@AuthenticationPrincipal User user, @PathVariable Long id) {
         return ResponseEntity.ok(((vector.StockManagement.services.impl.OrderServiceImpl) orderService).fulfillOrder(id, user.getId()));
     }
@@ -283,4 +267,5 @@ public class OrderController {
         orderService.delete(id);
         return ResponseEntity.noContent().build();
     }
+
 }

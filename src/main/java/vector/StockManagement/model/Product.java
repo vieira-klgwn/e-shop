@@ -116,6 +116,9 @@ public class Product extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private Location location;
 
+    @Column(name = "disabled")
+    private Boolean disabled = false;
+
 
     public Product(String sku, String name, Tenant tenant,ProductCategory category) {
         this.sku = sku;

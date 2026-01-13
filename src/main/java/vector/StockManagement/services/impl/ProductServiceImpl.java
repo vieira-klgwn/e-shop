@@ -21,6 +21,7 @@ import vector.StockManagement.model.enums.ProductCategory;
 import vector.StockManagement.model.enums.ProductStatus;
 import vector.StockManagement.repositories.*;
 import vector.StockManagement.services.ProductService;
+import vector.StockManagement.services.ProductSizeService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,6 +40,7 @@ public class ProductServiceImpl implements ProductService {
     private static final Logger logger = LoggerFactory.getLogger(ProductServiceImpl.class);
     private final OrderRepository orderRepository;
     private final ProductSizeRepository productSizeRepository;
+    private final ProductSizeService productSizeService;
 
 
     @Override
@@ -201,7 +203,10 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public void delete(Long id) {
-        productRepository.deleteById(id);// TODO: cascade price list items if needed
+        if (productRepository.existsById(id) && productSizeRepository.findByProduct(productRepository.findById(id).get()) != null) {
+            productRepository.deleteById(id);// TODO: cascade price list items if needed
+        }
+
     }
 
 
@@ -306,5 +311,11 @@ public class ProductServiceImpl implements ProductService {
         }
         return null;
 
+    }
+
+    public Product disableProduct(Long id) {
+        Product product = productRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Product not found"));
+        product.setDisabled(true);
+        return productRepository.save(product);
     }
 }

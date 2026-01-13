@@ -624,8 +624,11 @@ public class OrderServiceImpl implements OrderService {
 
         // Generate invoice
         Invoice invoice = createInvoiceFromOrder(order, approver);
+
         invoiceRepository.save(invoice);
-        
+        User invoiceOwner = order.getCreatedBy();
+        invoiceOwner.getInvoices().add(invoice);
+        userRepository.saveAndFlush(invoiceOwner);
         // Send notifications
         createOrderNotifications(order, "Order Approved");
         order.setStatus(OrderStatus.APPROVED_BY_ACCOUNTANT);

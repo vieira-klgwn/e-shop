@@ -100,7 +100,6 @@ public class ProductController {
 //    }
 
     @GetMapping("/{id}/prices")
-    @PreAuthorize("hasAnyRole('SALES_MANAGER', 'ADMIN','DISTRIBUTOR','WAREHOUSE_MANAGER','RETAILER','MANAGIND_DIRECTOR')")
     public ResponseEntity<PriceDisplayDTO> getProductPrices(@PathVariable Long id) {
         Long tenantId = TenantContext.getTenantId();
         return ResponseEntity.ok(productService.getProductPrices(id, tenantId));
@@ -192,8 +191,13 @@ public class ProductController {
         return ResponseEntity.ok(productService.setPricesForEachSize(product, priceOfEachSizeDTO));
     }
 
+    @PutMapping("/id/disable")
+    public ResponseEntity<Product> disableProduct(@PathVariable Long id) {
+        return ResponseEntity.ok(productService.disableProduct(id));
+
+    }
+
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('SALES_MANAGER') or hasRole('ADMIN')")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         productService.delete(id);
         return ResponseEntity.noContent().build();

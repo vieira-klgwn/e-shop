@@ -93,6 +93,8 @@ public class User implements UserDetails {
     private LocalDateTime createdAt;
     private String nationality;
 
+    private Long creditLimit;
+
 
 
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
