@@ -228,6 +228,7 @@ public class OrderServiceImpl implements OrderService {
 
 
 
+
         Order order = new Order();
         order.setTenant(tenant);
         order.setCreatedBy(user);
@@ -375,6 +376,18 @@ public class OrderServiceImpl implements OrderService {
         savedOrder.setOrderAmount(totalAmount);
         savedOrder.setStatus(OrderStatus.DRAFT);
         orderRepository.save(savedOrder);
+
+        User user1 = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found (buyer)"));
+
+        if(savedOrder.getOrderAmount() > user1.getCreditLimit() && user1.getCreditLimit() != 0L){
+            savedOrder.setStatus(OrderStatus.REJECTED);
+            orderRepository.save(savedOrder);
+            throw new RuntimeException("Order Rejected! This order can exceed your Credit Limit. Please pay recent orders to proceed. You can only order products that cost below this amount " + (user1.getCreditLimit() - user1.getCredit()));
+        }
+
+        user1.setCredit(user1.getCredit() + savedOrder.getOrderAmount());
+        userRepository.saveAndFlush(user1);
+
         return savedOrder;
     }
 

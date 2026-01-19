@@ -16,4 +16,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
     List<User> findByDistributor_Id(Long distributorId);
 
     User getUserById(Long id);
+
+    User getUserByTin(String tin);
 }

@@ -76,6 +76,11 @@ public class UserService {
 
     }
 
+    public User findUserByTIN(String tin) {
+        User user = userRepository.getUserByTin(tin);
+        return user;
+    }
+
     public List<User> getAllUsers() {
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         Role role = null;

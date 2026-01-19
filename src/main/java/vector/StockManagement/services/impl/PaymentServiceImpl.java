@@ -129,6 +129,8 @@ public class PaymentServiceImpl implements PaymentService {
                 }
 
                 invoiceRepository.saveAndFlush(invoice);
+                invoiceOwner.setCredit(invoiceOwner.getCredit() - amount);
+                userRepository.saveAndFlush(invoiceOwner);
                 log.info("Invoice saved after processing");
             } catch (Exception e) {
                 log.error("Error during post-payment updates for invoiceId: {}", invoiceId, e);
@@ -136,6 +138,7 @@ public class PaymentServiceImpl implements PaymentService {
             }
 
             log.info("Payment processing completed successfully for invoiceId: {}", invoiceId);
+
             return paymentRepository.findById(payment.getId()).orElse(null);  // Re-fetch if needed, or return the saved one
         }
 

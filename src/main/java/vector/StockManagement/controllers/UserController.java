@@ -60,6 +60,11 @@ public class UserController {
 
     }
 
+    @GetMapping("/tin/{tin}")
+    public ResponseEntity<User> getUserByTin(@PathVariable Long id){
+        return ResponseEntity.ok(userRepository.findById(id).orElseThrow(()-> new IllegalStateException("User not found with tin: " + id)));
+    }
+
 
     @GetMapping("/store_manager")
     public ResponseEntity<User> storeManager(@AuthenticationPrincipal User user) {

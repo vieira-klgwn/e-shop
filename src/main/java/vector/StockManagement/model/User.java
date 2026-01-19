@@ -93,7 +93,11 @@ public class User implements UserDetails {
     private LocalDateTime createdAt;
     private String nationality;
 
-    private Long creditLimit;
+    @Column(name = "credit_limit")
+    private Long creditLimit = 0L;
+
+    @Column(name = "credit")
+    private Long credit = 0L;
 
 
 
