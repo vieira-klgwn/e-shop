@@ -198,7 +198,7 @@ public class OrderController {
     }
 
 
-    @PostMapping("/{id}")
+    @PostMapping("/user/{id}")
     public ResponseEntity<Order> createOrder(@PathVariable Long id, @RequestBody OrderDTO orderDTO) {
 
         User user = userRepository.findById(id).orElseThrow(() -> new RuntimeException("User not found"));
