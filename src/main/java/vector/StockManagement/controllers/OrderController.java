@@ -197,6 +197,16 @@ public class OrderController {
         return ResponseEntity.ok(order);
     }
 
+
+    @PostMapping("/{id}")
+    public ResponseEntity<Order> createOrder(@PathVariable Long id, @RequestBody OrderDTO orderDTO) {
+
+        User user = userRepository.findById(id).orElseThrow(() -> new RuntimeException("User not found"));
+        Order order = orderService.save(user.getId(), orderDTO);
+        activityService.createActivity(user, "Order Created", ActivityCategory.ORDERS,"Order created by user "+ user.getEmail());
+        return ResponseEntity.ok(order);
+    }
+
     @PutMapping("/{id}")
     public ResponseEntity<Order> update(@PathVariable Long id, @RequestBody OrderDTO orderdto) {
         return ResponseEntity.ok(orderService.update(id, orderdto));

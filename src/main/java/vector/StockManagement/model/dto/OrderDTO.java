@@ -24,8 +24,7 @@ public class OrderDTO {
     @NotBlank
     private String deliveryAddress;
 
-    @Positive
-    private BigDecimal unitPrice;
+
     @NotEmpty
     private List<OrderLineDTO> orderLines;
 
