@@ -374,7 +374,12 @@ public class OrderServiceImpl implements OrderService {
 
         
         savedOrder.setOrderAmount(totalAmount);
-        savedOrder.setStatus(OrderStatus.DRAFT);
+        if(user.getRole() == Role.ACCOUNTANT){
+            savedOrder.setStatus(OrderStatus.SUBMITTED);
+        }else {
+            savedOrder.setStatus(OrderStatus.DRAFT);
+        }
+
         orderRepository.save(savedOrder);
 
         User user1 = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found (buyer)"));
