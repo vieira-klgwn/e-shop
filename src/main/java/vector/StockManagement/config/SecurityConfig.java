@@ -19,7 +19,6 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.Arrays;
-import java.util.List;
 
 @Configuration
 @EnableWebSecurity
@@ -106,15 +105,10 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("*"));          // ← allows all
-        // or: configuration.setAllowedOriginPatterns(List.of("*"));  // modern alternative
-
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
-        configuration.setAllowedHeaders(List.of("*"));           // allow any header
-        configuration.setExposedHeaders(List.of("Authorization")); // optional but useful
-        configuration.setAllowCredentials(false);                // ← MUST be false when using *
-        configuration.setMaxAge(3600L);                          // cache preflight 1 hour
-
+        configuration.setAllowedOrigins(Arrays.asList("http://localhost:5173", "http://10.11.72.159:5173/","https://e-shop-test-v1.vercel.app/","https://sales.rw" ));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type"));
+        configuration.setAllowCredentials(true);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
