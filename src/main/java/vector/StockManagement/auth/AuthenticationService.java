@@ -48,7 +48,7 @@ public class AuthenticationService {
     private static final Logger logger = Logger.getLogger(AuthenticationService.class.getName());
     private final TenantRepository tenantRepository;
 
-    @Value("${spring.mail.from}")
+
     private String fromEmail;
 
 

@@ -384,6 +384,10 @@ public class OrderServiceImpl implements OrderService {
 
         User user1 = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found (buyer)"));
 
+        if (user.getCreditLimit() == null ){
+            user.setCreditLimit(0L);
+            userRepository.save(user1);
+        }
         if(savedOrder.getOrderAmount() > user1.getCreditLimit() && user1.getCreditLimit() != 0L){
             savedOrder.setStatus(OrderStatus.REJECTED);
             orderRepository.save(savedOrder);
