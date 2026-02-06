@@ -50,6 +50,8 @@ public class SecurityConfig {
             "/api/tenants/admin",
             "/v2/api-docs",
             "/v3/api-docs",
+            "/api/contact/pricing",
+            "/api/contact/request",
             "/v3/api-docs/**",
             "/swagger-resources",
             "/swagger-resources/**",
