@@ -19,7 +19,7 @@ public class ContactController {
     @Autowired
     private JavaMailSender mailSender;
 
-    private final String toEmail = "info@sales.rw";
+    private final String toEmail = "ntwaliisimbivieira@gmail.com";
 
     @PostMapping("/request")
     public String contactRequest(@RequestBody ContactRequest contactRequest) {
