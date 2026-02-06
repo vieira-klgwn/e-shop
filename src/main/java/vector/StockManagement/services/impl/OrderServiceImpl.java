@@ -388,6 +388,11 @@ public class OrderServiceImpl implements OrderService {
             user.setCreditLimit(0L);
             userRepository.save(user1);
         }
+
+        if (user.getCredit() == null){
+            user.setCredit(0L);
+            userRepository.save(user1);
+        }
         if(savedOrder.getOrderAmount() > user1.getCreditLimit() && user1.getCreditLimit() != 0L){
             savedOrder.setStatus(OrderStatus.REJECTED);
             orderRepository.save(savedOrder);
