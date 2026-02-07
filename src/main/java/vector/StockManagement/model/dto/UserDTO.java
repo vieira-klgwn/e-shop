@@ -25,5 +25,6 @@ public class UserDTO {
     private String nationality;
     private LocalDate birthDate;
     private String tin;
+    private String imageUrl;
     private LocalDateTime createdAt;
 }

@@ -199,6 +199,7 @@ public class UserController {
                     userDTO.setBirthDate(user.getBirthDate());
                     userDTO.setCreatedAt(user.getCreatedAt());
                     userDTO.setPhoneNumber(user.getPhone());
+                    userDTO.setImageUrl(user.getImageUrl());
                     return new ResponseEntity<>(userDTO, HttpStatus.OK);
                 })
                 .orElseGet(() -> {
