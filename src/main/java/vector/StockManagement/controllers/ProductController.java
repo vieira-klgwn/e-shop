@@ -81,6 +81,7 @@ public class ProductController {
         dto.setName(product.getName());
         dto.setId(product.getId());
         dto.setSizes(product.getSizes());
+        dto.setImageUrl(product.getImageUrl());
         return ResponseEntity.ok(dto);
     }
 

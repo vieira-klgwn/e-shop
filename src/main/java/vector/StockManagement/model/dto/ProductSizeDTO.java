@@ -11,4 +11,5 @@ public class ProductSizeDTO {
     private Long quantityOrdered;
     private String productName;
     private Long price;
+    private String imageUrl;
 }
