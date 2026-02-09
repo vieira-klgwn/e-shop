@@ -155,6 +155,7 @@ public class ProductServiceImpl implements ProductService {
         Tenant tenant = null;
         tenant = tenantRepository.findById(TenantContext.getTenantId()).orElseThrow(() -> new RuntimeException("Tenant not found"));
         product.setTenant(tenant);
+        product.setImageUrl("/uploads/default-product.png");
 
         for (ProductDTO.ProductSize sizeDTO: productDTO.getProductSizes()){
             ProductSize productSize = new ProductSize();

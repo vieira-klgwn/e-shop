@@ -97,6 +97,7 @@ public class AuthenticationService {
                 .gender(gender)
                 .tenant(tenant)
                 .birthDate(request.getBirthDate())
+                .imageUrl("/uploads/default-profile.jpeg")
                 .phone(request.getPhone())
                 .distributor(distributor)
                 .nationality(request.getNationality())
