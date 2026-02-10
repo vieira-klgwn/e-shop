@@ -38,6 +38,7 @@ public class User implements UserDetails {
     private String lastName;
 
     @OneToMany(mappedBy = "customer")
+    @JsonIgnore
     private List<OrderedProductSize> productsOrdered = new ArrayList<>();
 
     @JsonIgnore
