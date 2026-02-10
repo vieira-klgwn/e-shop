@@ -76,7 +76,7 @@ public class OrderController {
 
         AdjustOrderDTO entity = new AdjustOrderDTO();
         entity.setOrder(order);
-        entity.setCreatedBy(currentUser);           // ← add this field to DTO if missing
+//        entity.setCreatedBy(currentUser);           // ← add this field to DTO if missing
         entity.setCreatedDate(LocalDateTime.now());
         entity.setPartialQtys(adjustmentProposal.getPartialQtys() != null ?
                 new HashMap<>(adjustmentProposal.getPartialQtys()) : null);
