@@ -1,6 +1,7 @@
 package vector.StockManagement.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.Filter;
@@ -38,7 +39,7 @@ public class User implements UserDetails {
     private String lastName;
 
     @OneToMany(mappedBy = "customer")
-    @JsonIgnore
+    @JsonManagedReference
     private List<OrderedProductSize> productsOrdered = new ArrayList<>();
 
     @JsonIgnore

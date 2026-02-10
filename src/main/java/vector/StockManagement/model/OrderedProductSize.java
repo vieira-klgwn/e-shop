@@ -1,6 +1,7 @@
 package vector.StockManagement.model;
 
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
@@ -42,7 +43,7 @@ public class OrderedProductSize {
 
     @ManyToOne
     @JoinColumn(name = "customer_id")
-    @JsonIgnore
+    @JsonBackReference
     private User customer;
 
 
