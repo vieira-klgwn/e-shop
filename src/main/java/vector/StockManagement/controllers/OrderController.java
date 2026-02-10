@@ -69,10 +69,10 @@ public class OrderController {
                 .orElseThrow(() -> new RuntimeException("Order not found"));
 
         // Optional business rules
-        if (order.getStatus() != OrderStatus.PRICE_ADJUSTED &&
-                order.getStatus() != OrderStatus.QUANTITY_ADJUSTED) {
-            throw new IllegalStateException("Can only propose price changes on approved / quantity-adjusted orders");
-        }
+//        if (order.getStatus() != OrderStatus.PRICE_ADJUSTED &&
+//                order.getStatus() != OrderStatus.QUANTITY_ADJUSTED) {
+//            throw new IllegalStateException("Can only propose price changes on approved / quantity-adjusted orders");
+//        }
 
         AdjustOrderDTO entity = new AdjustOrderDTO();
         entity.setOrder(order);
