@@ -47,8 +47,9 @@ public class AdjustOrderDTO {
     @JoinColumn(name = "order_id")
     private Order order;
 
+    @Column(name = "status")
     @Enumerated(EnumType.STRING)
-    private AdjustmentStatus status;
+    private AdjustmentStatus status = AdjustmentStatus.PENDING;
 
 
     @ManyToOne

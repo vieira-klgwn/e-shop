@@ -82,8 +82,10 @@ public class OrderController {
                 new HashMap<>(adjustmentProposal.getPartialQtys()) : null);
         entity.setProductPriceAdjustments(adjustmentProposal.getProductPriceAdjustments() != null ?
                 new HashMap<>(adjustmentProposal.getProductPriceAdjustments()) : null);
+
         // You can add status: PENDING, note, requestedBy, etc.
 
+        entity.setStatus(AdjustmentStatus.PENDING);
         AdjustOrderDTO saved = adjustOrderDTORepository.save(entity);
 
         // Optional: add to order's collection
