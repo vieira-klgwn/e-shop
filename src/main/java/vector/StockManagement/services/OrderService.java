@@ -1,5 +1,6 @@
 package vector.StockManagement.services;
 
+import jakarta.transaction.Transactional;
 import vector.StockManagement.model.Order;
 import vector.StockManagement.model.User;
 import vector.StockManagement.model.dto.AdjustOrderDTO;
@@ -24,7 +25,9 @@ public interface OrderService {
     Order save(Long userId,OrderDTO orderDto);
     void delete(Long id);
 
-    Order adjustOrder(Long id, AdjustOrderDTO adjustOrderDTO, Boolean isAllowedToAdjust);
+
+    @Transactional
+    Order adjustOrder(Long id, AdjustOrderDTO adjustDto, boolean isAllowedToAdjustPrice);
 
     Order update(Long id, OrderDTO orderDto);
     Order approve(Long userId,Order order);

@@ -54,7 +54,8 @@ public class Order extends BaseEntity {
 
     @OneToMany(mappedBy = "order")
     @JsonIgnore
-    private List<AdjustOrderDTO> adjustOrderDTO;
+    private List<AdjustOrderDTO> adjustOrderDTOs;
+
 
 
 

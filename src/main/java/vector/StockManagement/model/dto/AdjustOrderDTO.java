@@ -4,6 +4,9 @@ import jakarta.persistence.*;
 import lombok.Data;
 import org.springframework.data.annotation.CreatedDate;
 import vector.StockManagement.model.Order;
+import vector.StockManagement.model.User;
+import vector.StockManagement.model.enums.AdjustmentStatus;
+import vector.StockManagement.model.enums.OrderStatus;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -43,6 +46,20 @@ public class AdjustOrderDTO {
     @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinColumn(name = "order_id")
     private Order order;
+
+    @Enumerated(EnumType.STRING)
+    private AdjustmentStatus status;
+
+
+    @ManyToOne
+    @JoinColumn(name = "created_by_id")
+    private User createdBy;
+
+    @ManyToOne
+    @JoinColumn(name = "created_by_id")
+    private User approvedBy;
+
+    private LocalDateTime approvedAt;
 
 
     @CreatedDate

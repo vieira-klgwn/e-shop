@@ -453,114 +453,89 @@ public class OrderServiceImpl implements OrderService {
 
 
 
-    // In your OrderServiceImpl class
+    @Transactional
     @Override
-    @Transactional  // Ensures single transaction; flushes only at commit (avoids mid-iteration flushes)
-    public Order adjustOrder(Long id, AdjustOrderDTO adjustOrderDTO, Boolean isAllowedToAdjust) {
+    public Order adjustOrder(Long id, AdjustOrderDTO adjustDto, boolean isAllowedToAdjustPrice) {
         Order order = orderRepository.findById(id).orElseThrow(() -> new RuntimeException("Order not found"));
-        boolean isAdjusted = false;
-        boolean quantityIsChanged = false;
 
-        // Partial Quantity Block (apply first, as it changes quantities used in price calcs)
-        if (adjustOrderDTO.getPartialQtys() != null && !adjustOrderDTO.getPartialQtys().isEmpty()) {
-            quantityIsChanged = true;
-            Map<Long, Long> partialQtys = adjustOrderDTO.getPartialQtys();
-            for (Map.Entry<Long, Long> partialQty : partialQtys.entrySet()) {
-                if (partialQty.getValue() < 0) {
-                    throw new RuntimeException("Quantity cannot be negative: " + partialQty.getValue());
+        boolean quantityChanged = false;
+        boolean priceChanged   = false;
+
+        // ── 1. Apply quantity changes (partialQtys) ────────────────────────
+        if (adjustDto.getPartialQtys() != null && !adjustDto.getPartialQtys().isEmpty()) {
+            quantityChanged = true;
+            for (var entry : adjustDto.getPartialQtys().entrySet()) {
+                Long sizeId = entry.getKey();
+                long newQty = entry.getValue();
+
+                OrderedProductSize size = orderedProductSizeRepository.findById(sizeId)
+                        .orElseThrow(() -> new RuntimeException("Ordered size not found: " + sizeId));
+
+                if (!size.getOrderLine().getOrder().getId().equals(order.getId())) {
+                    throw new IllegalArgumentException("Size does not belong to this order");
                 }
-                // Find and update the specific size (no full loop over all lines per partial for efficiency)
-                boolean found = false;
-                for (OrderLine line : order.getOrderLines()) {  // Direct iteration safe now (no mid-saves)
-                    for (OrderedProductSize size : line.getProductSizes()) {  // Direct iteration
-                        if (size.getId().equals(partialQty.getKey())) {
-                            if (partialQty.getValue() > size.getQuantityInStock()) {
-                                throw new RuntimeException("The updated quantity you want to add, is greater than the ordered quantity before");
-                            }
-                            // Note: This adds the difference to stock (assuming partialQty is the new total qty, so delta = new - old)
 
+                int delta = (int)newQty - size.getQuantityInStock();
 
-                            //update the quantity in the main stock
-                            ProductSize productSize = productSizeRepository.findByProductAndSize(size.getProduct(), size.getSize());
-                            if (productSize == null){
-                                throw new RuntimeException("Oops, Product size for this order does not exist: " + size.getSize() );
+                // Return old qty to stock
+                ProductSize realStock = productSizeRepository.findByProductAndSize(
+                        size.getProduct(), size.getSize());
+                realStock.setQuantityInStock(realStock.getQuantityInStock() + size.getQuantityInStock());
+                productSizeRepository.save(realStock);
 
-                            }
-                            productSize.setQuantityInStock(productSize.getQuantityInStock() +  size.getQuantityInStock());
-                            productSizeRepository.save(productSize);
- //
-                            // NO saveAndFlush here—defer to end via cascade
-                            size.setQuantityInStock(partialQty.getValue().intValue());
-                            orderedProductSizeRepository.saveAndFlush(size);
-                            productSize.setQuantityInStock(productSize.getQuantityInStock() - size.getQuantityInStock());
-                            productSizeRepository.save(productSize);
+                // Apply new qty
+                size.setQuantityInStock((int)newQty);
+                orderedProductSizeRepository.save(size);
 
-
-
-                            found = true;
-                            break;
-                        }
-                    }
-                    if (found) break;
-                }
-                if (!found) {
-                    // Optional: Log warning - partial for non-existent size
-                }
+                // Remove new qty from stock
+                realStock.setQuantityInStock(realStock.getQuantityInStock() - (int)newQty);
+                productSizeRepository.save(realStock);
             }
         }
 
-        // Price Adjustments Block (apply after partials, using updated qtys)
-        Map<Long, Long> adjustments = null;
-        if (adjustOrderDTO.getProductPriceAdjustments() != null && !adjustOrderDTO.getProductPriceAdjustments().isEmpty() && isAllowedToAdjust) {
-            isAdjusted = true;
-            adjustments = adjustOrderDTO.getProductPriceAdjustments();
+        // ── 2. Apply price changes only if allowed ─────────────────────────
+        Map<Long, Long> priceOverrides = null;
+        if (isAllowedToAdjustPrice && adjustDto.getProductPriceAdjustments() != null) {
+            priceOverrides = adjustDto.getProductPriceAdjustments();
+            priceChanged = true;
         }
 
-        // Recalculate ALL lineTotals based on current qtys and prices (adjusted if applicable)
-        // No zeroing or saves in loops—sum contributions from all sizes
-        for (OrderLine line : order.getOrderLines()) {  // Direct iteration safe
-            Long calculatedTotal = 0L;
-            for (OrderedProductSize size : line.getProductSizes()) {  // Direct iteration
-                Long priceToUse = size.getPrice() != null ? size.getPrice() : 0L;
-                Long qtyToUse = size.getQuantityInStock() != null ? size.getQuantityInStock() : 0L;
+        // ── 3. Recalculate all line totals (using possibly new prices & quantities) ──
+        long newOrderAmount = 0;
 
-                // If price adjustment for this size, override price
-                if (adjustments != null && adjustments.containsKey(size.getId())) {
-                    priceToUse = adjustments.get(size.getId());
+        for (OrderLine line : order.getOrderLines()) {
+            long lineTotal = 0;
+
+            for (OrderedProductSize size : line.getProductSizes()) {
+                long price = size.getPrice();
+
+                // Apply override if present
+                if (priceOverrides != null && priceOverrides.containsKey(size.getId())) {
+                    price = priceOverrides.get(size.getId());
+                    // Optional: you can also **persist** the new price into size.setPrice(...)
+                    // size.setPrice(price);
+                    // orderedProductSizeRepository.save(size);
                 }
 
-                calculatedTotal += priceToUse * qtyToUse;
+                lineTotal += price * size.getQuantityInStock();
             }
-            line.setLineTotal(calculatedTotal);
-            orderLineRepository.saveAndFlush(line);
 
+            line.setLineTotal(lineTotal);
+            orderLineRepository.save(line);
+
+            newOrderAmount += lineTotal;
         }
 
-        // Final: Recalc orderAmount from all lineTotals (simple sum)
-        Long totalAmount = order.getOrderLines().stream()
-                .mapToLong(line -> line.getLineTotal() != null ? line.getLineTotal() : 0L)
-                .sum();
+        order.setOrderAmount(newOrderAmount);
 
-        // Apply overall adjustments if present (e.g., customerDiscount or priceAdjustment)
-        // Assuming these are absolute deductions/additions to total
-        Long finalAmount = totalAmount;
-        if (adjustOrderDTO.getCustomerDiscount() != null) {
-            finalAmount -= adjustOrderDTO.getCustomerDiscount();
-        }
-        if (adjustOrderDTO.getPriceAdjustment() != null) {
-            finalAmount += adjustOrderDTO.getPriceAdjustment();  // Or -= if it's a discount
-        }
-        order.setOrderAmount(totalAmount);  // Clamp to >=0
-
-        if (isAdjusted) {
+        // Update status
+        if (priceChanged) {
             order.setStatus(OrderStatus.PRICE_ADJUSTED);
-        } else if (quantityIsChanged) {
+        } else if (quantityChanged) {
             order.setStatus(OrderStatus.QUANTITY_ADJUSTED);
-
         }
 
-        // Single save at end: Cascades to OrderLines/ProductSizes (no intermediate flushes)
-        return orderRepository.save(order);  // This triggers one flush/commit for all changes
+        return orderRepository.save(order);
     }
     
     @Transactional

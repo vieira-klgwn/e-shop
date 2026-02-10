@@ -92,6 +92,9 @@ public class Product extends BaseEntity {
     @Column(name = "distributor_price")
     private Long distributorPrice;
 
+    @OneToMany(mappedBy = "product")
+    private List<PriceList> priceLists;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "tenant_id") // removed , nullable = false
     @JsonIgnore

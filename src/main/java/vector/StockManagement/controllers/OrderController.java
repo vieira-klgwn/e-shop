@@ -19,10 +19,7 @@ import vector.StockManagement.model.User;
 import vector.StockManagement.model.dto.AdjustOrderDTO;
 import vector.StockManagement.model.dto.OrderDTO;
 import vector.StockManagement.model.dto.OrderDisplayDTO;
-import vector.StockManagement.model.enums.ActivityCategory;
-import vector.StockManagement.model.enums.OrderLevel;
-import vector.StockManagement.model.enums.OrderStatus;
-import vector.StockManagement.model.enums.Role;
+import vector.StockManagement.model.enums.*;
 import vector.StockManagement.repositories.AdjustOrderDTORepository;
 import vector.StockManagement.repositories.OrderLineRepository;
 import vector.StockManagement.repositories.OrderRepository;
@@ -32,6 +29,7 @@ import vector.StockManagement.services.AdjustHistoryService;
 import vector.StockManagement.services.OrderService;
 import vector.StockManagement.services.impl.OrderServiceImpl;
 
+import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -62,53 +60,67 @@ public class OrderController {
     }
 
     @PostMapping("/{id}")
-    public ResponseEntity<AdjustOrderDTO> createAdjustOrder(
-            @Valid @RequestBody AdjustOrderDTO adjustOrderDTO, // @Valid triggers validation
-            @PathVariable Long id) { // Assuming User is the principal type
+    public ResponseEntity<AdjustOrderDTO> proposePriceAdjustment(
+            @PathVariable Long id,
+            @Valid @RequestBody AdjustOrderDTO adjustmentProposal,
+            @AuthenticationPrincipal User currentUser) {
 
-        Order order = orderRepository.findById(id).orElseThrow(() ->new RuntimeException("Order not found"));
+        Order order = orderRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Order not found"));
 
-        // Optional: Basic validation (expand as needed, e.g., check maps for negatives)
-        if (adjustOrderDTO.getPartialQtys() != null) {
-            adjustOrderDTO.getPartialQtys().forEach((key, value) -> {
-                if (value < 0) {
-                    throw new IllegalArgumentException("Partial quantity cannot be negative: " + value);
-                }
-            });
+        // Optional business rules
+        if (order.getStatus() != OrderStatus.PRICE_ADJUSTED &&
+                order.getStatus() != OrderStatus.QUANTITY_ADJUSTED) {
+            throw new IllegalStateException("Can only propose price changes on approved / quantity-adjusted orders");
         }
 
-        // Create and populate the entity (copy all fields)
-        AdjustOrderDTO savedDto = new AdjustOrderDTO();
-        savedDto.setPartialQtys(adjustOrderDTO.getPartialQtys() != null ? new HashMap<>(adjustOrderDTO.getPartialQtys()) : new HashMap<>()); // Deep copy to avoid shared state
-        savedDto.setProductPriceAdjustments(adjustOrderDTO.getProductPriceAdjustments() != null ? new HashMap<>(adjustOrderDTO.getProductPriceAdjustments()) : new HashMap<>()); // Deep copy
-        savedDto.setOrder(order);
+        AdjustOrderDTO entity = new AdjustOrderDTO();
+        entity.setOrder(order);
+        entity.setCreatedBy(currentUser);           // ← add this field to DTO if missing
+        entity.setCreatedDate(LocalDateTime.now());
+        entity.setPartialQtys(adjustmentProposal.getPartialQtys() != null ?
+                new HashMap<>(adjustmentProposal.getPartialQtys()) : null);
+        entity.setProductPriceAdjustments(adjustmentProposal.getProductPriceAdjustments() != null ?
+                new HashMap<>(adjustmentProposal.getProductPriceAdjustments()) : null);
+        // You can add status: PENDING, note, requestedBy, etc.
 
+        AdjustOrderDTO saved = adjustOrderDTORepository.save(entity);
 
-        // Optional: Associate with user (add 'private User createdBy;' to DTO with @ManyToOne)
-        // savedDto.setCreatedBy(user);
-
-        // Persist to DB
-        AdjustOrderDTO persistedDto = adjustOrderDTORepository.save(savedDto);
-        order.getAdjustOrderDTO().add(persistedDto);
+        // Optional: add to order's collection
+        order.getAdjustOrderDTOs().add(saved);      // make sure it's @OneToMany(cascade = CascadeType.ALL)
         orderRepository.save(order);
-        // Return the saved DTO with generated ID
-        return ResponseEntity.ok(persistedDto);
+
+        return ResponseEntity.ok(saved);
     }
 
     @PutMapping("/{id}/adjust")
     @Transactional
-    public ResponseEntity<Order> adjustOrder(@PathVariable Long id){
-        Order order = orderRepository.findById(id).orElseThrow(()-> new IllegalStateException("Order not found"));
+    public ResponseEntity<Order> approveAndApplyAdjustment(
+            @PathVariable Long id,
+            @AuthenticationPrincipal User approver) {
 
+        Order order = orderRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Order not found"));
 
+        // Find the latest **pending** adjustment proposal
+        AdjustOrderDTO toApply = order.getAdjustOrderDTOs().stream()
+                .filter(dto -> dto.getStatus() == AdjustmentStatus.PENDING)   // ← add status field!
+                .max(Comparator.comparing(AdjustOrderDTO::getCreatedDate))
+                .orElseThrow(() -> new IllegalStateException("No pending price adjustment found"));
 
-        AdjustOrderDTO latest =
-                order.getAdjustOrderDTO().stream()
-                        .max(Comparator.comparing(AdjustOrderDTO::getCreatedDate))
-                        .orElse(null);
+        // Security / authorization check
+        // if (!hasPermission(approver, "PRICE_ADJUST_APPROVE")) throw ...
 
-        return ResponseEntity.ok(orderService.adjustOrder(id,latest,Boolean.TRUE));
+        // Now actually apply
+        Order updated = orderService.adjustOrder(order.getId(), toApply, true);
 
+        // Mark as applied / approved
+        toApply.setStatus(AdjustmentStatus.APPROVED);
+        toApply.setApprovedBy(approver);
+        toApply.setApprovedAt(LocalDateTime.now());
+        adjustOrderDTORepository.save(toApply);
+
+        return ResponseEntity.ok(updated);
     }
 
     @PutMapping("/{id}/changeQuantity")

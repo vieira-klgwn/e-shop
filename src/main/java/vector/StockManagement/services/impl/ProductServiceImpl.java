@@ -23,6 +23,7 @@ import vector.StockManagement.repositories.*;
 import vector.StockManagement.services.ProductService;
 import vector.StockManagement.services.ProductSizeService;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -166,9 +167,31 @@ public class ProductServiceImpl implements ProductService {
             productSizeRepository.save(productSize);
             product.getSizes().add(productSize);
 
+
         }
 
         productRepository.saveAndFlush(product);
+
+        PriceList priceList = new PriceList();
+        priceList.setProduct(product);
+        priceList.setValidFrom(LocalDate.now());
+        priceList.setName("PriceList for " +productDTO.getProductName() + " on " + LocalDate.now());
+        priceList.setTenant(tenant);
+        priceList.setCurrency("FRW");
+        priceList.setDescription(productDTO.getDescription());
+        priceListRepository.saveAndFlush(priceList);
+        for (ProductSize size:product.getSizes()){
+            PriceListItem item = new PriceListItem();
+            item.setProduct(product);
+            item.setTenant(tenant);
+            item.setBasePrice(size.getPrice());
+            item.setMinPrice(size.getPrice());
+            item.setPriceList(priceList);
+            priceListItemRepository.saveAndFlush(item);
+            priceList.getItems().add(item);
+
+        }
+        product.getPriceLists().add(priceList);
 
 
         return productRepository.saveAndFlush(product);
@@ -211,6 +234,39 @@ public class ProductServiceImpl implements ProductService {
     }
 
 
+
+//    public PriceDisplayDTO getProductPrices(Long productId, Long tenantId) {
+//        Product product = productRepository.findById(productId)
+//                .orElseThrow(() -> new RuntimeException("Product not found: " + productId));
+//
+//        PriceDisplayDTO dto = new PriceDisplayDTO();
+//        List<PriceDisplayDTO.DistributorPriceDTO> distributorPriceDTOS = new ArrayList<>();
+//        List<PriceDisplayDTO.FactoryPriceDTO> factoryPriceDtOS = new ArrayList<>();
+//        dto.setProductId(product.getId());
+//        dto.setProductName(product.getName());
+//        dto.setSku(product.getSku());
+//
+//
+//        for (PriceList priceList: priceListRepository.findAllByProduct(product)) {
+//            for(PriceListItem item : priceList.getItems()) {
+//                if (item.getPriceList().getLevel() == PriceListLevel.FACTORY) {
+//                    PriceDisplayDTO.FactoryPriceDTO factoryDTO = getFactoryDTO(item);
+//                    factoryPriceDtOS.add(factoryDTO);
+//                }
+//                else {
+//                    PriceDisplayDTO.DistributorPriceDTO distributorPriceDTO = getPriceDTO(item);
+//                    distributorPriceDTOS.add(distributorPriceDTO);
+//                }
+//            }
+//        }
+//
+//        dto.setFactoryPrices(factoryPriceDtOS);
+//        dto.setDistributorPrices(distributorPriceDTOS);
+//
+//        return dto;
+//
+//
+//    }
 
     public PriceDisplayDTO getProductPrices(Long productId, Long tenantId) {
         Product product = productRepository.findById(productId)
