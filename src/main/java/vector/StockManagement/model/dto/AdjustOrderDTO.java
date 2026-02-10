@@ -56,7 +56,7 @@ public class AdjustOrderDTO {
     private User createdBy;
 
     @ManyToOne
-    @JoinColumn(name = "created_by_id")
+    @JoinColumn(name = "approved_by_id")
     private User approvedBy;
 
     private LocalDateTime approvedAt;
